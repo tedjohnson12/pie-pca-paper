@@ -3,6 +3,36 @@
 \usepackage{showyourwork}
 \usepackage{amsmath}
 \usepackage{bm}
+\usepackage{listings}
+\usepackage{natbib}
+\usepackage{xcolor}
+
+
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+\lstset{
+    backgroundcolor=\color{white},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    numbers=left,
+    numbersep=5pt,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=1
+}
+
+\definecolor{tedcommentcolor}{HTML}{e17701}
+\newcommand{\TJ}[1]{\textcolor{tedcommentcolor}{#1}}
 
 \DeclareMathOperator{\Span}{span}
 
@@ -149,7 +179,7 @@ where $b_i(\bm{t})$ is the time-dependent coefficient on each of the basis vecto
     \label{eq:single_epoch_sum}
     \bm{f}(t_i) = \sum_{i' \in s} b_{i'}(t_i)\bm{f}(t_{i'}) + \bm{\epsilon}(t_i)
 \end{equation}
-where $\bm{\epsilon}$ is an error term that in practice arises due to noise and deviations of an actual astrophysical scene from our strict assumptions. Section \ref{subsec:implementation} will discuss methods to choose the set $s$ and the coefficients $b_{i'}(t_i)$ such that $\bm{\epsilon}^2$ is minimized.
+where $\bm{\epsilon}$ is an error term that in practice arises due to noise and deviations of an actual astrophysical scene from our strict assumptions. For a well-fitting model, $|\bm{\epsilon}|^2 \sim |\bm{\sigma}|^2$, where $\bm{\sigma}$ is the uncertainty on $\bm{f}$. Section \ref{subsec:implementation} will discuss methods to choose the set $s$ and the coefficients $b_{i'}(t_i)$ such that $\bm{\epsilon}^2$ is minimized.
 
 \subsubsection{Application to PIE}
 
@@ -203,9 +233,158 @@ The quantity $\bm{\epsilon}(t_i) + \bm{\delta}(t_i)$ can be measured, however, o
 
 \subsection{Implementation}
 \label{subsec:implementation}
-Here I'll describe how to do this in code.
+The main challenge of this method is in determining the best set of indices $s$ to use as the basis, and from that, the coefficients $b_i(t)$. The latter can be accomplished using a form of least-squares minimuization.
 
+\subsubsection{Determining the coefficients $b_i(t)$}
+\label{subsubsec:coeffs}
 
+Given some guess of indices $s'$, we construct a basis $B = \{ \bm{f}(t_i)\quad \forall\quad i \mid i \in s' \}$. Some reconstruction at epoch $t=t_i$ is written
+\begin{equation}
+    \tilde{\bm{f}}(t_i) = \sum_{i'\in s'} b_{i'}(t_i)\bm{f}(t_{i'})
+\end{equation}
+which can be written as a product of a row and column vector
+\begin{equation}
+    \label{eq:mat_reconstruct}
+    \begin{array}{ccl}
+        \tilde{\bm{f}}(t_i) & = &
+        \begin{bmatrix}
+            b_a(t_i) & b_b(t_i) & ...
+        \end{bmatrix}
+        \begin{bmatrix}
+            \bm{f}(t_a) \\ \bm{f}(t_b) \\ ...
+        \end{bmatrix} \\
+        & & \forall\quad\{a,b,...\} \in s' \\
+        & = & \bm{b}(t_i)\,\mathcal{B}
+    \end{array}
+\end{equation}
+where $\mathcal{B}$ is the $q\times n$ basis matrix described in Section \ref{subsubsec:bases}, and $\bm{b}(t_i)$ is simply a row vector of $n$ coefficients. We want to choose coefficients that minimize the square of the error term $\bm{\epsilon}$, written
+\begin{equation}
+    |\bm{\epsilon}(t_i)\,\mathcal{W}(t_i)|^2 = | \bm{f}(t_i)\,\mathcal{W}(t_i) - \bm{b}(t_i)\, \mathcal{B} \,\mathcal{W}(t_i) |^2
+\end{equation}
+where $\mathcal{W}$ is a diagonal $n\times n$ matrix made up of the observed uncertainties (i.e. $\mathcal{W}_{jj}(t_i) = 1/\bm{\sigma}_j(t_i)$).
+
+This is equivalent to finding the least-squares solution to the transposed equation:
+\begin{equation}
+   \mathcal{W}(t_i)\, \mathcal{B}^\top \bm{b}(t_i)^\top = \mathcal{W}(t_i)\,\bm{f}(t_i)^\top
+\end{equation}
+We show in Appendix \ref{ap:lsq} that the solution is
+\begin{equation}
+    \bm{b}(t_i) = \bm{f}(t_i)\,\mathcal{W}^2(t_i)\, \mathcal{B}^\top\,(\mathcal{B}\,\mathcal{W}^2(t_i)\,\mathcal{B}^\top)^{-1}
+\end{equation}
+We will define a matrix $\mathcal{M}(t_i)$ in order to rewrite Equation (\ref{eq:mat_reconstruct}).
+\begin{equation}
+    \mathcal{M}(t_i) = \mathcal{W}^2(t_i)\, \mathcal{B}^\top\,(\mathcal{B}\,\mathcal{W}^2(t_i)\,\mathcal{B}^\top)^{-1}\mathcal{B}
+\end{equation}
+\begin{equation}
+    \label{eq:estimate}
+    \tilde{\bm{f}}(t_i) = \bm{f}(t_i)\,\mathcal{M}(t_i)
+\end{equation}
+If $\bm{\sigma}$ does not change much with time, it may be computationally efficient to replace $\mathcal{W}(t)$ with $\langle {\mathcal{W}(t)}\rangle$ so that $\mathcal{M}$ only needs to be computed once per guess for set $s'$. Equation \ref{eq:estimate} gives the best approximation of $\bm{f}(t_i)$ given some set of basis vectors defined by $s'$. Next is to optimize $s'$ to give the best reconstruction.
+
+\subsubsection{Determining the Basis}
+\label{subsubsec:get_basis}
+Our goal is to find $s$, a set of indices that describe the optimal basis of spectra. To do this we will test sets $s'$ and compare them using the Bayes Information Criterion (BIC, ref?), a model selection criterion for which smaller values are preferred:
+\begin{equation}
+    \text{BIC} = q\ln{(mn)} - 2\ln{(\hat{L})}
+\end{equation}
+where $\hat{L}$ is the maximized likelihood function. This is the probability of observing $\bm{f}(\bm{t})$ given the prediction given by reconstruction $\tilde{\bm{f}}(\bm{t})$ and measurement uncertainties $\bm{\sigma}(\bm{t})$.
+\begin{equation}
+    \hat{L} = \prod_{i=1}^m \prod_{j=1}^n \frac{1}{\sqrt{2\pi \sigma_j^2(t_i)}} \exp{\left (-\frac{(f_j(t_i) - \tilde{f}_j(t_i))^2}{2\sigma_j^2(t_i)}\right )}
+\end{equation}
+$\tilde{\bm{f}}(\bm{t})$ has already been computed using the algorithm in Section \ref{subsubsec:coeffs}, so this likelihood is maximized. To compute the BIC, we need $\ln{\hat{L}}$:
+\begin{equation}
+        \ln{\hat{L}} = \sum_{i=1}^m \sum_{j=1}^n -\frac{1}{2} \left (\ln{(2\pi\sigma_j^2(t_i))} + \frac{(f_j(t_i) - \tilde{f}_j(t_i))^2}{\sigma_j^2(t_i)}\right )
+\end{equation}
+Written with vector-wise operations for simplicity, the BIC is
+\begin{equation}
+    \label{eq:bic2}
+    \text{BIC} = q\ln{(mn)} + \sum \left (\ln{(2\pi\bm{\sigma}^2(\bm{t}))} + \frac{(\bm{f}(\bm{t})- \tilde{\bm{f}}(\bm{t}))^2}{\bm{\sigma}^2(\bm{t})}\right )
+\end{equation}
+
+The only values in Equation(\ref{eq:bic2}) that change for any given $s'$ are $q$, the number of elements in $s'$, and $\tilde{\bm{f}}(\bm{t})$, which is computed given $s'$ in Section \ref{subsubsec:coeffs}. Therefore, there exists some function $\text{BIC}(s')$ that can be used to compare any choice of $s'$ to all other choices of $s'$.
+
+All that is left now is to test various values of $s'$, and choose the one for which BIC is minimized. There are many ways to do this. The simplest is to start at low values of $q$ and step through each possible value of $s'$ sequentially, finding a local minimum for each value of $q$. When increasing $q$ no longer leads to decreased BIC, the search is stopped and the previous minimum is returned as the solution.
+
+\begin{lstlisting}[
+    label={ls:soln1}, caption={Minimizing BIC though an exhaustive search at low $q$}
+]
+minima = {}
+for q in 0..m-1:
+    sets = combos(0..m-1, q)
+    vals = []
+    for s in sets:
+        vals.append(bic(s))
+    imin = argmin(vals)
+    if q > 1:
+        if vals[imin] < minima[q-1]["val"]:
+            minima[q] = {
+                "val":vals[imin],
+                "s":sets[imin]
+            }
+        else:
+            return minima[q-1]["s"]
+    else:
+            minima[q] = {
+                "val":vals[imin],
+                "s":sets[imin]
+            }
+\end{lstlisting}
+
+This method, shown as pseudocode in Listing \ref{ls:soln1} is exhaustive, but quickly becomes computationally expensive. Given a time series of 100 spectra and a basis of size 2 (i.e., $m=100$, $q=2$, respectively) there are 4950 possible values of $s'$. However, if instead $q=4$, there are $3\,921\,225$ possible values of $s'$.
+
+A less expensive method is to find local minimum with $q=1$, and then add a single index at a time as $q$ is increased. This will not necessarily find the global minimum of the BIC, but searches higher values of $q$ much faster. A pseudocode implementation is shown in Listing \ref{ls:sequential}.
+
+\begin{lstlisting}[
+    label={ls:sequential},caption={Minimizing BIC by searching for the next best index for each value of $q$}
+]
+s = []
+vals = []
+for _ in 1..m-1:
+    _is = []
+    _vals = []
+    for i in 1..m-1 if i not in s:
+        _s = s + [i]
+        _is.append(i)
+        _vals.append(bic(_s))
+    imin = argmin(_vals)
+    s.append(_is[imin])
+    vals.append(_vals[imin])
+q_best = argmin(vals) + 1
+s = s[:q_best-1]
+return s
+\end{lstlisting}
+
+\appendix
+
+This is mostly so that I don't forget things during the process of writing. They may not be that important.
+\section{Math}
+\subsection{Least Squares Algorithm}
+\label{ap:lsq}
+Recall from Section \ref{subsubsec:coeffs} that we would like to solve the equation:
+\begin{equation}
+    \bm{f}\,\mathcal{W} = \bm{b}\,\mathcal{B}\,\mathcal{W}
+\end{equation}
+Where $\bm{f}$ is $1\times n$, $\bm{b}$ is $1\times q$, $\mathcal{W}$ is $n\times n$, and $\mathcal{B}$ is $q\times n$. We transpose both sides to get a more familiar form.
+\begin{equation}
+    \mathcal{W}\,\mathcal{B}^\top\,\bm{b}^\top = \mathcal{W}\,\bm{f}^\top
+\end{equation}
+The solution to this equation is known from least squares
+\begin{equation}
+    \bm{b}^\top = \mathcal{Q}\,\mathcal{W}\,\bm{f}^\top
+\end{equation}
+where $\mathcal{Q}$ is the Moore-Penrose pseudoinverse Matrix (ref?), defined by
+\begin{equation}
+    \mathcal{Q} = ((\mathcal{W}\,\mathcal{B}^\top)^\top\,\mathcal{W}\,\mathcal{B}^\top)^{-1}\,(\mathcal{W}\,\mathcal{B}^\top)^\top
+\end{equation}
+This leaves us with an expression for $\bm{b}$
+\begin{equation}
+    \begin{array}{ccl}
+        \bm{b} &=& \bm{f}\,\mathcal{W}\,\mathcal{Q}^\top \\
+        &=& \bm{f}\,\mathcal{W}\, ( (\mathcal{BWWB}^\top)^{-1} \mathcal{BW})^\top\\
+        &=& \bm{f}\,\mathcal{W}\,\mathcal{W}\,\mathcal{B}^\top ((\mathcal{BWWB}^\top)^\top)^{-1}\\
+        &=& \bm{f}\,\mathcal{W}^2\, \mathcal{B}^\top\,(\mathcal{B}\,\mathcal{W}^2\,\mathcal{B}^\top)^{-1} \\
+    \end{array}
+\end{equation}
 
 \bibliography{syw}
 
