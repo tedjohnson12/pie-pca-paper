@@ -13,10 +13,22 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
+      
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.9
+      
+      - name: Fix dependencies
+        run: |
+          conda install -y pip
+          pip install pulp==2.7.0
 
       - name: Build the article PDF
         id: build
         uses: showyourwork/showyourwork-action@v1
+        with:
+          showyourwork-spec: git+https://github.com/tedjohnson12/showyourwork.git@main
         env:
           SANDBOX_TOKEN: ${{ secrets.SANDBOX_TOKEN }}
           OVERLEAF_EMAIL: ${{ secrets.OVERLEAF_EMAIL }}
