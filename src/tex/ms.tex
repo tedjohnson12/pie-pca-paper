@@ -273,11 +273,11 @@ We show in Appendix \ref{ap:lsq} that the solution is
 \end{equation}
 We will define a matrix $\mathcal{M}(t_i)$ in order to rewrite Equation (\ref{eq:mat_reconstruct}).
 \begin{equation}
-    \mathcal{M}(t_i) = \mathcal{W}^2(t_i)\, \mathcal{B}^\top\,(\mathcal{B}\,\mathcal{W}^2(t_i)\,\mathcal{B}^\top)^{-1}\mathcal{B}
+    \mathcal{M}(t_i) = \mathcal{W}^2(t_i)\, \mathcal{B}^\top\,(\mathcal{B}\,\mathcal{W}^2(t_i)\,\mathcal{B}^\top)^{-1}
 \end{equation}
 \begin{equation}
     \label{eq:estimate}
-    \tilde{\bm{f}}(t_i) = \bm{f}(t_i)\,\mathcal{M}(t_i)
+    \tilde{\bm{f}}(t_i) = \bm{f}(t_i)\,\mathcal{M}(t_i)\mathcal{B}
 \end{equation}
 If $\bm{\sigma}$ does not change much with time, it may be computationally efficient to replace $\mathcal{W}(t)$ with $\langle {\mathcal{W}(t)}\rangle$ so that $\mathcal{M}$ only needs to be computed once per guess for set $s'$. Equation \ref{eq:estimate} gives the best approximation of $\bm{f}(t_i)$ given some set of basis vectors defined by $s'$. Next is to optimize $s'$ to give the best reconstruction.
 
