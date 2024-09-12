@@ -45,6 +45,11 @@
 
 % Author list
 \author{Ted Johnson}
+\affiliation{UNLV}
+\author{Avi Mandell}
+\affiliation{GSFC}
+\author{Rebecca Martin}
+\affiliation{UNLV}
 
 % Abstract with filler text
 \begin{abstract}
@@ -61,6 +66,51 @@
 \section{Introduction}
 \label{sec:intro}
 I'll write this later.
+
+
+\section{The Classical PIE Method}
+\label{sec:pie}
+Traditionally, the PIE method as described by \citet{stevenson2020} is as follows. A spectrograph measures a spectrum $\bm{f}$ from a planetary system with associated uncertainty $\bm{\sigma}$. Both are arrays, and we will write their elements as $f_i$ and $\sigma_i$, respectively. The spectrograph parameters are chosen so that $\bm{f}$ can be divided into two regions: $\bm{f}_{\rm NIR}$ is the short wavelength (near infrared) portion of the spectrum, where the star dominates, and the planet essentially contributes zero flux. $\bm{f}_{\rm MIR}$ is the long wavelength portion, where the flux from the planet is greater than the noise. The planetary system is unresolved, so
+\begin{equation}
+    \bm{f} = \bm{f}_{\rm s} + \bm{f}_{\rm p}
+\end{equation}
+where $\bm{f}_\text{s}$ is the stellar spectrum and $\bm{f}_\text{p}$ is the planetary spectrum.
+
+The NIR and MIR portions of the spectrum are defined so that
+\begin{equation}
+    \bm{f}_{\rm NIR} = \bm{f}_{\rm s, NIR}
+\end{equation}
+and
+\begin{equation}
+    \bm{f}_{\rm MIR} = \bm{f}_{\rm s, MIR} + \bm{f}_{\rm p, MIR}
+\end{equation}
+
+In the classical PIE case we use a physics-based stellar model to produce a model spectrum $\tilde{\bm{f}}$. The parameters of that model are optimized so that $\bm{f}$ and $\tilde{\bm{f}}$ are approximately equal at short wavelengths. Due to noise and imperfections in the stellar model there is an error term, which the fitting process minimizes:
+\begin{equation}
+    \bm{\epsilon} \equiv \bm{f}_\text{s} - \tilde{\bm{f}}
+\end{equation}
+and since $\bm{f}_\text{NIR} = \bm{f}_\text{s, NIR}$, we can write
+\begin{equation}
+    \bm{\epsilon}_\text{NIR} = \bm{f}_\text{NIR} - \tilde{\bm{f}}_\text{NIR}
+\end{equation}
+
+The model $\tilde{\bm{f}}$ is then extrapolated to cover the full wavelength range (using the same model parameters as fit in the NIR). At long wavelengths, we subtract to find
+\begin{equation}
+    \begin{array}{rcl}
+        \bm{f}_\text{MIR} - \tilde{\bm{f}}_\text{MIR} & = & \bm{f}_{\rm s, MIR} + \bm{f}_{\rm p, MIR} - \tilde{\bm{f}}_\text{MIR} \\
+        & = & \bm{\epsilon}_\text{MIR} + \bm{f}_{\rm p, MIR}
+    \end{array}
+\end{equation}
+
+If $f_{\text{p},i} \gg \epsilon_i$, then we have successfully measured the planet's spectrum and can therefore infer its properties. However, recent high signal-to-noise studies with the James Webb Space Telescope (JWST) have shown that even our most sophisticated stellar models can only be expected to agree with observations to within a few percent \TJ{(ref? ask Avi what paper that was)}. Even in the case of a hot jupiter, where thermal emission could be on the order of $1\%$ of that of the star at 10 \textmu m, this error term dominates, and could introduce bias into any inferences made about the properties of the planet.
+
+Use of modern observatories such as JWST mean that this classical PIE method is model-limited, and to improve our measurement of planetary flux we need to better subtract out the stellar contribution.
+
+\section{The VPIE Method}
+\label{sec:vpie}
+The VPIE (Variable Planetary Infrared Excess) method aims to overcome the challenges described in Section \ref{sec:pie} by making a concession: we will only measure changes in the planet's flux. Just like in Section \ref{sec:pie}, we will start with an observation $\mathbf{F}$ with associated uncertainty $\mathbf{\Sigma}$, except that each of these is an $m \times n$ matrix where $m$ is the number of epochs and $n$ is the number of wavelength channels. We also define wavelength $\bm{\lambda}$ and time $\bm{t}$ such that ${\rm F}_{ij}$ is the flux at time $t_i$ and wavelength $\lambda_j$.
+
+Our goal is the same: to compute some stellar model $\tilde{\mathbf{F}}$ to subtract from $\mathbf{F}$ in order to recover information from the planet.
 
 \section{Methods}
 \label{sec:methods}
@@ -386,6 +436,6 @@ This leaves us with an expression for $\bm{b}$
     \end{array}
 \end{equation}
 
-\bibliography{syw}
+\bibliography{syw,pie}
 
 \end{document}
