@@ -96,6 +96,7 @@ and since $\bm{f}_\text{NIR} = \bm{f}_\text{s, NIR}$, we can write
 
 The model $\tilde{\bm{f}}$ is then extrapolated to cover the full wavelength range (using the same model parameters as fit in the NIR). At long wavelengths, we subtract to find
 \begin{equation}
+    \label{eq:pie_result}
     \begin{array}{rcl}
         \bm{f}_\text{MIR} - \tilde{\bm{f}}_\text{MIR} & = & \bm{f}_{\rm s, MIR} + \bm{f}_{\rm p, MIR} - \tilde{\bm{f}}_\text{MIR} \\
         & = & \bm{\epsilon}_\text{MIR} + \bm{f}_{\rm p, MIR}
@@ -110,7 +111,64 @@ Use of modern observatories such as JWST mean that this classical PIE method is 
 \label{sec:vpie}
 The VPIE (Variable Planetary Infrared Excess) method aims to overcome the challenges described in Section \ref{sec:pie} by making a concession: we will only measure changes in the planet's flux. Just like in Section \ref{sec:pie}, we will start with an observation $\mathbf{F}$ with associated uncertainty $\mathbf{\Sigma}$, except that each of these is an $m \times n$ matrix where $m$ is the number of epochs and $n$ is the number of wavelength channels. We also define wavelength $\bm{\lambda}$ and time $\bm{t}$ such that ${\rm F}_{ij}$ is the flux at time $t_i$ and wavelength $\lambda_j$.
 
-Our goal is the same: to compute some stellar model $\tilde{\mathbf{F}}$ to subtract from $\mathbf{F}$ in order to recover information from the planet.
+Our goal is the same: to compute some stellar model $\tilde{\mathbf{F}}$ to subtract from $\mathbf{F}$ in order to recover information from the planet. Again we do our fitting at short wavelengths only:
+\begin{equation}
+    \mathbf{F}_\text{NIR} - \tilde{\mathbf{F}}_\text{NIR} = \mathbf{E}_\text{NIR}
+\end{equation}
+where $\mathbf{E}$ is an error term defined as
+\begin{equation}
+    \label{eq:def_E}
+    \mathbf{E} \equiv \mathbf{F}_\text{s} - \tilde{\mathbf{F}}_\text{s}
+\end{equation}
+
+Rather than compute $\tilde{\mathbf{F}}$ from some physical model, we will approximate as a matrix whose rows are linear combinations of a small subset of the rows of $\mathbf{F}$. We can choose a set of $q$ integers $s$, whose values are the indices of this ``spectral basis''. Let $\mathbf{B}$ be a $q\times n$ matrix
+\begin{equation}
+    B_{kj} = F_{s_kj} \, \text{for}\, k=1,\,2,\,...,\,q
+\end{equation}
+
+We can also define a coefficient matrix $\mathbf{A}$, which has shape $m\times q$. The model observation can be written
+\begin{equation}
+    \tilde{\mathbf{F}} = \mathbf{A}\mathbf{B}
+\end{equation}
+
+Choosing the best values for $\mathbf{A}$ and $s$ is discussed in Section \ref{??}. However, suppose we had found some optimal set of bases, described by $\hat{s}$, and then calculated $\mathbf{A}$ so that $\mathbf{E}_\text{NIR}$ is minimized. When computing the residual of the full wavelength range, we will introduce the matrix $\mathbf{\Delta}$, which is an additional error term which we attribute to the planet.
+\begin{equation}
+    \label{eq:measurable}
+    \mathbf{F} - \tilde{\mathbf{F}} = \mathbf{E} + \mathbf{\Delta}
+\end{equation}
+As $\mathbf{F}$ is measurable and $\tilde{\mathbf{F}}$ can be calculated from it, the quantity $\mathbf{E} + \mathbf{\Delta}$ is measurable. We can decompose $\mathbf{F}$ and $\tilde{\mathbf{F}}$ to find its meaning. Recall
+\begin{equation}
+    \mathbf{F} = \mathbf{F}_\text{s} + \mathbf{F}_\text{p}
+\end{equation}
+so
+\begin{equation}
+    \mathbf{B} = \mathbf{B}_\text{s} + \mathbf{B}_\text{p}
+\end{equation}
+and $\tilde{\mathbf{F}}$ can be written
+\begin{equation}
+    \begin{array}{rccccc}
+        \tilde{\mathbf{F}} & = & \mathbf{A}&(\mathbf{B}_\text{s} &+& \mathbf{B}_\text{p}) \\
+        & = & & \tilde{\mathbf{F}}_\text{s} &+& \tilde{\mathbf{F}}_\text{p}
+    \end{array}
+\end{equation}
+We can then rewrite Equation (\ref{eq:measurable}):
+\begin{equation}
+    \mathbf{E} + \mathbf{\Delta} = \mathbf{F}_\text{s} - \tilde{\mathbf{F}}_\text{s} + \mathbf{F}_\text{p} - \tilde{\mathbf{F}}_\text{p}
+\end{equation}
+
+Given the definition of $\mathbf{E}$ in Equation (\ref{eq:def_E}), we see that
+\begin{equation}
+    \mathbf{\Delta} =  \mathbf{F}_\text{p} - \tilde{\mathbf{F}}_\text{p}
+\end{equation}
+
+If $\mathbf{E}$ is small, then $\mathbf{F} - \tilde{\mathbf{F}}\approx \mathbf{\Delta}$, and we have measured some signal from the planet. Importantly, the expected value of $\mathbf{\Delta}$ can be calculated for any phase curve model, and therefore we can use our measured $\mathbf{\Delta}$ to infer properties of the planet.
+
+In contrast to the method described in Section \ref{sec:pie}, our stellar error term $\mathbf{E}$ is not dominated by the limitations of a physics-based stellar model. Instead, there are two main sources of error: 1) complex variability: the time-dependent behavior of the star is too complicated to be represented by the $q$ basis vectors described by $\hat{s}$, and 2) measurement error, which in practice is mostly photon noise.
+
+\TJ{(\#1 is unknown without real dataset, \#2 very doable)}
+
+
+
 
 \section{Methods}
 \label{sec:methods}
