@@ -41,7 +41,7 @@
 \begin{document}
 
 % Title
-\title{Principal Component Analysis of Planetary Infrared Excess Data}
+\title{The Variable Planetary Infrared Excess Method}
 
 % Author list
 \author{Ted Johnson}
@@ -123,15 +123,17 @@ where $\mathbf{E}$ is an error term defined as
 
 Rather than compute $\tilde{\mathbf{F}}$ from some physical model, we will approximate as a matrix whose rows are linear combinations of a small subset of the rows of $\mathbf{F}$. We can choose a set of $q$ integers $s$, whose values are the indices of this ``spectral basis''. Let $\mathbf{B}$ be a $q\times n$ matrix
 \begin{equation}
+    \label{eq:def_B}
     B_{kj} = F_{s_kj} \, \text{for}\, k=1,\,2,\,...,\,q
 \end{equation}
+i.e. the $k$th row of $\mathbf{B}$ is the $s_k$th row of $\mathbf{F}$.
 
 We can also define a coefficient matrix $\mathbf{A}$, which has shape $m\times q$. The model observation can be written
 \begin{equation}
     \tilde{\mathbf{F}} = \mathbf{A}\mathbf{B}
 \end{equation}
 
-Choosing the best values for $\mathbf{A}$ and $s$ is discussed in Section \ref{??}. However, suppose we had found some optimal set of bases, described by $\hat{s}$, and then calculated $\mathbf{A}$ so that $\mathbf{E}_\text{NIR}$ is minimized. When computing the residual of the full wavelength range, we will introduce the matrix $\mathbf{\Delta}$, which is an additional error term which we attribute to the planet.
+Choosing the best values for $\mathbf{A}$ and $s$ is discussed in Sections \ref{subsec_detA} and \ref{subsec:choose_B}, respectively. However, suppose we had found some optimal set of bases, described by $\hat{s}$, and then calculated $\mathbf{A}$ so that $\mathbf{E}_\text{NIR}$ is minimized. When computing the residual of the full wavelength range, we will introduce the matrix $\mathbf{\Delta}$, which is an additional error term which we attribute to the planet.
 \begin{equation}
     \label{eq:measurable}
     \mathbf{F} - \tilde{\mathbf{F}} = \mathbf{E} + \mathbf{\Delta}
@@ -168,250 +170,93 @@ In contrast to the method described in Section \ref{sec:pie}, our stellar error 
 \TJ{(\#1 is unknown without real dataset, \#2 very doable)}
 
 
+\subsection{Determination of $\mathbf{A}$}
+\label{subsec_detA}
+Given some basis matrix $\mathbf{B}$ that is based on a set of indices $s$, we need to determine the coefficient matrix $\mathbf{A}$. The best choice is one that minimizes the normalized residual matrix $\mathbf{E}$ at short wavelengths.
 
-
-\section{Methods}
-\label{sec:methods}
-
-\subsection{Motivation}
-We take a vector-based approach to time-series spectroscopy, representing spectra as vectors and observations as matrices.
-\subsubsection{Spectroscopic Bases}
-\label{subsubsec:bases}
-A spectrograph discretizes a continuous spectrum into a series of wavelength bins. These spectral
-elements are approximately linearly independent (though their values may be highly correlated). We can therefore
-discuss a 1D spectrum as a vector of $n$ dimensions, where $n$ is the number of spectral elements. Let $S$ be a vector space of $n$ dimensions. A spectrum $\bm{f}$ can be written as
+The coefficients $A_{ik}$ that correspond to a single epoch $t_i$ are straight forward to compute using least-squares. We are looking at a single row of each of our data matrices, and so we will write them as vectors.
 \begin{equation}
-    \bm{f} = [f_1,\,f_2,\,...,\,f_j,\,...,\,f_n]
+    \bm{\epsilon}^\top = \bm{f}^\top - \mathbf{B}\bm{a}^\top
 \end{equation}
-where $f_j$ is a scalar value representing the flux of a single spectral channel.
 
-Suppose the surface of a rotating star is made up of two regions:
-\begin{enumerate}
-    \item A quiet photosphere with intrinsic spectrum $\bm{f}_p$
-    \item Low temperature spots, with intrinsic spectrum $\bm{f}_s$
-\end{enumerate}
-
-The fraction of each region visible to the observer is dependent on their viewing angle, and will change as the star rotates leading to a time-variable stellar spectrum. It can be written
+We can also define a diagonal weight matrix using the uncertainties
 \begin{equation}
-    \label{eq:spec_basis_single}
-    \bm{f}(t) = a_p(t) \bm{f}_p + a_s(t) \bm{f}_s
+    {W}_{ij} = \frac{\delta_{ij}}{\sigma_i \sigma_j}
 \end{equation}
-where $a_p$ and $a_s$ are scalar functions of time. If this star is observed at times $\bm{t} = [t_1,\,t_2,\,t_3]$, then the resulting spectra will be 
+
+We would like to use least-squares to solve the equation
 \begin{equation}
-    \label{eq:spec_basis_triple}
-    \bm{f}(\bm{t})
-    = \begin{bmatrix}
-        a_p(t_1) \bm{f}_p + a_s(t_1) \bm{f}_s \\
-        a_p(t_2) \bm{f}_p + a_s(t_2) \bm{f}_s \\
-        a_p(t_3) \bm{f}_p + a_s(t_3) \bm{f}_s
+    \mathbf{W}\bm{f}^\top = \mathbf{W}\mathbf{B}\bm{a}^\top
+\end{equation}
+for $\bm{a}$, which has the solution
+\begin{equation}
+    \label{eq:a_transpose}
+    \bm{a}^\top = (
+        \mathbf{B}\mathbf{W}^2\mathbf{B}^\top
+    )^{-1} \mathbf{B}\mathbf{W}^2 \bm{f}^\top
+\end{equation}
+
+Here we have computed $\bm{a}$, which is a row of the $m \times q$ matrix $\mathbf{A}$. It is important to point out that, while $\mathbf{B}$ is uniquely determined by the choice of $s$ for a given problem, we have only computed $\mathbf{W}$ for a given value of the time index $i$. To compute $\mathbf{A}$ we must evaluate Equation (\ref{eq:a_transpose}) $m$ times.
+
+
+\begin{equation}
+    \label{eq:calc_A}
+    \mathbf{A} = \begin{bmatrix}
+        \bm{a}_1 \\
+        \bm{a}_2 \\
+        \vdots \\
+        \bm{a}_m
     \end{bmatrix}
 \end{equation}
-
-Note that the right-hand sides of Equations (\ref{eq:spec_basis_single} \& \ref{eq:spec_basis_triple}) could be more concisely written if we define a basis $B = \{\bm{f}_p,\,\bm{f}_s\}$. In this basis, we can rewrite Equation (\ref{eq:spec_basis_single})
+where the subscript $i$ denotes that $\bm{a}$ is evaluated considering the $i$th time index.
 \begin{equation}
-    [\bm{f}(t)]_{B} 
-    = \begin{bmatrix}
-        a_p(t),\,a_s(t)
-    \end{bmatrix}
+    \label{eq:a_func}
+    \bm{a}_i^\top = (
+        \mathbf{B}\mathbf{W}_i^2\mathbf{B}^\top
+    )^{-1} \mathbf{B}\mathbf{W}_i^2\bm{f}_i^\top
 \end{equation}
-And Equation \ref{eq:spec_basis_triple} is written
+where $\mathbf{B}$ is defined in Equation (\ref{eq:def_B}), $\bm{f}_i$ is the $i$th row of $\mathbf{F}$, and $\mathbf{W}_i$ is defined
 \begin{equation}
-    [\bm{f}(\bm{t})]_{B} 
-    = \begin{bmatrix}
-        a_p(t_1) & a_s(t_1) \\
-        a_p(t_2) & a_s(t_2) \\
-        a_p(t_3) & a_s(t_3)
-    \end{bmatrix}
+    (\mathbf{W}_i)_{jk} = \frac{\delta_{jk}}{\Sigma_{ij}\Sigma_{ik}}
 \end{equation}
 
+The above relations allow $\mathbf{A}$ to be determined given $\mathbf{F}$, $\mathbf{\Sigma}$, and $s$.
 
-We generalize this to any astrophysical scene composed of objects whose respective scaling factors vary with time. For any time-variable scene whose variability can be written
+\subsubsection{Time-averaged uncertainties}
+In some cases it may be appropriate to replace $\mathbf{\Sigma}$ with the time-averaged uncertainty $\langle \mathbf{\Sigma} \rangle$. This is justified if we consider that, for photon noise, $\Sigma_{ij} \propto \sqrt{F_{ij}}$. A variable star may mean a single wavelength channel changes by several percent over the course of an observation, but $\mathbf{F}$ may vary by several orders of magnitude as a function of wavelength. Averaging $\mathbf{\Sigma}$ significantly reduces computational cost, as otherwise Equation (\ref{eq:calc_A}) requires inverting a $q\times q$ matrix $m$ times. Now, Equation (\ref{eq:a_func}) is written
 \begin{equation}
-    \bm{f}(t) = \sum_j a_j(t) \bm{f}_j
+    \label{eq:a_func_mean}
+    \bm{a}_i^\top = (
+        \mathbf{B}\langle\mathbf{W}\rangle^2\mathbf{B}^\top
+    )^{-1} \mathbf{B}\langle\mathbf{W}\rangle^2\bm{f}_i^\top
 \end{equation}
-a time series observation of $\bm{t} = [t_1,\,t_2,\,...\, t_i,\, ...,\,t_m]$ is then
-\begin{equation}
-    \label{eq:gen_spec_base_ts}
-    \bm{f}(\bm{t})
-    = \begin{bmatrix}
-        \sum_j a_j(t_1) \bm{f}_j \\
-        \sum_j a_j(t_2) \bm{f}_j \\
-        ... \\
-        \sum_j a_j(t_i) \bm{f}_j \\
-        \dots \\
-        \sum_j a_j(t_m) \bm{f}_j \\
-    \end{bmatrix}
-    = \mathcal{F}_{ij}
-\end{equation}
-where $\mathcal{F}_{ij}$ is a matrix of shape $m\times n$ whose rows are spectra and whose columns are light curves for a single spectral channel. We then define a basis $B = \{ \bm{f}_1,\,\bm{f}_2,\, ...,\, \bm{f}_j,\, ...,\, \bm{f}_p \}$ and use it to rewrite Equation (\ref{eq:gen_spec_base_ts})
-\begin{equation}
-    [\bm{f}(\bm{t})]_B 
-    = \begin{bmatrix}
-        a_1(t_1) & a_2(t_1) & ... & a_j(t_1) & ... & a_p(t_1) \\
-        a_1(t_2) & a_2(t_2) & ... & a_j(t_2) & ... & a_p(t_2) \\
-        \dots    & \dots    & ... & \dots    & ... & \dots    \\
-        a_1(t_i) & a_2(t_i) & ... & a_j(t_i) & ... & a_p(t_i) \\
-        \dots    & \dots    & ... & \dots    & ... & \dots    \\
-        a_1(t_m) & a_2(t_m) & ... & a_j(t_m) & ... & a_p(t_m) \\
-    \end{bmatrix}
-\end{equation}
-or, more concisely
-\begin{equation}
-    [\mathcal{F}_{ij}]_B = a_j(t_i)
-\end{equation}
+and the matrix $ (\mathbf{B}\langle\mathbf{W}\rangle^2\mathbf{B}^\top)^{-1} \mathbf{B}\langle\mathbf{W}\rangle^2$ can be cached after the first computation.
 
-Where $[\mathcal{F}_{ij}]_B$ is an $m\times p$ matrix, where $p$ is the number of independent spectra that make up this variable scene. Herein we will assume that $p$ is small compared to $m$, that is, there are many more observed epochs than there are independent components in a model.
 
-In practice, the basis $B$ is unknown. A spectroscopic time series resulting from an observation only contains scene-integrated spectra, and the actual spectra of the components ($\bm{f}_j$) are unknown. The time-series is written
-\begin{equation}
-    \label{eq:gen_obs_ts}
-    \bm{f}(\bm{t})
-    = \begin{bmatrix}
-        \bm{f}(t_1) \\
-        \bm{f}(t_2) \\
-        ... \\
-        \bm{f}(t_i) \\
-        ... \\
-        \bm{f}(t_m) \\
-    \end{bmatrix}
-\end{equation}
-However, there is some set of $q \mid q \le p$ vectors $\bm{f}(t_i)$ that span this vector space. We define a set of indices $s$ to describe the epochs in which these vectors occur. We can then write the basis $B = \{\bm{f}(t_i)~\forall~i~\mid~i~\, \in\, s\}$ and use it to rewrite Equation (\ref{eq:gen_obs_ts}).
-\begin{equation}
-    [\bm(f)(\bm{t})]_B
-    = \begin{bmatrix}
-        b_i(\bm{t})\quad\forall ~i~\mid~i\,\in\,s
-    \end{bmatrix}
-\end{equation}
-where $b_i(\bm{t})$ is the time-dependent coefficient on each of the basis vectors. The observation, initially described by an $m\times n$ matrix in Equation \ref{eq:gen_spec_base_ts}, is now described by two matrices: 1) a $q\times n$ matrix describing the basis, and 2) a $m\times q$ matrix describing the time-series in that basis. Any of our original vectors $\bm{f}(t_i)$ can be represented by a sum of the basis vectors
-\begin{equation}
-    \label{eq:single_epoch_sum}
-    \bm{f}(t_i) = \sum_{i' \in s} b_{i'}(t_i)\bm{f}(t_{i'}) + \bm{\epsilon}(t_i)
-\end{equation}
-where $\bm{\epsilon}$ is an error term that in practice arises due to noise and deviations of an actual astrophysical scene from our strict assumptions. For a well-fitting model, $|\bm{\epsilon}|^2 \sim |\bm{\sigma}|^2$, where $\bm{\sigma}$ is the uncertainty on $\bm{f}$. Section \ref{subsec:implementation} will discuss methods to choose the set $s$ and the coefficients $b_{i'}(t_i)$ such that $\bm{\epsilon}^2$ is minimized.
+\subsection{Choosing the basis $\mathbf{B}$}
+\label{subsec:choose_B}
 
-\subsubsection{Application to PIE}
-
-A prototypical PIE observation consists of an unresolved astrophysical scene consisting of a star and a planet observed across two bands, the near
-infrared (NIR) and mid infrared (MIR). The star -- being much hotter than the planet -- contributes flux to both bands. The planet is not hot enough
-to contribute to the NIR band, and only produces measurable flux in the MIR. We can write the flux in epoch $i$
-\begin{equation}
-    \label{eq:obs_composition}
-    \bm{f}(t_i) = \bm{f}_s(t_i) + \bm{f}_p(t_i)
-\end{equation}
-for time-dependent stellar spectrum $\bm{f}_s(t_i)$ and time-dependent planetary spectrum $\bm{f}_p(t_i)$. In the NIR (i.e. where the planet contributes 0 flux), this is written
-\begin{equation}
-    \bm{f}^{\text{NIR}}(t_i) = \bm{f}^\text{NIR}_s(t_i)
-\end{equation}
-
-Considering this star-only portion of the spectrum, we can write it similar to Equation (\ref{eq:single_epoch_sum}).
-\begin{equation}
-    \begin{array}{ccl}
-        \bm{f}^{\text{NIR}}(t_i) &=& \sum_{i' \in s} b_{i'}(t_i) \bm{f}^\text{NIR}(t_i') + \bm{\epsilon}^\text{NIR}(t_i) \\
-        &=& \tilde{\bm{f}}^{\text{NIR}}(t_i) + \bm{\epsilon}^\text{NIR}(t_i)
-    \end{array}
-\end{equation}
-where $s$ and $b_{i'}(t_i)$ are calculated using the NIR data only, and $\tilde{\bm{f}}$ represents the reconstruction of $\bm{f}$ using the basis $B$. We then use these NIR-only bases and coefficients to compute a reconstruction of the whole spectrum.
-\begin{equation}
-    \begin{array}{ccl}
-        \bm{f}(t_i) &=& \sum_{i' \in s} b_{i'}(t_i) \bm{f}(t_i') + \bm{\epsilon}(t_i) + \bm{\delta}(t_i) \\
-        &=& \tilde{\bm{f}}(t_i) + \bm{\epsilon}(t_i) + \bm{\delta}(t_i)
-    \end{array}
-\end{equation}
-Where $\bm{\delta}$ is an additional error term due to the uncorrelated variability of the planet. By subtracting $\tilde{\bm{f}}(t_i)$ from $\bm{f}(t_i)$ we are able to measure the quantity $\bm{\epsilon}(t_i) + \bm{\delta}(t_i)$. We can interpret this quantity by substituting in Equation (\ref{eq:obs_composition})
-\begin{equation}
-    \begin{array}{ccl}
-        \bm{f}_s(t_i) + \bm{f}_p(t_i) &=& \sum_{i' \in s} b_{i'}(t_i) \bm{f}_s(t_i')  \\
-        & & + \sum_{i' \in s} b_{i'}(t_i) \bm{f}_p(t_i') \\
-        & & + \bm{\epsilon}(t_i) + \bm{\delta}(t_i)
-    \end{array}
-\end{equation}
-or
-\begin{equation}
-    \bm{\epsilon}(t_i) + \bm{\delta}(t_i) = \bm{f}_s(t_i) - \tilde{\bm{f}_s}(t_i) + \bm{f}_p(t_i) - \tilde{\bm{f}_p}(t_i)
-\end{equation}
-Since $\bm{\epsilon}(t_i)$ is defined as $\bm{f}_s(t_i) - \tilde{\bm{f}_s}(t_i)$, we are left with a definition for $\bm{\delta}(t_i)$:
-\begin{equation}
-    \begin{array}{ccl}
-        \bm{\delta}(t_i) &=& \bm{f}_p(t_i) - \tilde{\bm{f}_p}(t_i) \\
-        &=& \bm{f}_p(t_i) - \sum_{i'\in s} b_{i'}(t_i) \bm{f}_p(t_i')
-    \end{array}
-\end{equation}
-
-The quantity $\bm{\epsilon}(t_i) + \bm{\delta}(t_i)$ can be measured, however, only $\bm{\delta}(t_i)$ provides any information about the planet's spectrum. Therefore, $\bm{\epsilon}(t_i)$ is not important so long as it is small. For simplicity, we will assume that $\bm{\delta}(t_i) \gg \bm{\epsilon}(t_i)$ in the MIR, the only wavelength band in which $\bm{\delta}$ is defined. This assumption allows for a direct measurement of $\bm{f}_p(t_i) - \tilde{\bm{f}_p}(t_i)$. To compute $\tilde{\bm{f}_p}(t_i)$ from some planetary phase curve model $\bm{f}_p(t)$ requires the set of basis indices $s$ as well as the coefficients $b_{i}(t)$, both of which are computed using the NIR data only and are independent of the planetary model. Therefore, any forward model of a planetary phase curve can be used to predict the observable error term $\bm{\delta}(t)$. Section \ref{subsec:implementation} will use this to compare the measured $\bm{\delta}(t)$ to the expected $\bm{\delta}(t)$ given by a grid of planetary models in order to retrieve the characteristics of the observed planet.
-
-\subsection{Implementation}
-\label{subsec:implementation}
-The main challenge of this method is in determining the best set of indices $s$ to use as the basis, and from that, the coefficients $b_i(t)$. The latter can be accomplished using a form of least-squares minimuization.
-
-\subsubsection{Determining the coefficients $b_i(t)$}
-\label{subsubsec:coeffs}
-
-Given some guess of indices $s'$, we construct a basis $B = \{ \bm{f}(t_i)\quad \forall\quad i \mid i \in s' \}$. Some reconstruction at epoch $t=t_i$ is written
-\begin{equation}
-    \tilde{\bm{f}}(t_i) = \sum_{i'\in s'} b_{i'}(t_i)\bm{f}(t_{i'})
-\end{equation}
-which can be written as a product of a row and column vector
-\begin{equation}
-    \label{eq:mat_reconstruct}
-    \begin{array}{ccl}
-        \tilde{\bm{f}}(t_i) & = &
-        \begin{bmatrix}
-            b_a(t_i) & b_b(t_i) & ...
-        \end{bmatrix}
-        \begin{bmatrix}
-            \bm{f}(t_a) \\ \bm{f}(t_b) \\ ...
-        \end{bmatrix} \\
-        & & \forall\quad\{a,b,...\} \in s' \\
-        & = & \bm{b}(t_i)\,\mathcal{B}
-    \end{array}
-\end{equation}
-where $\mathcal{B}$ is the $q\times n$ basis matrix described in Section \ref{subsubsec:bases}, and $\bm{b}(t_i)$ is simply a row vector of $n$ coefficients. We want to choose coefficients that minimize the square of the error term $\bm{\epsilon}$, written
-\begin{equation}
-    |\bm{\epsilon}(t_i)\,\mathcal{W}(t_i)|^2 = | \bm{f}(t_i)\,\mathcal{W}(t_i) - \bm{b}(t_i)\, \mathcal{B} \,\mathcal{W}(t_i) |^2
-\end{equation}
-where $\mathcal{W}$ is a diagonal $n\times n$ matrix made up of the observed uncertainties (i.e. $\mathcal{W}_{jj}(t_i) = 1/\bm{\sigma}_j(t_i)$).
-
-This is equivalent to finding the least-squares solution to the transposed equation:
-\begin{equation}
-   \mathcal{W}(t_i)\, \mathcal{B}^\top \bm{b}(t_i)^\top = \mathcal{W}(t_i)\,\bm{f}(t_i)^\top
-\end{equation}
-We show in Appendix \ref{ap:lsq} that the solution is
-\begin{equation}
-    \bm{b}(t_i) = \bm{f}(t_i)\,\mathcal{W}^2(t_i)\, \mathcal{B}^\top\,(\mathcal{B}\,\mathcal{W}^2(t_i)\,\mathcal{B}^\top)^{-1}
-\end{equation}
-We will define a matrix $\mathcal{M}(t_i)$ in order to rewrite Equation (\ref{eq:mat_reconstruct}).
-\begin{equation}
-    \mathcal{M}(t_i) = \mathcal{W}^2(t_i)\, \mathcal{B}^\top\,(\mathcal{B}\,\mathcal{W}^2(t_i)\,\mathcal{B}^\top)^{-1}
-\end{equation}
-\begin{equation}
-    \label{eq:estimate}
-    \tilde{\bm{f}}(t_i) = \bm{f}(t_i)\,\mathcal{M}(t_i)\mathcal{B}
-\end{equation}
-If $\bm{\sigma}$ does not change much with time, it may be computationally efficient to replace $\mathcal{W}(t)$ with $\langle {\mathcal{W}(t)}\rangle$ so that $\mathcal{M}$ only needs to be computed once per guess for set $s'$. Equation \ref{eq:estimate} gives the best approximation of $\bm{f}(t_i)$ given some set of basis vectors defined by $s'$. Next is to optimize $s'$ to give the best reconstruction.
-
-\subsubsection{Determining the Basis}
-\label{subsubsec:get_basis}
-Our goal is to find $s$, a set of indices that describe the optimal basis of spectra. To do this we will test sets $s'$ and compare them using the Bayes Information Criterion (BIC, ref?), a model selection criterion for which smaller values are preferred:
+Our goal is to find the optimal $\mathbf{B}$, which is defined by the optimized set of indices $\hat{s}$. To do this we will test sets $s$ and compare them using the Bayes Information Criterion (BIC, ref?), a model selection criterion for which smaller values are preferred:
 \begin{equation}
     \text{BIC} = q\ln{(mn)} - 2\ln{(\hat{L})}
 \end{equation}
-where $\hat{L}$ is the maximized likelihood function. This is the probability of observing $\bm{f}(\bm{t})$ given the prediction given by reconstruction $\tilde{\bm{f}}(\bm{t})$ and measurement uncertainties $\bm{\sigma}(\bm{t})$.
+where $\hat{L}$ is the maximized likelihood function. This is the probability of observing $\mathbf{F}$ given the prediction given by reconstruction $\tilde{\mathbf{F}}$ and measurement uncertainties $\mathbf{\Sigma}$.
 \begin{equation}
-    \hat{L} = \prod_{i=1}^m \prod_{j=1}^n \frac{1}{\sqrt{2\pi \sigma_j^2(t_i)}} \exp{\left (-\frac{(f_j(t_i) - \tilde{f}_j(t_i))^2}{2\sigma_j^2(t_i)}\right )}
+    \hat{L} = \prod_{i=1}^m \prod_{j=1}^n \frac{1}{\sqrt{2\pi \Sigma_{ij}^2}} \exp{\left (-\frac{(F_{ij} - \tilde{F}_{ij})^2}{2\Sigma_{ij}^2}\right )}
 \end{equation}
-$\tilde{\bm{f}}(\bm{t})$ has already been computed using the algorithm in Section \ref{subsubsec:coeffs}, so this likelihood is maximized. To compute the BIC, we need $\ln{\hat{L}}$:
+$\tilde{\mathbf{F}} = \mathbf{A}\mathbf{B}$ has already been computed using Equation (\ref{eq:calc_A}), so this likelihood is maximized. To compute the BIC, we need $\ln{\hat{L}}$:
 \begin{equation}
-        \ln{\hat{L}} = \sum_{i=1}^m \sum_{j=1}^n -\frac{1}{2} \left (\ln{(2\pi\sigma_j^2(t_i))} + \frac{(f_j(t_i) - \tilde{f}_j(t_i))^2}{\sigma_j^2(t_i)}\right )
+        \ln{\hat{L}} = \sum_{i=1}^m \sum_{j=1}^n -\frac{1}{2} \left (\ln{(2\pi\Sigma_{ij}^2)} + \frac{(F_{ij} - \tilde{F}_{ij})^2}{\Sigma_{ij}^2}\right )
 \end{equation}
-Written with vector-wise operations for simplicity, the BIC is
+The BIC is then written
 \begin{equation}
     \label{eq:bic2}
-    \text{BIC} = q\ln{(mn)} + \sum \left (\ln{(2\pi\bm{\sigma}^2(\bm{t}))} + \frac{(\bm{f}(\bm{t})- \tilde{\bm{f}}(\bm{t}))^2}{\bm{\sigma}^2(\bm{t})}\right )
+    \text{BIC} = q\ln{(mn)} + \sum_{ij} \left (\ln{(2\pi\Sigma_{ij}^2)} + \frac{(F_{ij} - \tilde{F}_{ij})^2}{\Sigma_{ij}^2}\right )
 \end{equation}
 
-The only values in Equation(\ref{eq:bic2}) that change for any given $s'$ are $q$, the number of elements in $s'$, and $\tilde{\bm{f}}(\bm{t})$, which is computed given $s'$ in Section \ref{subsubsec:coeffs}. Therefore, there exists some function $\text{BIC}(s')$ that can be used to compare any choice of $s'$ to all other choices of $s'$.
+The only values in Equation (\ref{eq:bic2}) that change for any given $s$ are $q$, the number of elements in $s$, and $\mathbf{\tilde{F}}$, the reconstructed spectrum. Therefore, there exists some function $\text{BIC}(s)$ that can be used to compare any choice $s_1$ to another choice $s_2$.
 
-All that is left now is to test various values of $s'$, and choose the one for which BIC is minimized. There are many ways to do this. The simplest is to start at low values of $q$ and step through each possible value of $s'$ sequentially, finding a local minimum for each value of $q$. When increasing $q$ no longer leads to decreased BIC, the search is stopped and the previous minimum is returned as the solution.
+All that is left now is to test various values of $s$, and choose the one for which BIC is minimized. There are many ways to do this. The simplest is to start at low values of $q$ and step through each possible value of $s$ sequentially, finding a local minimum for each value of $q$. When increasing $q$ no longer leads to decreased BIC, the search is stopped and the previous minimum is returned as the solution.
 
 \begin{lstlisting}[
     label={ls:soln1}, caption={Minimizing BIC though an exhaustive search at low $q$}
@@ -438,9 +283,9 @@ for q in 0..m-1:
             }
 \end{lstlisting}
 
-This method, shown as pseudocode in Listing \ref{ls:soln1} is exhaustive, but quickly becomes computationally expensive. Given a time series of 100 spectra and a basis of size 2 (i.e., $m=100$, $q=2$, respectively) there are 4950 possible values of $s'$. However, if instead $q=4$, there are $3\,921\,225$ possible values of $s'$.
+This method, shown as pseudocode in Listing \ref{ls:soln1} is exhaustive, but quickly becomes computationally expensive. There are $m\choose q$ combinations for each loop to consider, so the time complexity of each loop iteration is $\mathcal{O}(m^q)$.
 
-A less expensive method is to find local minimum with $q=1$, and then add a single index at a time as $q$ is increased. This will not necessarily find the global minimum of the BIC, but searches higher values of $q$ much faster. A pseudocode implementation is shown in Listing \ref{ls:sequential}.
+A less expensive method is to find local minimum with $q=1$, and then add a single index at a time as $q$ is increased. This will not necessarily find the global minimum of the BIC, but searches higher values of $q$ much faster as the time complexity is $\mathcal{O}(m)$. A pseudocode implementation is shown in Listing \ref{ls:sequential}.
 
 \begin{lstlisting}[
     label={ls:sequential},caption={Minimizing BIC by searching for the next best index for each value of $q$}
@@ -462,37 +307,7 @@ s = s[:q_best-1]
 return s
 \end{lstlisting}
 
-\appendix
 
-This is mostly so that I don't forget things during the process of writing. They may not be that important.
-\section{Math}
-\subsection{Least Squares Algorithm}
-\label{ap:lsq}
-Recall from Section \ref{subsubsec:coeffs} that we would like to solve the equation:
-\begin{equation}
-    \bm{f}\,\mathcal{W} = \bm{b}\,\mathcal{B}\,\mathcal{W}
-\end{equation}
-Where $\bm{f}$ is $1\times n$, $\bm{b}$ is $1\times q$, $\mathcal{W}$ is $n\times n$, and $\mathcal{B}$ is $q\times n$. We transpose both sides to get a more familiar form.
-\begin{equation}
-    \mathcal{W}\,\mathcal{B}^\top\,\bm{b}^\top = \mathcal{W}\,\bm{f}^\top
-\end{equation}
-The solution to this equation is known from least squares
-\begin{equation}
-    \bm{b}^\top = \mathcal{Q}\,\mathcal{W}\,\bm{f}^\top
-\end{equation}
-where $\mathcal{Q}$ is the Moore-Penrose pseudoinverse Matrix (ref?), defined by
-\begin{equation}
-    \mathcal{Q} = ((\mathcal{W}\,\mathcal{B}^\top)^\top\,\mathcal{W}\,\mathcal{B}^\top)^{-1}\,(\mathcal{W}\,\mathcal{B}^\top)^\top
-\end{equation}
-This leaves us with an expression for $\bm{b}$
-\begin{equation}
-    \begin{array}{ccl}
-        \bm{b} &=& \bm{f}\,\mathcal{W}\,\mathcal{Q}^\top \\
-        &=& \bm{f}\,\mathcal{W}\, ( (\mathcal{BWWB}^\top)^{-1} \mathcal{BW})^\top\\
-        &=& \bm{f}\,\mathcal{W}\,\mathcal{W}\,\mathcal{B}^\top ((\mathcal{BWWB}^\top)^\top)^{-1}\\
-        &=& \bm{f}\,\mathcal{W}^2\, \mathcal{B}^\top\,(\mathcal{B}\,\mathcal{W}^2\,\mathcal{B}^\top)^{-1} \\
-    \end{array}
-\end{equation}
 
 \bibliography{syw,pie}
 
