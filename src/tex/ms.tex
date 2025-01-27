@@ -36,6 +36,8 @@
 
 \DeclareMathOperator{\Span}{span}
 
+\defcitealias{stevenson2020}{S20}
+
 
 % Begin!
 \begin{document}
@@ -70,9 +72,9 @@ I'll write this later.
 
 \section{The Classical PIE Method}
 \label{sec:pie}
-Traditionally, the PIE method as described by \citet{stevenson2020} is as follows. A spectrograph measures a spectrum $\bm{f}$ from a planetary system with associated uncertainty $\bm{\sigma}$. Both are arrays, and we will write their elements as $f_i$ and $\sigma_i$, respectively. The spectrograph parameters are chosen so that $\bm{f}$ can be divided into two regions: $\bm{f}_{\rm NIR}$ is the short wavelength (near infrared) portion of the spectrum, where the star dominates, and the planet essentially contributes zero flux. $\bm{f}_{\rm MIR}$ is the long wavelength portion, where the flux from the planet is greater than the noise. The planetary system is unresolved, so
+Traditionally, the PIE method as described by \citet[herein \citetalias{stevenson2020}]{stevenson2020} is as follows. A spectrograph measures a spectrum $\bm{f}$ from a planetary system with associated uncertainty $\bm{\sigma}$. Both are arrays, and we will write their elements as $f_i$ and $\sigma_i$, respectively. The spectrograph parameters are chosen so that $\bm{f}$ can be divided into two regions: $\bm{f}_{\rm NIR}$ is the short wavelength (near infrared) portion of the spectrum, where the star dominates, and the planet essentially contributes zero flux. $\bm{f}_{\rm MIR}$ is the long wavelength portion, where the flux from the planet is greater than the noise. The planetary system is unresolved, so
 \begin{equation}
-    \bm{f} = \bm{f}_{\rm s} + \bm{f}_{\rm p}
+    \bm{f} = \bm{f}_{\rm s} + \bm{f}_{\rm p}\, ,
 \end{equation}
 where $\bm{f}_\text{s}$ is the stellar spectrum and $\bm{f}_\text{p}$ is the planetary spectrum.
 
@@ -82,16 +84,16 @@ The NIR and MIR portions of the spectrum are defined so that
 \end{equation}
 and
 \begin{equation}
-    \bm{f}_{\rm MIR} = \bm{f}_{\rm s, MIR} + \bm{f}_{\rm p, MIR}
+    \bm{f}_{\rm MIR} = \bm{f}_{\rm s, MIR} + \bm{f}_{\rm p, MIR}\, .
 \end{equation}
 
 In the classical PIE case we use a physics-based stellar model to produce a model spectrum $\tilde{\bm{f}}$. The parameters of that model are optimized so that $\bm{f}$ and $\tilde{\bm{f}}$ are approximately equal at short wavelengths. Due to noise and imperfections in the stellar model there is an error term, which the fitting process minimizes:
 \begin{equation}
-    \bm{\epsilon} \equiv \bm{f}_\text{s} - \tilde{\bm{f}}
+    \bm{\epsilon} \equiv \bm{f}_\text{s} - \tilde{\bm{f}}\, ,
 \end{equation}
 and since $\bm{f}_\text{NIR} = \bm{f}_\text{s, NIR}$, we can write
 \begin{equation}
-    \bm{\epsilon}_\text{NIR} = \bm{f}_\text{NIR} - \tilde{\bm{f}}_\text{NIR}
+    \bm{\epsilon}_\text{NIR} = \bm{f}_\text{NIR} - \tilde{\bm{f}}_\text{NIR}\, .
 \end{equation}
 
 The model $\tilde{\bm{f}}$ is then extrapolated to cover the full wavelength range (using the same model parameters as fit in the NIR). At long wavelengths, we subtract to find
@@ -103,7 +105,7 @@ The model $\tilde{\bm{f}}$ is then extrapolated to cover the full wavelength ran
     \end{array}
 \end{equation}
 
-If $f_{\text{p},i} \gg \epsilon_i$, then we have successfully measured the planet's spectrum and can therefore infer its properties. However, recent high signal-to-noise studies with the James Webb Space Telescope (JWST) have shown that even our most sophisticated stellar models can only be expected to agree with observations to within a few percent \TJ{(ref? ask Avi what paper that was)}. Even in the case of a hot jupiter, where thermal emission could be on the order of $1\%$ of that of the star at 10 \textmu m, this error term dominates, and could introduce bias into any inferences made about the properties of the planet.
+If $f_{\text{p},i} \gg \epsilon_i$, then we have successfully measured the planet's spectrum and can therefore infer its properties. However, recent high signal-to-noise studies with the James Webb Space Telescope (JWST) have shown that even our most sophisticated stellar models can only be expected to agree with observations to within a few percent \citep[e.g.,][see Fig. 5]{moran2023}. Even in the case of a hot Jupiter, where thermal emission could be on the order of $1\%$ of that of the star at 10 \textmu m, this error term dominates, and could introduce bias into any inferences made about the properties of the planet.
 
 Use of modern observatories such as JWST mean that this classical PIE method is model-limited, and to improve our measurement of planetary flux we need to better subtract out the stellar contribution.
 
@@ -113,54 +115,54 @@ The VPIE (Variable Planetary Infrared Excess) method aims to overcome the challe
 
 Our goal is the same: to compute some stellar model $\tilde{\mathbf{F}}$ to subtract from $\mathbf{F}$ in order to recover information from the planet. Again we do our fitting at short wavelengths only:
 \begin{equation}
-    \mathbf{F}_\text{NIR} - \tilde{\mathbf{F}}_\text{NIR} = \mathbf{E}_\text{NIR}
+    \mathbf{F}_\text{NIR} - \tilde{\mathbf{F}}_\text{NIR} = \mathbf{E}_\text{NIR}\, ,
 \end{equation}
 where $\mathbf{E}$ is an error term defined as
 \begin{equation}
     \label{eq:def_E}
-    \mathbf{E} \equiv \mathbf{F}_\text{s} - \tilde{\mathbf{F}}_\text{s}
+    \mathbf{E} \equiv \mathbf{F}_\text{s} - \tilde{\mathbf{F}}_\text{s}\, .
 \end{equation}
 
 Rather than compute $\tilde{\mathbf{F}}$ from some physical model, we will approximate as a matrix whose rows are linear combinations of a small subset of the rows of $\mathbf{F}$. We can choose a set of $q$ integers $s$, whose values are the indices of this ``spectral basis''. Let $\mathbf{B}$ be a $q\times n$ matrix
 \begin{equation}
     \label{eq:def_B}
-    B_{kj} = F_{s_kj} \, \text{for}\, k=1,\,2,\,...,\,q
+    B_{kj} = F_{s_kj} \, \text{for}\, k=1,\,2,\,...,\,q\, ,
 \end{equation}
 i.e. the $k$th row of $\mathbf{B}$ is the $s_k$th row of $\mathbf{F}$.
 
 We can also define a coefficient matrix $\mathbf{A}$, which has shape $m\times q$. The model observation can be written
 \begin{equation}
-    \tilde{\mathbf{F}} = \mathbf{A}\mathbf{B}
+    \tilde{\mathbf{F}} = \mathbf{A}\mathbf{B}\, .
 \end{equation}
 
 Choosing the best values for $\mathbf{A}$ and $s$ is discussed in Sections \ref{subsec_detA} and \ref{subsec:choose_B}, respectively. However, suppose we had found some optimal set of bases, described by $\hat{s}$, and then calculated $\mathbf{A}$ so that $\mathbf{E}_\text{NIR}$ is minimized. When computing the residual of the full wavelength range, we will introduce the matrix $\mathbf{\Delta}$, which is an additional error term which we attribute to the planet.
 \begin{equation}
     \label{eq:measurable}
-    \mathbf{F} - \tilde{\mathbf{F}} = \mathbf{E} + \mathbf{\Delta}
+    \mathbf{F} - \tilde{\mathbf{F}} = \mathbf{E} + \mathbf{\Delta}\, .
 \end{equation}
 As $\mathbf{F}$ is measurable and $\tilde{\mathbf{F}}$ can be calculated from it, the quantity $\mathbf{E} + \mathbf{\Delta}$ is measurable. We can decompose $\mathbf{F}$ and $\tilde{\mathbf{F}}$ to find its meaning. Recall
 \begin{equation}
-    \mathbf{F} = \mathbf{F}_\text{s} + \mathbf{F}_\text{p}
+    \mathbf{F} = \mathbf{F}_\text{s} + \mathbf{F}_\text{p}\, ,
 \end{equation}
 so
 \begin{equation}
-    \mathbf{B} = \mathbf{B}_\text{s} + \mathbf{B}_\text{p}
+    \mathbf{B} = \mathbf{B}_\text{s} + \mathbf{B}_\text{p}\, ,
 \end{equation}
 and $\tilde{\mathbf{F}}$ can be written
 \begin{equation}
     \begin{array}{rccccc}
-        \tilde{\mathbf{F}} & = & \mathbf{A}&(\mathbf{B}_\text{s} &+& \mathbf{B}_\text{p}) \\
-        & = & & \tilde{\mathbf{F}}_\text{s} &+& \tilde{\mathbf{F}}_\text{p}
+        \tilde{\mathbf{F}} & = & \mathbf{A}&(\mathbf{B}_\text{s} &+& \mathbf{B}_\text{p})\, , \\
+        & = & & \tilde{\mathbf{F}}_\text{s} &+& \tilde{\mathbf{F}}_\text{p}\, .
     \end{array}
 \end{equation}
 We can then rewrite Equation (\ref{eq:measurable}):
 \begin{equation}
-    \mathbf{E} + \mathbf{\Delta} = \mathbf{F}_\text{s} - \tilde{\mathbf{F}}_\text{s} + \mathbf{F}_\text{p} - \tilde{\mathbf{F}}_\text{p}
+    \mathbf{E} + \mathbf{\Delta} = \mathbf{F}_\text{s} - \tilde{\mathbf{F}}_\text{s} + \mathbf{F}_\text{p} - \tilde{\mathbf{F}}_\text{p}\, .
 \end{equation}
 
 Given the definition of $\mathbf{E}$ in Equation (\ref{eq:def_E}), we see that
 \begin{equation}
-    \mathbf{\Delta} =  \mathbf{F}_\text{p} - \tilde{\mathbf{F}}_\text{p}
+    \mathbf{\Delta} =  \mathbf{F}_\text{p} - \tilde{\mathbf{F}}_\text{p}\, .
 \end{equation}
 
 If $\mathbf{E}$ is small, then $\mathbf{F} - \tilde{\mathbf{F}}\approx \mathbf{\Delta}$, and we have measured some signal from the planet. Importantly, the expected value of $\mathbf{\Delta}$ can be calculated for any phase curve model, and therefore we can use our measured $\mathbf{\Delta}$ to infer properties of the planet.
@@ -174,31 +176,29 @@ In contrast to the method described in Section \ref{sec:pie}, our stellar error 
 \label{subsec_detA}
 Given some basis matrix $\mathbf{B}$ that is based on a set of indices $s$, we need to determine the coefficient matrix $\mathbf{A}$. The best choice is one that minimizes the normalized residual matrix $\mathbf{E}$ at short wavelengths.
 
-The coefficients $A_{ik}$ that correspond to a single epoch $t_i$ are straight forward to compute using least-squares. We are looking at a single row of each of our data matrices, and so we will write them as vectors.
+The coefficients $A_{ik}$ that correspond to a single epoch $t_i$ are straight forward to compute using least-squares. We are looking at a single row of each of our data matrices, and so we will write them as vectors:
 \begin{equation}
-    \bm{\epsilon}^\top = \bm{f}^\top - \mathbf{B}\bm{a}^\top
+    \bm{\epsilon}^\top = \bm{f}^\top - \mathbf{B}\bm{a}^\top\, .
 \end{equation}
 
-We can also define a diagonal weight matrix using the uncertainties
+We can also define a diagonal weight matrix using the uncertainties:
 \begin{equation}
-    {W}_{ij} = \frac{\delta_{ij}}{\sigma_i \sigma_j}
+    {W}_{ij} = \frac{\delta_{ij}}{\sigma_i \sigma_j}\, .
 \end{equation}
 
 We would like to use least-squares to solve the equation
 \begin{equation}
-    \mathbf{W}\bm{f}^\top = \mathbf{W}\mathbf{B}\bm{a}^\top
+    \mathbf{W}\bm{f}^\top = \mathbf{W}\mathbf{B}\bm{a}^\top\, .
 \end{equation}
 for $\bm{a}$, which has the solution
 \begin{equation}
     \label{eq:a_transpose}
     \bm{a}^\top = (
         \mathbf{B}\mathbf{W}^2\mathbf{B}^\top
-    )^{-1} \mathbf{B}\mathbf{W}^2 \bm{f}^\top
+    )^{-1} \mathbf{B}\mathbf{W}^2 \bm{f}^\top\, .
 \end{equation}
 
-Here we have computed $\bm{a}$, which is a row of the $m \times q$ matrix $\mathbf{A}$. It is important to point out that, while $\mathbf{B}$ is uniquely determined by the choice of $s$ for a given problem, we have only computed $\mathbf{W}$ for a given value of the time index $i$. To compute $\mathbf{A}$ we must evaluate Equation (\ref{eq:a_transpose}) $m$ times.
-
-
+Here we have computed $\bm{a}$, which is a row of the $m \times q$ matrix $\mathbf{A}$. It is important to point out that, while $\mathbf{B}$ is uniquely determined by the choice of $s$ for a given problem, we have only computed $\mathbf{W}$ for a given value of the time index $i$. To compute $\mathbf{A}$ we must evaluate Equation (\ref{eq:a_transpose}) $m$ times:
 \begin{equation}
     \label{eq:calc_A}
     \mathbf{A} = \begin{bmatrix}
@@ -206,18 +206,18 @@ Here we have computed $\bm{a}$, which is a row of the $m \times q$ matrix $\math
         \bm{a}_2 \\
         \vdots \\
         \bm{a}_m
-    \end{bmatrix}
+    \end{bmatrix}\ ,
 \end{equation}
-where the subscript $i$ denotes that $\bm{a}$ is evaluated considering the $i$th time index.
+where the subscript $i$ denotes that $\bm{a}$ is evaluated considering the $i$th time index. That is
 \begin{equation}
     \label{eq:a_func}
     \bm{a}_i^\top = (
         \mathbf{B}\mathbf{W}_i^2\mathbf{B}^\top
-    )^{-1} \mathbf{B}\mathbf{W}_i^2\bm{f}_i^\top
+    )^{-1} \mathbf{B}\mathbf{W}_i^2\bm{f}_i^\top\, ,
 \end{equation}
 where $\mathbf{B}$ is defined in Equation (\ref{eq:def_B}), $\bm{f}_i$ is the $i$th row of $\mathbf{F}$, and $\mathbf{W}_i$ is defined
 \begin{equation}
-    (\mathbf{W}_i)_{jk} = \frac{\delta_{jk}}{\Sigma_{ij}\Sigma_{ik}}
+    (\mathbf{W}_i)_{jk} = \frac{\delta_{jk}}{\Sigma_{ij}\Sigma_{ik}}\, .
 \end{equation}
 
 The above relations allow $\mathbf{A}$ to be determined given $\mathbf{F}$, $\mathbf{\Sigma}$, and $s$.
@@ -228,7 +228,7 @@ In some cases it may be appropriate to replace $\mathbf{\Sigma}$ with the time-a
     \label{eq:a_func_mean}
     \bm{a}_i^\top = (
         \mathbf{B}\langle\mathbf{W}\rangle^2\mathbf{B}^\top
-    )^{-1} \mathbf{B}\langle\mathbf{W}\rangle^2\bm{f}_i^\top
+    )^{-1} \mathbf{B}\langle\mathbf{W}\rangle^2\bm{f}_i^\top\, ,
 \end{equation}
 and the matrix $ (\mathbf{B}\langle\mathbf{W}\rangle^2\mathbf{B}^\top)^{-1} \mathbf{B}\langle\mathbf{W}\rangle^2$ can be cached after the first computation.
 
@@ -236,25 +236,30 @@ and the matrix $ (\mathbf{B}\langle\mathbf{W}\rangle^2\mathbf{B}^\top)^{-1} \mat
 \subsection{Choosing the basis $\mathbf{B}$}
 \label{subsec:choose_B}
 
-Our goal is to find the optimal $\mathbf{B}$, which is defined by the optimized set of indices $\hat{s}$. To do this we will test sets $s$ and compare them using the Bayes Information Criterion (BIC, ref?), a model selection criterion for which smaller values are preferred:
+Our goal is to find the optimal $\mathbf{B}$, which is defined by the optimized set of indices $\hat{s}$. To do this we will test sets $s$ and compare them using the Bayes Information Criterion (BIC, \TJ{ref?}), a model selection criterion for which smaller values are preferred:
 \begin{equation}
-    \text{BIC} = q\ln{(mn)} - 2\ln{(\hat{L})}
+    \text{BIC} = q\ln{(mn)} - 2\ln{(\hat{L})}\, ,
 \end{equation}
 where $\hat{L}$ is the maximized likelihood function. This is the probability of observing $\mathbf{F}$ given the prediction given by reconstruction $\tilde{\mathbf{F}}$ and measurement uncertainties $\mathbf{\Sigma}$.
+
+The maximized likelihood is
 \begin{equation}
-    \hat{L} = \prod_{i=1}^m \prod_{j=1}^n \frac{1}{\sqrt{2\pi \Sigma_{ij}^2}} \exp{\left (-\frac{(F_{ij} - \tilde{F}_{ij})^2}{2\Sigma_{ij}^2}\right )}
+    \hat{L} = \prod_{i=1}^m \prod_{j=1}^n \frac{1}{\sqrt{2\pi \Sigma_{ij}^2}} \exp{\left (-\frac{(F_{ij} - \tilde{F}_{ij})^2}{2\Sigma_{ij}^2}\right )}\, .
 \end{equation}
+
+
 $\tilde{\mathbf{F}} = \mathbf{A}\mathbf{B}$ has already been computed using Equation (\ref{eq:calc_A}), so this likelihood is maximized. To compute the BIC, we need $\ln{\hat{L}}$:
 \begin{equation}
-        \ln{\hat{L}} = \sum_{i=1}^m \sum_{j=1}^n -\frac{1}{2} \left (\ln{(2\pi\Sigma_{ij}^2)} + \frac{(F_{ij} - \tilde{F}_{ij})^2}{\Sigma_{ij}^2}\right )
+        \ln{\hat{L}} = \sum_{i=1}^m \sum_{j=1}^n -\frac{1}{2} \left (\ln{(2\pi\Sigma_{ij}^2)} + \frac{(F_{ij} - \tilde{F}_{ij})^2}{\Sigma_{ij}^2}\right )\, .
 \end{equation}
+
 The BIC is then written
 \begin{equation}
     \label{eq:bic2}
-    \text{BIC} = q\ln{(mn)} + \sum_{ij} \left (\ln{(2\pi\Sigma_{ij}^2)} + \frac{(F_{ij} - \tilde{F}_{ij})^2}{\Sigma_{ij}^2}\right )
+    \text{BIC} = q\ln{(mn)} + \sum_{ij} \left (\ln{(2\pi\Sigma_{ij}^2)} + \frac{(F_{ij} - \tilde{F}_{ij})^2}{\Sigma_{ij}^2}\right )\, .
 \end{equation}
 
-The only values in Equation (\ref{eq:bic2}) that change for any given $s$ are $q$, the number of elements in $s$, and $\mathbf{\tilde{F}}$, the reconstructed spectrum. Therefore, there exists some function $\text{BIC}(s)$ that can be used to compare any choice $s_1$ to another choice $s_2$.
+The only values in Equation (\ref{eq:bic2}) that change for any given $s$ are $q$, the number of elements in $s$, and $\mathbf{\tilde{F}}$, the reconstructed spectrum. Therefore, there exists some function $\text{BIC}(s)$ that can be used to compare any choice $s$ to another choice $s'$.
 
 All that is left now is to test various values of $s$, and choose the one for which BIC is minimized. There are many ways to do this. The simplest is to start at low values of $q$ and step through each possible value of $s$ sequentially, finding a local minimum for each value of $q$. When increasing $q$ no longer leads to decreased BIC, the search is stopped and the previous minimum is returned as the solution.
 
@@ -310,5 +315,152 @@ return s
 
 
 \bibliography{syw,pie}
+
+\appendix
+
+\section{Atmosphere model}
+\citet{johnson2025} described a method to produce a simplified 3D atmosphere model using only a handful of parameters. Their method relied on an analytic prescription for the equatorial energy balance of a planet by \citet{cowan2011}, which parameterizes heat transport by looking at the ratio between advective and radiative timescales. We consider also the diffusive timescale so that we can correctly consider latitudinal heat redistribution. We make the simplifying assumptions that the atmosphere has a single layer and that the planet is synchronously rotating. The temperature evolution at a coordinate $(\phi, \theta)$ is
+\begin{equation}
+    \label{eq:heat-full}
+    \frac{\partial T}{\partial t} = - (\bm{u}\cdot\nabla) T + \frac{1}{c_h}[ (1-A)F\,\sin\theta \,\max{(\cos\phi, 0)} - \sigma T^4] + \alpha \Delta T\, .
+\end{equation}
+
+The first term in the right-hand side describes the advection of heat by winds of velocity $\bm{u}$. The second term describes the balance of incoming and outgoing radiation. $c_h$ is the heat capacity per unit area as defined by \citet{cowan2011}. $A$ is the albedo, $F$ is the incident flux at the substellar point, and $\sigma$ is the Stephan-Boltzmann constant. The last term describes the diffusion of heat, and $\alpha$ is the diffusion coefficient.
+
+If we look for a steady-state solution we can set the left-hand side to zero. We can also set the wind velocity to be some fraction of the velocity of the surface in an inertial frame:
+\begin{equation}
+    \bm{u} = \eta\,\omega_\text{rot} \sin\theta \hat{\phi}\, .
+\end{equation}
+
+Equation (\ref{eq:heat-full}) can be rewritten as
+\begin{equation}
+    \frac{\partial T}{\partial t} = -\eta\omega_\text{rot} \frac{\partial T}{\partial \phi} + \frac{1}{c_h}[ (1-A)F\,\sin\theta \,\max{(\cos\phi, 0)} - \sigma T^4] + \alpha \Delta T\, .
+\end{equation}
+
+\subsection{Numerics}
+To begin the process of non-dimensionalizing this equation we define the fiducial temperature --- that of the substellar point in radiative equilibrium with the star:
+\begin{equation}
+    T_0 = \left(\frac{F(1-A)}{\sigma}\right)^{1/4}
+\end{equation}
+
+We will also define two dimensionless parameters:
+\begin{align}
+    \epsilon_1 &\equiv \frac{c_h\omega_\text{rot}T_0}{F(1-A)}\, ,\\
+    \epsilon_2 &\equiv \frac{c_h \alpha T_0^2}{F(1-A)}\, .
+\end{align}
+
+The parameter $\epsilon_1$ is the ratio between the advective and radiative timescales, and $\epsilon_2$ is the ratio between diffusive and radiative timescales. We can use these to rewrite equation (\ref{eq:heat-full}):
+\begin{equation}
+    \frac{\partial (T/T_0)}{\partial t} = \sin\theta\,\max(\cos\phi,0) - \left(\frac{T}{T_0}\right)^4 - \epsilon_1 \frac{\partial (T/T_0)}{\partial\phi} + \epsilon_2 \Delta (T/T_0)
+\end{equation}
+
+Similar to the formulation of \citet{cowan2011}, herein we will rewrite $\tilde{T} \equiv T/T_0$ as $T$ for simplicity of notation.
+\begin{equation}
+    \frac{\partial {\tilde{T}}}{\partial t} = \sin\theta\,\max(\cos\phi,0) - \tilde{T}^4 - \epsilon_1 \frac{\partial \tilde{T}}{\partial\phi} + \epsilon_2 \Delta \tilde{T}\, .
+\end{equation}
+% with
+% \begin{equation}
+%     f'(T) = \frac{\partial f(T)}{\partial T} = -4T^3
+% \end{equation}
+
+
+% The full PDE we are dealing with is
+% \begin{equation}
+%     \frac{\partial T}{\partial t} = \sin\theta\,\max(\cos\phi,0) - T^4 - \frac{\epsilon_1}{\sin\theta} \frac{\partial T}{\partial\phi} + \epsilon_2 \Delta T\, ,
+% \end{equation}
+
+% Suppose we have two adjacent areas, $A_1$ and $A_2$ whose border is an arc of a great circle. The average value of $T$ in an area is
+% \begin{equation}
+%     \bar{T} = \frac{1}{A}\int_A T\, dA
+% \end{equation}
+
+
+% We discretize our model into a grid in the longitudinal ($\phi$) and latitudinal ($\theta$) directions. If $T_{ij}^n$ is the $n$th iteration of the dimensionless temperature at $(\phi_i,\theta_j)$, then
+% \begin{align}
+%     \frac{\epsilon_1}{\sin\theta} \frac{\partial T}{\partial \phi} &\mapsto \frac{\epsilon_1}{\sin\theta_j} \frac{T_{i+1j}^n-T_{i-1j}^n}{2\Delta\phi}\, , \\
+%     \sin\theta \max(\cos\phi,0) & \mapsto \sin\theta_j \max(\cos\phi_i,0)\, , \\
+%     T^4 & \mapsto (T_{ij}^n)^4\, , \\
+%     \epsilon_2 \Delta T & \mapsto \epsilon_2 \left[ \frac{T_{i+1j}^n + T_{i-1j}^n - 2\tilde{T}^{n\phi}_{ij}}{4\Delta\phi^2} + \frac{\sin\theta_{j+1} (T_{ij+1}-\tilde{T}^{n\theta}_{ij}) + \sin\theta_{j-1}(T_{ij-1}^n-\tilde{T}^{n\theta}_{ij})}{4 \Delta\theta^2 \,\sin\theta_j} \right]\, .
+% \end{align}
+
+% For numerical stability we have defined $\tilde{T}^\phi_{ij}\equiv  (T_{i+1j} + T_{i-1j})/2$ and $\tilde{T}^\theta_{ij}\equiv  (T_{ij+1} + T_{ij-1})/2$ \TJ{(This has a name)}.
+
+% Using the Newton-Raphson Method, we can find iteratively better values of $T$:
+% \begin{equation}
+%     T_{ij}^{n+1} = T_{ij}^n - \frac{(f(T))_{ij}^n}{(f'(T))_{ij}^n}
+% \end{equation}
+
+\subsection{Finite Volume Method}
+If we break our computational domain into discrete cells, we can integrate over the area of a single cell $\Omega$ to get
+\begin{equation}
+    \int_\Omega \frac{\partial \tilde{T}}{\partial t}\, dA = \int_\Omega \sin\theta\,\max(\cos\phi,0)\, dA - \int_\Omega \tilde{T}^4\, dA
+    - \int_\Omega \epsilon_1 \frac{\partial \tilde{T}}{\partial\phi}\, dA + \int_\Omega \epsilon_2 \Delta \tilde{T}\, dA\, .
+\end{equation}
+
+However, we can see that
+\begin{align}
+    \int_\Omega \frac{\partial \tilde{T}}{\partial t}\, dA &= \frac{\partial}{\partial t} \int_\Omega \tilde{T}\, dA\, , \\
+    \int_\Omega \epsilon_1 \frac{\partial \tilde{T}}{\partial\phi}\, dA &= \epsilon_1 \int_{\partial \Omega} \tilde{T}\sin\theta \hat{\phi}\cdot\hat{n}\, dS\, , \\
+    \int_\Omega \epsilon_2 \Delta \tilde{T}\, dA &= \epsilon_2 \int_{\partial \Omega} \nabla \tilde{T} \cdot \hat{n} \, dS\, ,
+\end{align}
+where $\partial \Omega$ is the boundary of a cell. The equation now becomes
+\begin{equation}
+    \frac{\partial}{\partial t} \int_\Omega \tilde{T}\, dA = \int_\Omega \sin\theta\,\max(\cos\phi,0)\, dA - \int_\Omega \tilde{T}^4\, dA
+    - \epsilon_1 \int_{\partial \Omega} \tilde{T}\sin\theta \hat{\phi}\cdot\hat{n}\, dS + \epsilon_2 \int_{\partial \Omega} \nabla \tilde{T} \cdot \hat{n} \, dS\, .
+\end{equation}
+\subsection{Temporal term}
+The term
+\begin{equation}
+    \frac{\partial}{\partial t} \int_\Omega \tilde{T}\, dA
+\end{equation}
+describes the evolution of a cell's temperature in time. If $\tilde{T}_a$ is the mean temperature in cell $a$, then
+\begin{align}
+    \frac{\partial}{\partial t} \int_\Omega \tilde{T}\, dA & \approx \text{area}(a) \frac{\partial \tilde{T}_a}{\partial t}\, , \\
+    & \approx \text{area}(a) \frac{\tilde{T}_a^{n+1} - \tilde{T}_a^n}{\Delta t}\, .
+\end{align}
+Where $n$ is the index of the time coordinate. This is the forward Euler scheme.
+
+\subsection{Radiation terms}
+Similar to the temporal term, we average over the cell area:
+\begin{align}
+    \int_\Omega \sin\theta\,\max(\cos\phi,0)\, dA & \approx \text{area}(a)\, F_a\, , \\
+    \int_\Omega \tilde{T}^4\, dA & \approx \text{area}(a)\, \tilde{T}_a^4\, .
+\end{align}
+
+\subsection{Advection term}
+A cell has multiple sides. We can break up the advective term integral into integrals over each side:
+\begin{align}
+    \epsilon_1 \int_{\partial \Omega} \tilde{T}\sin\theta \hat{\phi}\cdot\hat{n}\, dS & \approx \epsilon_1 \sum_\text{sides} \int_S \tilde{T}\sin\theta \hat{\phi}\cdot\hat{n}\, ds\, .
+\end{align}
+
+For a side $S$ that is the boundary between two cells $a$ and $b$, we should choose the value of $\tilde{T}$ that is upwind.
+\begin{align}
+    \int_S \tilde{T} \hat{\phi}\cdot\hat{n}\, ds & = \int_S \tilde{T}_\text{upwind}\sin\theta \hat{\phi}\cdot\hat{n}\, ds\, .
+\end{align}
+
+Note that $S$ is an arc of a great circle. We can use Simpson's Rule to approximate the integral.
+
+\subsection{Diffusive term}
+
+Similar to the advective fluxes, we break up the diffusive term into integrals over each side:
+\begin{align}
+    \epsilon_2 \int_{\partial \Omega} \nabla \tilde{T} \cdot \hat{n} \,dS = \epsilon_2 \sum_\text{sides} \int_S \nabla \tilde{T} \cdot \hat{n} \, ds\, .
+\end{align}
+
+The integral can be written:
+\begin{align}
+    \int_S \nabla \tilde{T} \cdot \hat{n} \, ds\, \approx \frac{\tilde{T}_b - \tilde{T}_a}{\text{dist}(a,b)} \text{len}(p_1,p_2)\, ,
+\end{align}
+for an arc between points $p_1$ and $p_2$ that separates cells $a$ and $b$. The function $\text{dist}(a,b)$ gives the distance between the centroids of the two cells.
+
+\subsection{Full numerics}
+
+We combine the schemes above. Suppose there exists some cell $a$ that is surrounded by other cells $o_k$ and is defined by its vertices $p_k$.
+\begin{align}
+    \text{area}(a) \frac{\tilde{T}_a^{n+1} - \tilde{T}_a^n}{\Delta t} & = \text{area}(a) F_a - \text{area}(a) \tilde{T}_a^4 \\
+    & - \epsilon_1 \sum_k \int_S \tilde{T}_\text{upwind}\sin\theta \hat{\phi}\cdot\hat{n}\, ds \nonumber \\
+    & + \epsilon_2 \sum_k \frac{\tilde{T}_{o_k} - \tilde{T}_a}{\text{dist}(a,o_k)} \text{len}(p_k,p_{k+1}) \nonumber
+\end{align}
+Note that for simplicity we define $k+1$ to wrap around to the first index when it becomes out of range.
 
 \end{document}
