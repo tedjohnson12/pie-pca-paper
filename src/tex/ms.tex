@@ -67,50 +67,32 @@
 % Main body with filler text
 \section{Introduction}
 \label{sec:intro}
-I'll write this later.
+Two decades ago, the Spitzer Space Telescope detected photons emitted by an exoplanet for the first time, paving the way for the modern study of exoplanets in thermal emission \citep{deming2005}. In the years that followed, secondary eclipse measurements -- determination of a planet's flux found by the dimming of a system as the planet passes behind its host star -- became a standard way to characterize exoplanets with Spitzer \citep[e.g.][]{kreidberg2019} and more recently with the James Webb Space Telescope \citep[JWST, e.g.][]{greene2023,kempton2023,weinermansfield2024}.
 
+\begin{figure*}
+    \centering
+    \includegraphics[width=0.8\textwidth]{figures/nearby_mdwarfs.pdf}
+    \caption{Known potentially-rocky exoplanets within 20 pc. The vast majority of the closest planets are non-transiting and their atmospheres cannot be characterized with currently-available techniques. Data from the NASA Exoplanet Archive, accessed on \variable{output/nearby_mdwarfs_date.txt}. An interactive version of this figure is available through the NASA Exoplanet Modeling and Analysis Center \TJ{Talk to Joe about getting this working.}}
+    \script{nearby_mdwarfs.py}
+    \label{fig:nearby_mdwarfs}
+\end{figure*}
 
-\section{The Classical PIE Method}
-\label{sec:pie}
-Traditionally, the PIE method as described by \citet[herein \citetalias{stevenson2020}]{stevenson2020} is as follows. A spectrograph measures a spectrum $\bm{f}$ from a planetary system with associated uncertainty $\bm{\sigma}$. Both are arrays, and we will write their elements as $f_i$ and $\sigma_i$, respectively. The spectrograph parameters are chosen so that $\bm{f}$ can be divided into two regions: $\bm{f}_{\rm NIR}$ is the short wavelength (near infrared) portion of the spectrum, where the star dominates, and the planet essentially contributes zero flux. $\bm{f}_{\rm MIR}$ is the long wavelength portion, where the flux from the planet is greater than the noise. The planetary system is unresolved, so
-\begin{equation}
-    \bm{f} = \bm{f}_{\rm s} + \bm{f}_{\rm p}\, ,
-\end{equation}
-where $\bm{f}_\text{s}$ is the stellar spectrum and $\bm{f}_\text{p}$ is the planetary spectrum.
+The eclipse method, however, relies on the observer's line-of-sight being in the orbital plane of the planet, a probability that is approximately $R_*/a$ (0.5\% for Earth, $\sim 1\%$ for potentially-habitable planets in M-dwarf systems). Figure \ref{fig:nearby_mdwarfs} shows us that indeed the population of known nearby planets is mostly non-transiting. Within 10pc there are no cool transiting planets, leaving Gliese-12b and TRAPPIST-1e as the best candidates to characterize atmospheres in the habitable zone (HZ), despite predictions that sufficient signal-to-noise would require hundreds of eclipses and be infeasible in the lifetime of JWST \citep{morley2017}. This leaves no proven method to characterize {\em any} HZ rocky planet using thermal emission.
 
-The NIR and MIR portions of the spectrum are defined so that
-\begin{equation}
-    \bm{f}_{\rm NIR} = \bm{f}_{\rm s, NIR}
-\end{equation}
-and
-\begin{equation}
-    \bm{f}_{\rm MIR} = \bm{f}_{\rm s, MIR} + \bm{f}_{\rm p, MIR}\, .
-\end{equation}
+The future flagship Habitable Worlds Observatory (HWO) will have the ability to spatially resolve Earth-like planets around Sun-like stars and characterize atmospheres with reflected light, but will be severely limited by the exposure time required for each target. Optimizing all components of the planned survey has become a field in itself \citep[e.g.][]{latouf2023,tuchow2024}, but as Earth is the only known habitable planet, instrument optimization studies are limited to detections of Earth's atmosphere at various epochs throughout geologic history \citep[e.g. Modern vs. Archean Earth, see][]{latouf2024}. Characterization of additional HZ planetary atmospheres (even if deemed uninhabitable) would give critical insight into the population that HWO will explore.
 
-In the classical PIE case we use a physics-based stellar model to produce a model spectrum $\tilde{\bm{f}}$. The parameters of that model are optimized so that $\bm{f}$ and $\tilde{\bm{f}}$ are approximately equal at short wavelengths. Due to noise and imperfections in the stellar model there is an error term, which the fitting process minimizes:
-\begin{equation}
-    \bm{\epsilon} \equiv \bm{f}_\text{s} - \tilde{\bm{f}}\, ,
-\end{equation}
-and since $\bm{f}_\text{NIR} = \bm{f}_\text{s, NIR}$, we can write
-\begin{equation}
-    \bm{\epsilon}_\text{NIR} = \bm{f}_\text{NIR} - \tilde{\bm{f}}_\text{NIR}\, .
-\end{equation}
+ESA's Large Interferometer For Exoplanets (LIFE) mission will likely fly concurrently with HWO. The science output from the two observatories will complement each other well, but neither will inform the other's instrument design. Hence, it is necessary for the exoplanet community to prioritize characterizing some HZ planets in the decades prior to HWO and LIFE.
 
-The model $\tilde{\bm{f}}$ is then extrapolated to cover the full wavelength range (using the same model parameters as fit in the NIR). At long wavelengths, we subtract to find
-\begin{equation}
-    \label{eq:pie_result}
-    \begin{array}{rcl}
-        \bm{f}_\text{MIR} - \tilde{\bm{f}}_\text{MIR} & = & \bm{f}_{\rm s, MIR} + \bm{f}_{\rm p, MIR} - \tilde{\bm{f}}_\text{MIR} \\
-        & = & \bm{\epsilon}_\text{MIR} + \bm{f}_{\rm p, MIR}
-    \end{array}
-\end{equation}
+\citet{stevenson2020} introduced a new method to measure the thermal emission of an exoplanet that does not require an eclipse. Called Planetary Infrared Excess (PIE), this technique is akin to the way that circumstellar disks can be detected by looking for excess infrared light emitted by a stellar system. The excess, in the PIE case, is very small -- on the order of $10^{-5}$ with respect to the star, and so much care is needed to successfully characterize at atmosphere this way. A major challenge of the PIE method is that it requires a phyiscs-based stellar model to be accurate across a broad wavelength range. Recent JWST studies have found that even the best models can be reliable only to within $\sim 1\%$ \citep{moran2023}. Additionally, it has been found that inaccuracies in stellar models lead to significant systematic errors in the absolute flux estimates of eclipsing planets and the worst inaccuracies are in models of M-dwarfs, which host most nearby planets \citep{fauchez2025}.
 
-If $f_{\text{p},i} \gg \epsilon_i$, then we have successfully measured the planet's spectrum and can therefore infer its properties. However, recent high signal-to-noise studies with the James Webb Space Telescope (JWST) have shown that even our most sophisticated stellar models can only be expected to agree with observations to within a few percent \citep[e.g.,][see Fig. 5]{moran2023}. Even in the case of a hot Jupiter, where thermal emission could be on the order of $1\%$ of that of the star at 10 \textmu m, this error term dominates, and could introduce bias into any inferences made about the properties of the planet.
-
-Use of modern observatories such as JWST mean that this classical PIE method is model-limited, and to improve our measurement of planetary flux we need to better subtract out the stellar contribution.
+In this study, we introduce the Variable Planetary Infrared Excess (VPIE) method, a technique that extends the concepts of the PIE method to separate planetary and stellar flux variability without the need to a physics-based stellar model. We describe VPIE in Section \ref{sec:vpie}.
 
 \section{The VPIE Method}
 \label{sec:vpie}
+
+VPIE is a PIE time-series analysis method that aims to measure the variability of a planet as it orbits is host. 
+
+
 The VPIE (Variable Planetary Infrared Excess) method aims to overcome the challenges described in Section \ref{sec:pie} by making a concession: we will only measure changes in the planet's flux. Just like in Section \ref{sec:pie}, we will start with an observation $\mathbf{F}$ with associated uncertainty $\mathbf{\Sigma}$, except that each of these is an $m \times n$ matrix where $m$ is the number of epochs and $n$ is the number of wavelength channels. We also define wavelength $\bm{\lambda}$ and time $\bm{t}$ such that ${\rm F}_{ij}$ is the flux at time $t_i$ and wavelength $\lambda_j$.
 
 Our goal is the same: to compute some stellar model $\tilde{\mathbf{F}}$ to subtract from $\mathbf{F}$ in order to recover information from the planet. Again we do our fitting at short wavelengths only:
