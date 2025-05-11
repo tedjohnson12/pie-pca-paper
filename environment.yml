@@ -6,3 +6,6 @@ dependencies:
       - astropy
       - pandas
       - requests
+      - libpypsg
+      - GridPolator
+      - git+https://github.com/tedjohnson12/vpie-rs.git
