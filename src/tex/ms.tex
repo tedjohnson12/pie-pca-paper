@@ -99,14 +99,14 @@ Suppose a planetary system is observed over a broad wavelength range such that t
     \item The long wavelength portion, which we will call mid-infrared (MIR). Here, the flux from the planet rises above the photon noise, and so it has a non-zero contribution to the total flux.
 \end{enumerate}
 
-\begin{figure}
-    \includegraphics[width=\linewidth]{figures/fig_3d1.pdf}
-    \caption{Spectral time-series comprising a VPIE observation. Variability from the planet can be clearly seen in the MIR portion of the spectrum. The stellar spectrum also varies with time, though this is more difficult to see by eye. The planetary spectrum in this simulation has been multiplied by $10^4$ for visibility.}
-    \label{fig:3d1}
-    \script{fig_3d1.py}
-\end{figure}
+% \begin{figure}
+%     \includegraphics[width=\linewidth]{figures/fig_3d1.pdf}
+%     \caption{Spectral time-series comprising a VPIE observation. Variability from the planet can be clearly seen in the MIR portion of the spectrum. The stellar spectrum also varies with time, though this is more difficult to see by eye. The planetary spectrum in this simulation has been multiplied by $10^4$ for visibility.}
+%     \label{fig:3d1}
+%     \script{fig_3d1.py}
+% \end{figure}
 
-On observation of this kind is shown in Figure \ref{fig:3d1}. There we see a series of combined light spectra that span the NIR and MIR. At long wavelengths, variability of the spectrum due to phase-variations of the planet are clearly visible. The goal of VPIE is to measure these variations independent of any variability from the star.
+On observation of this kind is shown in the top panel of Figure \ref{fig:3d2}. There we see a series of combined light spectra that span the NIR and MIR. At long wavelengths, variability of the spectrum due to phase-variations of the planet are clearly visible. The goal of VPIE is to measure these variations independent of any variability from the star.
 
 \subsection{Spectral change-of-basis}
 
@@ -120,7 +120,7 @@ Once a set of basis spectra have been chosen, we {\em reconstruct} the set of ob
 
 \begin{figure}
     \includegraphics[width=\linewidth]{figures/fig_3d2.pdf}
-    \caption{Basis spectra reconstruction. {\bf Top:} The best basis for the dataset shown in Figure \ref{fig:3d1} found by minimizing the BIC. {\bf Bottom:} Reconstruction of the dataset shown in Figure \ref{fig:3d1} using only the basis spectra. Note that the NIR portion looks identical to the original dataset, but the MIR portion is significantly different. This is because the fitting procedure was not given any information about the time-series behavior of the planet.}
+    \caption{Basis spectra reconstruction. {\bf Top:} Spectral time-series comprising a VPIE observation. The planetary spectrum has been multiplied by $10^4$ for visibility. Variability from the planet can be clearly seen in the MIR portion of the spectrum. The stellar spectrum also varies with time; the image on the $x$-$y$ plane shows variations from the mean spectrum. {\bf Middle:} The best basis for the dataset shown in top panel found by minimizing the BIC. {\bf Bottom:} Reconstruction of the dataset shown in top panel using only the basis spectra. Note that the NIR portion looks identical to the original dataset, but the MIR portion is significantly different. This is because the fitting procedure was not given any information about the time-series behavior of the planet.}
     \label{fig:3d2}
     \script{fig_3d2.py}
 \end{figure}
@@ -130,12 +130,25 @@ Once a set of basis spectra have been chosen, we {\em reconstruct} the set of ob
 
 \begin{figure}
     \includegraphics[width=\linewidth]{figures/fig_3d3.pdf}
-    \caption{Post-reconstruction residuals. Shown are the original data from Figure \ref{fig:3d1} (solid lines) with the reconstructed spectra from Figure \ref{fig:3d2} (dashed lines). The image in the $x$-$y$ plane shows the fractional residuals $(\bm{f} - \tilde{\bm{f}})/\bm{f}$. Note that the residuals are effectively zero at short wavelengths, but become significant at long wavelengths due to variability of the planet.}
+    \caption{Post-reconstruction residuals. Shown are the original data from the top panel Figure \ref{fig:3d2} (solid lines) with the reconstructed spectra from the bottom panel of Figure \ref{fig:3d2} (dashed lines). The image in the $x$-$y$ plane shows the fractional residuals $(\bm{f} - \tilde{\bm{f}})/\bm{f}$. Note that the residuals are effectively zero at short wavelengths, but become significant at long wavelengths due to variability of the planet.}
     \label{fig:3d3}
     \script{fig_3d3.py}
 \end{figure}
 
 After using least-squares to fit the basis spectra to our observation, we subtract the reconstruction from the original data to compute residuals, as shown in Figure \ref{fig:3d3}. Because we did not include MIR data in our least-squares fit, the reconstructed model is unaware of the planetary variations that occur at these wavelengths.
+
+\subsection{Computing residuals from a model}
+
+\subsection{Nested-sampling retrievals}
+
+\section{Examples}
+\subsection{Example 1: A hot Sub-Neptune with JWST}
+
+\subsection{Example 2: Proxima Centauri b with an M-Earth Mission}
+
+\section{Discussion}
+
+\section{Conclusions}
 
 \appendix
 
@@ -182,8 +195,8 @@ We later discuss $\tilde{\mathbf{F}}$ as the product of a coefficient matrix $\m
 \end{equation}
 and so $\tilde{\mathbf{F}}$ can be written
 \begin{align}
-    \tilde{\mathbf{F}} & = & \mathbf{A}\, (\mathbf{B}_* + \mathbf{B}_\text{p})\, , \nonumber \\
-    & = & \tilde{\mathbf{F}}_* + \tilde{\mathbf{F}}_\text{p}\, .
+    \tilde{\mathbf{F}} & = \mathbf{A}\, (\mathbf{B}_* + \mathbf{B}_\text{p})\, , \nonumber \\
+    & = \tilde{\mathbf{F}}_* + \tilde{\mathbf{F}}_\text{p}\, .
 \end{align}
 
 Rewriting equations (\ref{eq:nir-error} \& \ref{eq:mir-error}) as a single statement, we see
