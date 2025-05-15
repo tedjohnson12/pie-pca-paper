@@ -91,7 +91,7 @@ In this study, we introduce the Variable Planetary Infrared Excess (VPIE) method
 \section{The VPIE Method}
 \label{sec:vpie}
 
-VPIE is a PIE time-series analysis method that aims to measure the variability of a planet as it orbits its host. This is done by treating each spectrum of the target as a vector, and the set of observations as elements of a vector space.
+VPIE is a PIE time-series analysis method that aims to measure the variability of a planet as it orbits its host. This is done by treating each spectrum of the target as a vector ($\bm{f}$), and the set of observations as elements of a vector space. In this section we will describe the mathematics mostly using vectors (written in {\bf \em bold italics}) to represent spectra at a single epoch, but in reality much of the actual math is much mode concise when written in matrix form. For a detailed description of the mathematics involved in implementing VPIE, see Appendix \ref{ap:math-desc}.
 
 Suppose a planetary system is observed over a broad wavelength range such that the spectrum can be divided into two portions:
 \begin{enumerate}
@@ -108,15 +108,15 @@ Suppose a planetary system is observed over a broad wavelength range such that t
 
 On observation of this kind is shown in the top panel of Figure \ref{fig:3d2}. There we see a series of combined light spectra that span the NIR and MIR. At long wavelengths, variability of the spectrum due to phase-variations of the planet are clearly visible. The goal of VPIE is to measure these variations independent of any variability from the star.
 
-\subsection{Spectral change-of-basis}
+\subsection{Spectral change-of-basis}\label{sec:change-basis}
 
 This section describes the core stellar-normalization scheme employed by VPIE. As stated previously, VPIE treats a time-series observation like a vector space, and every spectrum observed is an element of that space. To do the normalization, we will only work with NIR spectra, which contain no information about the planet.
 
 There are many sources of stellar variability that ultimately come from changes to the various features on the stellar surface. For example, stellar rotation can change the fraction of the visible surface that is covered by star spots. Similarly, convection-induced granulation produces stochastic variations of a low-temperature inter-granule component \TJ{(e.g., ref?)}. We call such variability {\em component mixing variability}. Importantly, a star whose variability is solely due to component mixing will have a spectrum that is well described by a linear combination of the spectra of each component. Each observed spectrum is an element of the vector space spanned by the component spectra.
 
-It is not the goal of VPIE to learn about the physical processes governing stellar variability, so the component spectra themselves are unimportant. Instead, we choose individual epochs from the observation to act as {\em basis spectra}. The basis is chosen using the methods described in Appendix \ref{sec:choose-basis}, which ultimately test multiple combinations of basis spectra to minimize the Bayes Information Criterion \citep[BIC,][]{schwarz1978} or Akaike Information Criterion \citep[AIC,][]{akaike1974}, both of which are metrics that balance model error with complexity.
+It is not the goal of VPIE to learn about the physical processes governing stellar variability, so the component spectra themselves are unimportant. Instead, we choose individual epochs from the observation to act as {\em basis spectra}. The basis is chosen using the methods described in Appendix \ref{ap:choose-basis}, which ultimately test multiple combinations of basis spectra to minimize the Bayes Information Criterion \citep[BIC,][]{schwarz1978} or Akaike Information Criterion \citep[AIC,][]{akaike1974}, both of which are metrics that balance model error with complexity.
 
-Once a set of basis spectra have been chosen, we {\em reconstruct} the set of observed spectra using a linear combination of the bases. This is done via weighted least-squares fitting of the NIR portion of each spectrum. Each spectrum in the time-series can now be represented by a few coefficients which describe how to construct it from the basis spectra. Recall that there is no planetary information in the NIR spectrum, so by choosing the basis and performing this fitting using only NIR data, we have a model for the stellar variability which is agnostic to the planet. Ultimately, as shown in Figure \ref{fig:3d2}, we reconstruct the whole dataset (NIR and MIR) using the coefficients from the least-squares procedure. The result is a model observation that fits very well at short (star-only) wavelengths, but significantly differs from the original data at long wavelengths where the planet has appreciable flux.
+Once a set of basis spectra have been chosen (which can be written $\{\bm{f}_1,\,\bm{f}_2,\,\dots,\,\bm{f}_q\}$), we {\em reconstruct} the set of observed spectra using a linear combination of the bases. This is done via weighted least-squares fitting of the NIR portion of each spectrum. Each spectrum in the time-series can now be represented by a few coefficients which describe how to construct it from the basis spectra. Recall that there is no planetary information in the NIR spectrum, so by choosing the basis and performing this fitting using only NIR data, we have a model for the stellar variability which is agnostic to the planet. Ultimately, as shown in Figure \ref{fig:3d2}, we reconstruct the whole dataset (NIR and MIR) using the coefficients from the least-squares procedure. The result is a model observation ($\tilde{\bm{f}}$) that fits very well at short (star-only) wavelengths, but significantly differs from the original data at long wavelengths where the planet has appreciable flux.
 
 \begin{figure}
     \includegraphics[width=\linewidth]{figures/fig_3d2.pdf}
@@ -135,11 +135,44 @@ Once a set of basis spectra have been chosen, we {\em reconstruct} the set of ob
     \script{fig_3d3.py}
 \end{figure}
 
-After using least-squares to fit the basis spectra to our observation, we subtract the reconstruction from the original data to compute residuals, as shown in Figure \ref{fig:3d3}. Because we did not include MIR data in our least-squares fit, the reconstructed model is unaware of the planetary variations that occur at these wavelengths.
+After using least-squares to fit the basis spectra to our observation, we subtract the reconstruction from the original data to compute residuals ($\bm{f} - \tilde{\bm{f}}$), as shown in Figure \ref{fig:3d3}. Because we did not include MIR data in our least-squares fit, the reconstructed model is unaware of the planetary variations that occur at these wavelengths. Therefore, the MIR residuals encode any planetary variability that is not correlated with stellar variability at short wavelengths. Appendix \ref{ap:residuals} shows that the residuals are approximately equal to the planetary spectrum minus a planetary reconstruction. Specifically, if we have written our reconstructed spectrum as
+\begin{equation}
+    \tilde{\bm{f}} = \sum_{k=0}^q c_k\,\bm{f}^{(k)}\, ,
+\end{equation}
+then the residual due to the planet (which we will write $\bm{\delta}$) is
+\begin{equation}\label{eq:def-delta}
+    \bm{\delta} = \bm{f}_\text{p} - \sum_{k=0}^q c_k\,\bm{f}_{\text{p}}^{(k)}\, ,
+\end{equation}
+where $f_\text{p}$ is the intrinsic planetary spectrum and $c_k$ is the coefficient for the $k$th basis spectrum computed via least-squares. The raised index $(k)$ denotes that we are summing the $k$th basis spectrum, not the $k$th spectrum in the time-series.
 
-\subsection{Computing residuals from a model}
+Because the basis spectra are not expected to be a perfect fit (due to noise or non-component mixing variability), there is an additional error term $\bm{\epsilon}$. The measured residuals are
+\begin{equation}\label{eq:def-residuals}
+    \bm{f} - \tilde{\bm{f}} = \bm{\epsilon} + \bm{\delta}\, .
+\end{equation}
+
+Most importantly, the quantity $\bm{\epsilon} + \bm{\delta}$ is measurable and Section \ref{sec:compute-delta} shows that $\bm{\delta}$ can be computed from a planetary model. If the signal-to-noise ratio of the observation is sufficiently high, then the measured residual can provide statistical inferences into the properties of the planet.
+
+\subsection{Computing residuals from a model}\label{sec:compute-delta}
+
+The vector $\bm{\delta}$ is the residual that is purely due to the intrinsic variability of the planet. Suppose we have a specific model that computes a planetary spectroscopic phase curve ($\bm{f}_{\text{p},\,1},\, \bm{f}_{\text{p},\,2},\,\dots$) and we would like to compare it to the residuals from an observation. The definition of $\bm{\delta}$ in equation (\ref{eq:def-delta}) tells us exactly how to compute it from the model, but we discuss here the meaning of the indices and coefficients in this equation. Because this is not the true value of $\bm{\delta}$, we will write it as a function of model parameters: $\bm{\delta}(\theta)$.
+
+Recall that minimizing BIC (or AIC) in Section \ref{sec:change-basis} resulted in a set of basis spectra, described by their indices in the spectral time-series. Those same indices describe the planetary spectral basis, denoted by the index $k$ in equation (\ref{eq:def-delta}). Note that the sum goes up to $q$, which is the number of basis spectra preferred by our model selection criterion. The coefficient, written $c_k$, was found by fitting the stellar basis spectra to the NIR spectra using least-squares. It is the contribution from the $k$th basis spectrum, and it has a different value at every epoch. See equations (\ref{eq:mir-error}-\ref{eq:calc-glob-delta}) for a more concise definition of the matrix version of $\bm{\delta}$.
 
 \subsection{Nested-sampling retrievals}
+Sections \ref{sec:residuals} \& \ref{sec:compute-delta} provide two quantities necessary to characterize a planet from a VPIE observation.
+\begin{enumerate}
+    \item $\bm{\epsilon} + \bm{\delta}$, the VPIE residuals defined in equation (\ref{eq:def-residuals}), which can be computed without making any assumptions about the planet.
+    \item $\bm{\delta}(\theta)$, the model residuals, computed by reconstructing a model phase curve using the same change-of-basis as found for the NIR stellar spectra.
+\end{enumerate}
+
+To characterize the planet, all we have to do is change model parameters until $\bm{\delta}(\theta) \approx \bm{\epsilon} + \bm{\delta}$. We choose to do this using nested-sampling algorithms \TJ{(ref?)} for a number of reasons, including their ability to handle and characterize degeneracy between parameters. Most nested-sampling codes require users to provide a set of priors for each parameter and a way to map parameter sets to a likelihood. In our simplified notation, the log-likelihood is
+\begin{equation}
+    \label{eq:logL}
+    \ln{L(\theta)} = \sum_{\text{epoch}} \sum_\text{channel} \frac{(\bm{\epsilon} + \bm{\delta} - \bm{\delta}(\theta))^2}{\bm{\sigma}^2}\, ,
+\end{equation}
+where all the operations within the sum are done element-wise. Priors should be chosen by the user based on the parameters of a specific model.
+
+Nested-sampling codes such as \texttt{dynesty} \citep{speagle2020} will sample the model parameter space to maximize equation (\ref{eq:logL}). The resulting posterior distribution can be used to make inferences about the properties of the planet.
 
 \section{Examples}
 \subsection{Example 1: A hot Sub-Neptune with JWST}
@@ -153,11 +186,12 @@ After using least-squares to fit the basis spectra to our observation, we subtra
 \appendix
 
 \section{Mathematical description of VPIE}
+\label{ap:math-desc}
 
 In this section we mathematically define many of the processes that Section \ref{sec:vpie} describes in plain language.
 
 \subsection{Matrix description of an observation}
-\label{sec:mat-desc-obs}
+\label{ap:mat-desc-obs}
 
 Here we define a reduced VPIE dataset in matrix form. After a spectral phase curve has been put through standard data-reduction procedures, we are left with two matricies: $\mathbf{F}$ -- the flux from the system, and $\mathbf{\Sigma}$ -- uncertainties which we assume are dominated by photon noise. Both are $m\times n$ matricies, where $m$ is the number of epochs and $n$ is the number of wavelength channels. If $n'$ is the number of NIR wavelength channels, then we can define the NIR data to be the $m\times n'$ matrix $\mathbf{F}_\text{NIR}$. We will also use the subscripts $*$ and $\text{p}$ to represent flux from the star and planet, respectively. By definition of the two wavelength regimes, we can say that
 \begin{equation}
@@ -181,13 +215,13 @@ By equation (\ref{eq:fnir}), at short wavelengths this means
     \label{eq:nir-error}
 \end{equation}
 
-\subsection{The meaning of MIR residuals}
+\subsection{The meaning of MIR residuals}\label{ap:residuals}
 The long-wavelength counterpart of equation (\ref{eq:nir-error}) is
 \begin{equation}
     \mathbf{F}_\text{MIR} - \tilde{\mathbf{F}}_\text{MIR} = \mathbf{E}_\text{MIR} + \mathbf{\Delta}\, ,
     \label{eq:mir-error}
 \end{equation}
-where $\mathbf{\Delta}$ is the part of the residual attributed not to noise, but to planetary flux. It is important to note that the $\mathbf{E}_\text{NIR}$ minimization procedure described in Section \ref{sec:compute-A} also minimizes $\mathbf{E}_\text{MIR}$, but has no effect on $\mathbf{\Delta}$. Section \ref{sec:compute-model} describes a method to compute $\tilde{\mathbf{F}}$ from $\mathbf{F}$, and so the residual $\mathbf{E} + \mathbf{\Delta}$ is a measurable quantity.
+where $\mathbf{\Delta}$ is the part of the residual attributed not to noise, but to planetary flux. It is important to note that the $\mathbf{E}_\text{NIR}$ minimization procedure described in Section \ref{ap:compute-A} also minimizes $\mathbf{E}_\text{MIR}$, but has no effect on $\mathbf{\Delta}$. Section \ref{ap:compute-model} describes a method to compute $\tilde{\mathbf{F}}$ from $\mathbf{F}$, and so the residual $\mathbf{E} + \mathbf{\Delta}$ is a measurable quantity.
 
 We later discuss $\tilde{\mathbf{F}}$ as the product of a coefficient matrix $\mathbf{A}$ and a basis matrix $\mathbf{B}$ (see equation (\ref{eq:f-eq-ab})). Since $\mathbf{B}$ is composed of spectra, we can write it as a sum of stellar and planetary components:
 \begin{equation}
@@ -207,16 +241,16 @@ Rewriting equations (\ref{eq:nir-error} \& \ref{eq:mir-error}) as a single state
 Given the definition of $\mathbf{E}$ in equation (\ref{eq:def-E}), we see that
 \begin{align}
     \mathbf{\Delta} &= \mathbf{F}_\text{p} - \tilde{\mathbf{F}}_\text{p}\, , \\
-    & = \mathbf{F}_\text{p} - \mathbf{A}\mathbf{B}_\text{p}\, .
+    & = \mathbf{F}_\text{p} - \mathbf{A}\mathbf{B}_\text{p}\, . \label{eq:calc-glob-delta}
 \end{align}
 
 Specifically, $\mathbf{\Delta}$ is an observable that can be predicted by a planetary model. The following sections aim to minimize $\mathbf{E}$ so that the residual $\mathbf{F} - \tilde{\mathbf{F}} \approx \mathbf{\Delta}$, and we can use it to make inferences about properties of the planet.
 
 \subsection{Computing a model from a basis}
-\label{sec:compute-model}
+\label{ap:compute-model}
 In this section we aim to compute a reconstructed observation model, $\tilde{\mathbf{F}}$ given a basis. Recall that the original observation, $\mathbf{F}$, contains $m$ rows representing epochs and $n$ columns representing wavelength channels.
 
-Suppose we are given a basis (chosen in a way described in Appendix \ref{sec:choose-basis}) of $q$ spectra. We can represent this basis with a set, $s$, of size $q$ that contains the row indices of each spectrum in $\mathbf{F}$. For convenience, the elements of $s$ are ordered, but the ordering method is unimportant. We can define a basis matrix, $\mathbf{B}$, such that the rows of $\mathbf{B}$ are the basis spectra. In other words, $\mathbf{B}$ is a $q\times n$ matrix with elements
+Suppose we are given a basis (chosen in a way described in Appendix \ref{ap:choose-basis}) of $q$ spectra. We can represent this basis with a set, $s$, of size $q$ that contains the row indices of each spectrum in $\mathbf{F}$. For convenience, the elements of $s$ are ordered, but the ordering method is unimportant. We can define a basis matrix, $\mathbf{B}$, such that the rows of $\mathbf{B}$ are the basis spectra. In other words, $\mathbf{B}$ is a $q\times n$ matrix with elements
 \begin{equation}
     B_{kj} = F_{s_kj} \quad \text{for}\quad k=1,\,2,\,\dots,\,q\,.
 \end{equation}
@@ -228,7 +262,7 @@ We can also define a coefficient matrix, $\mathbf{A}$, which has shape $m\times 
 \end{equation}
 
 \subsubsection{Computing the coefficient matrix}
-\label{sec:compute-A}
+\label{ap:compute-A}
 Consider the following row vectors: $\bm{f}$ (a row of $\mathbf{F}$), $\bm{\sigma}$ (a row of $\mathbf{\Sigma}$), $\bm{\epsilon}$ (a row of $\mathbf{E}$), and $\bm{a}$ (a row of $\mathbf{A}$). If these are all the $i$th row of their respective matrix, then they correspond to the same epoch. The procedure here is simple: given $\mathbf{B}$, $\bm{f}$, and $\bm{\sigma}$, perform weighted least squares to compute $\bm{a}$ which minimizes the squares of $\bm{\epsilon}$. We have dropped the NIR subscript in this subsection, but it is important that only NIR spectra are used.
 
 First, we define a diagonal weight matrix, $\mathbf{W}$, where the diagonal elements are the inverse of the variance, i.e. $W_{jk} = \delta_{jk}/(\sigma_j\sigma_k)$, where $\delta_{jk}$ is the Kronecker delta. Now, $\bm{a}$ is the vector that produces the least-squares solution to the equation
@@ -258,7 +292,7 @@ In equation (\ref{eq:a_transpose}) we have computed a row of the coefficient mat
 where the index $i$ indicates the respective epoch or time index. Additionally, note that computing $\mathbf{A}$ requires inverting the $q\times q$ matrix $\mathbf{B}\mathbf{W}_i^2\mathbf{B}^\top$ $m$ times. It may be more computationally efficient to use a time-averaged weight matrix $\langle\mathbf{W}\rangle$ to compute this quantity once and cache its value for future use.
 
 \subsection{Choosing a spectral basis}
-\label{sec:choose-basis}
+\label{ap:choose-basis}
 The goal of this section is to find the smallest set of linearly-independent spectra that together compose a vector space containing all the spectra in our observation. This basis is defined by the optimized set of basis indices, $\hat{s}$ (opposed to a general non-optimized index set $s$), which can be used to compute the basis matrix $\mathbf{B}$. $\hat{s}$ is the set $s$ which minimizes some model selection function (e.g. BIC or AIC). We will use BIC here because of its simplicity. BIC requires we compute a maximized likelihood function, $\hat{L}$, which is the probability of observing $\mathbf{F}$ given the model $\tilde{\mathbf{f}}$ and uncertainties $\mathbf{\Sigma}$. The BIC is
 \begin{equation}
     \text{BIC} = q\ln{(mn)} - 2\ln{(\hat{L})}\, ,
