@@ -102,7 +102,7 @@ if __name__ in "__main__":
     ax1.plot_surface(xx,yy,zz,facecolors=colors,shade=False,zorder=-100)
     im = ScalarMappable(norm, dcmap)
     cbar = fig.colorbar(im, cax=cbar_ax1, orientation='horizontal')
-    cbar.set_label('residual (%)',fontsize=LG_FONTSIZE)
+    cbar.set_label('variation (%)',fontsize=LG_FONTSIZE)
     # End bottom part
     
     
@@ -171,7 +171,7 @@ if __name__ in "__main__":
     ax3.plot_surface(xx,yy,zz,facecolors=colors,shade=False,zorder=-100)
     im = ScalarMappable(norm, dcmap)
     cbar = fig.colorbar(im, cax=cbar_ax3, orientation='horizontal')
-    cbar.set_label('residual (%)',fontsize=LG_FONTSIZE)
+    cbar.set_label('variation (%)',fontsize=LG_FONTSIZE)
     # End bottom part
     
     
