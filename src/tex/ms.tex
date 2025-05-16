@@ -116,7 +116,7 @@ There are many sources of stellar variability that ultimately come from changes 
 
 It is not the goal of VPIE to learn about the physical processes governing stellar variability, so the component spectra themselves are unimportant. Instead, we choose individual epochs from the observation to act as {\em basis spectra}. The basis is chosen using the methods described in Appendix \ref{ap:choose-basis}, which ultimately test multiple combinations of basis spectra to minimize the Bayes Information Criterion \citep[BIC,][]{schwarz1978} or Akaike Information Criterion \citep[AIC,][]{akaike1974}, both of which are metrics that balance model error with complexity.
 
-Once a set of basis spectra have been chosen (which can be written $\{\bm{f}_1,\,\bm{f}_2,\,\dots,\,\bm{f}_q\}$), we {\em reconstruct} the set of observed spectra using a linear combination of the bases. This is done via weighted least-squares fitting of the NIR portion of each spectrum. Each spectrum in the time-series can now be represented by a few coefficients which describe how to construct it from the basis spectra. Recall that there is no planetary information in the NIR spectrum, so by choosing the basis and performing this fitting using only NIR data, we have a model for the stellar variability which is agnostic to the planet. Ultimately, as shown in Figure \ref{fig:3d2}, we reconstruct the whole dataset (NIR and MIR) using the coefficients from the least-squares procedure. The result is a model observation ($\tilde{\bm{f}}$) that fits very well at short (star-only) wavelengths, but significantly differs from the original data at long wavelengths where the planet has appreciable flux.
+Once a set of basis spectra have been chosen (which can be written $\{\bm{f}^{(1)},\,\bm{f}^{(2)},\,\dots,\,\bm{f}^{(q)}\}$), we {\em reconstruct} the set of observed spectra using a linear combination of the bases. This is done via weighted least-squares fitting of the NIR portion of each spectrum. Each spectrum in the time-series can now be represented by a few coefficients which describe how to construct it from the basis spectra. Recall that there is no planetary information in the NIR spectrum, so by choosing the basis and performing this fitting using only NIR data, we have a model for the stellar variability which is agnostic to the planet. Ultimately, as shown in Figure \ref{fig:3d2}, we reconstruct the whole dataset (NIR and MIR) using the coefficients from the least-squares procedure. The result is a model observation ($\tilde{\bm{f}}$) that fits very well at short (star-only) wavelengths, but significantly differs from the original data at long wavelengths where the planet has appreciable flux.
 
 \begin{figure}
     \includegraphics[width=\linewidth]{figures/fig_3d2.pdf}
@@ -135,30 +135,41 @@ Once a set of basis spectra have been chosen (which can be written $\{\bm{f}_1,\
     \script{fig_3d3.py}
 \end{figure}
 
-After using least-squares to fit the basis spectra to our observation, we subtract the reconstruction from the original data to compute residuals ($\bm{f} - \tilde{\bm{f}}$), as shown in Figure \ref{fig:3d3}. Because we did not include MIR data in our least-squares fit, the reconstructed model is unaware of the planetary variations that occur at these wavelengths. Therefore, the MIR residuals encode any planetary variability that is not correlated with stellar variability at short wavelengths. Appendix \ref{ap:residuals} shows that the residuals are approximately equal to the planetary spectrum minus a planetary reconstruction. Specifically, if we have written our reconstructed spectrum as
-\begin{equation}
-    \tilde{\bm{f}} = \sum_{k=0}^q c_k\,\bm{f}^{(k)}\, ,
-\end{equation}
-then the residual due to the planet (which we will write $\bm{\delta}$) is
-\begin{equation}\label{eq:def-delta}
-    \bm{\delta} = \bm{f}_\text{p} - \sum_{k=0}^q c_k\,\bm{f}_{\text{p}}^{(k)}\, ,
-\end{equation}
-where $f_\text{p}$ is the intrinsic planetary spectrum and $c_k$ is the coefficient for the $k$th basis spectrum computed via least-squares. The raised index $(k)$ denotes that we are summing the $k$th basis spectrum, not the $k$th spectrum in the time-series.
-
-Because the basis spectra are not expected to be a perfect fit (due to noise or non-component mixing variability), there is an additional error term $\bm{\epsilon}$. The measured residuals are
+After using least-squares to fit the basis spectra to our observation, we subtract the reconstruction from the original data to compute residuals ($\bm{f} - \tilde{\bm{f}}$), as shown in Figure \ref{fig:3d3}. Because we did not include MIR data in our least-squares fit, the reconstructed model is unaware of the planetary variations that occur at these wavelengths. Therefore, the MIR residuals encode any planetary variability that is not correlated with stellar variability at short wavelengths. The residuals are equal to the sum of an error vector ($\bm{\epsilon}$) and a planetary variability vector ($\bm{\delta}$), written
 \begin{equation}\label{eq:def-residuals}
-    \bm{f} - \tilde{\bm{f}} = \bm{\epsilon} + \bm{\delta}\, .
+    \bm{f}_i - \tilde{\bm{f}}_i = \bm{\epsilon}_i + \bm{\delta}_i\, ,
 \end{equation}
+for time index $i$.
 
-Most importantly, the quantity $\bm{\epsilon} + \bm{\delta}$ is measurable and Section \ref{sec:compute-delta} shows that $\bm{\delta}$ can be computed from a planetary model. If the signal-to-noise ratio of the observation is sufficiently high, then the measured residual can provide statistical inferences into the properties of the planet.
+Specifically, if we have written our reconstructed spectrum as
+\begin{equation}\label{eq:def-frec}
+    \tilde{\bm{f}} = \sum_{k=0}^q a_{k}\,\bm{f}^{(k)}\, ,
+\end{equation}
+then Appendix \ref{ap:residuals} shows that the residual due to the planet is
+\begin{equation}\label{eq:def-delta}
+    \bm{\delta} = \bm{f}_\text{p} - \sum_{k=0}^q a_{k}\,\bm{f}_{\text{p}}^{(k)}\, ,
+\end{equation}
+where $\bm{f}_\text{p}$ is the intrinsic planetary spectrum and $a_k$ is the coefficient for the $k$th basis spectrum computed via least-squares. The raised index $(k)$ denotes that we are summing the $k$th basis spectrum, not the $k$th spectrum in the time-series. 
+
+Most importantly, the quantity $\bm{\epsilon} + \bm{\delta}$ is measurable and Section \ref{sec:compute-delta} shows that $\bm{\delta}$ can be computed from a planetary model. The error term $\bm{\epsilon}$ arises because the basis spectra are not expected to be a perfect fit (due to noise or non-component mixing variability). However, if it is mostly due to photon noise, then the residuals should have a mean value of $\bm{\delta}$ and can be used to make inferences about the properties of the planet.
+
+A more complete notation would write equations (\ref{eq:def-frec} \& \ref{eq:def-delta}) with the time index $i$ included (i.e. $\bm{\delta}\rightarrow\bm{\delta}_i$, $a_k\rightarrow a_{ik}$, etc.), but this is not necessary for this simplified description. See Appendix \ref{ap:residuals} for more detail.
+
+
+
+
+
 
 \subsection{Computing residuals from a model}\label{sec:compute-delta}
 
 The vector $\bm{\delta}$ is the residual that is purely due to the intrinsic variability of the planet. Suppose we have a specific model that computes a planetary spectroscopic phase curve ($\bm{f}_{\text{p},\,1},\, \bm{f}_{\text{p},\,2},\,\dots$) and we would like to compare it to the residuals from an observation. The definition of $\bm{\delta}$ in equation (\ref{eq:def-delta}) tells us exactly how to compute it from the model, but we discuss here the meaning of the indices and coefficients in this equation. Because this is not the true value of $\bm{\delta}$, we will write it as a function of model parameters: $\bm{\delta}(\theta)$.
 
-Recall that minimizing BIC (or AIC) in Section \ref{sec:change-basis} resulted in a set of basis spectra, described by their indices in the spectral time-series. Those same indices describe the planetary spectral basis, denoted by the index $k$ in equation (\ref{eq:def-delta}). Note that the sum goes up to $q$, which is the number of basis spectra preferred by our model selection criterion. The coefficient, written $c_k$, was found by fitting the stellar basis spectra to the NIR spectra using least-squares. It is the contribution from the $k$th basis spectrum, and it has a different value at every epoch. See equations (\ref{eq:mir-error}-\ref{eq:calc-glob-delta}) for a more concise definition of the matrix version of $\bm{\delta}$.
+Recall that minimizing BIC (or AIC) in Section \ref{sec:change-basis} resulted in a set of basis spectra, described by their indices in the spectral time-series. Those same indices describe the planetary spectral basis, denoted by the index $k$ in equation (\ref{eq:def-delta}). Note that the sum goes up to $q$, which is the number of basis spectra preferred by our model selection criterion. The coefficient, written $a_k$, was found by fitting the stellar basis spectra to the NIR spectra using least-squares. It is the contribution from the $k$th basis spectrum, and it has a different value at every epoch. See equations (\ref{eq:mir-error}-\ref{eq:calc-glob-delta}) for a more concise definition of the matrix version of $\bm{\delta}$. 
 
-\subsection{Nested-sampling retrievals}
+\subsection{Demonstration}
+\TJ{Figure with noise and stuff}
+
+\subsection{Retrievals}
 Sections \ref{sec:residuals} \& \ref{sec:compute-delta} provide two quantities necessary to characterize a planet from a VPIE observation.
 \begin{enumerate}
     \item $\bm{\epsilon} + \bm{\delta}$, the VPIE residuals defined in equation (\ref{eq:def-residuals}), which can be computed without making any assumptions about the planet.
@@ -172,7 +183,8 @@ To characterize the planet, all we have to do is change model parameters until $
 \end{equation}
 where all the operations within the sum are done element-wise. Priors should be chosen by the user based on the parameters of a specific model.
 
-Nested-sampling codes such as \texttt{dynesty} \citep{speagle2020} will sample the model parameter space to maximize equation (\ref{eq:logL}). The resulting posterior distribution can be used to make inferences about the properties of the planet.
+\section{Modeling}
+Nested-sampling codes such as \texttt{dynesty} \citep{speagle2020} will sample the model parameter space to maximize equation (\ref{eq:logL}). The resulting posterior distribution can be used to make inferences about the properties of the planet. \TJ{Dayside/nightside mixing model}
 
 \section{Examples}
 \subsection{Example 1: A hot Sub-Neptune with JWST}
