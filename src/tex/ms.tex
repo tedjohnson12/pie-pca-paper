@@ -6,6 +6,7 @@
 \usepackage{listings}
 \usepackage{natbib}
 \usepackage{xcolor}
+\usepackage{mhchem}
 
 
 \definecolor{codegreen}{rgb}{0,0.6,0}
@@ -119,7 +120,7 @@ It is not the goal of VPIE to learn about the physical processes governing stell
 Once a set of basis spectra have been chosen (which can be written $\{\bm{f}^{(1)},\,\bm{f}^{(2)},\,\dots,\,\bm{f}^{(q)}\}$), we {\em reconstruct} the set of observed spectra using a linear combination of the bases. This is done via weighted least-squares fitting of the NIR portion of each spectrum. Each spectrum in the time-series can now be represented by a few coefficients which describe how to construct it from the basis spectra. Recall that there is no planetary information in the NIR spectrum, so by choosing the basis and performing this fitting using only NIR data, we have a model for the stellar variability which is agnostic to the planet. Ultimately, as shown in Figure \ref{fig:3d2}, we reconstruct the whole dataset (NIR and MIR) using the coefficients from the least-squares procedure. The result is a model observation ($\tilde{\bm{f}}$) that fits very well at short (star-only) wavelengths, but significantly differs from the original data at long wavelengths where the planet has appreciable flux.
 
 \begin{figure}
-    \includegraphics[width=\linewidth]{figures/fig_3d2.pdf}
+    \includegraphics[width=3in]{figures/fig_3d2.pdf}
     \caption{Basis spectra reconstruction. {\bf Top:} Spectral time-series comprising a VPIE observation. The planetary spectrum has been multiplied by $10^4$ for visibility. Variability from the planet can be clearly seen in the MIR portion of the spectrum. The stellar spectrum also varies with time; the image on the $x$-$y$ plane shows variations from the mean spectrum. {\bf Middle:} The best basis for the dataset shown in top panel found by minimizing the BIC. {\bf Bottom:} Reconstruction of the dataset shown in top panel using only the basis spectra. Note that the NIR portion looks identical to the original dataset, but the MIR portion is significantly different. This is because the fitting procedure was not given any information about the time-series behavior of the planet.}
     \label{fig:3d2}
     \script{fig_3d2.py}
@@ -129,7 +130,7 @@ Once a set of basis spectra have been chosen (which can be written $\{\bm{f}^{(1
 \label{sec:residuals}
 
 \begin{figure}
-    \includegraphics[width=\linewidth]{figures/fig_3d3.pdf}
+    \includegraphics[width=3in]{figures/fig_3d3.pdf}
     \caption{Post-reconstruction residuals. Shown are the original data from the top panel Figure \ref{fig:3d2} (solid lines) with the reconstructed spectra from the bottom panel of Figure \ref{fig:3d2} (dashed lines). The image in the $x$-$y$ plane shows the fractional residuals $(\bm{f} - \tilde{\bm{f}})/\bm{f}$. Note that the residuals are effectively zero at short wavelengths, but become significant at long wavelengths due to variability of the planet.}
     \label{fig:3d3}
     \script{fig_3d3.py}
@@ -168,6 +169,7 @@ Recall that minimizing BIC (or AIC) in Section \ref{sec:change-basis} resulted i
 
 \subsection{Demonstration}
 \TJ{Figure with noise and stuff}
+In this section we will do a proof-of-concept demonstration of the VPIE method, walking through the steps outlined in previous sections. We will generate a dataset using the Variable Star PhasE Curve code \citep[VSPEC][]{johnson2025}, which uses the Planetary Spectrum Generator's Global Emission Spectra application \citep[PSG/GlobES][]{villanueva2018,kofman2024} to create combined light spectral timeseries.
 
 \subsection{Retrievals}
 Sections \ref{sec:residuals} \& \ref{sec:compute-delta} provide two quantities necessary to characterize a planet from a VPIE observation.
@@ -184,7 +186,26 @@ To characterize the planet, all we have to do is change model parameters until $
 where all the operations within the sum are done element-wise. Priors should be chosen by the user based on the parameters of a specific model.
 
 \section{Modeling}
-Nested-sampling codes such as \texttt{dynesty} \citep{speagle2020} will sample the model parameter space to maximize equation (\ref{eq:logL}). The resulting posterior distribution can be used to make inferences about the properties of the planet. \TJ{Dayside/nightside mixing model}
+In this section we describe a simple planetary model and demonstrate its applicability in generating inferences via nested-sampling retrievals.
+
+\subsection{Two-faced planet}
+Our simple planet model consists of two independent 1D atmosphere models which are interpolated between the day side and night side to create a realistic 3D planet from a few parameters with minimal computational cost. Each vertical temperature profile is piece-wise, with a linear component at low altitudes and a constant component at high altitudes. This is
+\begin{equation}
+    T(P) = \begin{cases}
+        T_0 - (T_0 - T_1)\frac{\ln{P/P_0}}{\ln{P_1/P_0}} & {\rm if}\quad P_0 \le P < P_1 \\
+        T_1 & {\rm if}\quad P_1 \le P \le P_2
+    \end{cases}\, .
+\end{equation}
+
+We also consider \ce{H2O} abundance profiles of the same form, but restrict other molecules to have constant abundance with pressure. We interpolate between a day model and a night model to extend these 1D profiles to 3D. The interpolation is done according to a point's distance from the substellar (day) and antistellar (night) points. For example, the base pressure ($P_0$), at some spherical-polar coordinate $(\phi,\,\theta)$ (with the substellar point at $(0,\,\pi/2)$) is
+\begin{equation}
+    P_0(\phi,\,\theta) = P_{0,\,\text{day}} \frac{1+\sin\theta\cos\phi}{2} + P_{0,\,\text{night}} \frac{1-\sin\theta\cos\phi}{2}\, .
+\end{equation}
+
+\subsection{Nested-sampling}
+Nested-sampling codes such as \texttt{dynesty} \citep{speagle2020} will sample the model parameter space to maximize equation (\ref{eq:logL}). The resulting posterior distribution can be used to make inferences about the properties of the planet. 
+
+
 
 \section{Examples}
 \subsection{Example 1: A hot Sub-Neptune with JWST}

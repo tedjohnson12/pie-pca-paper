@@ -14,6 +14,9 @@ from colors import cm_teal_cream_orange
 import paths
 
 plt.rcParams['font.family'] = 'serif'
+plt.rcParams['mathtext.fontset'] = 'dejavuserif'
+plt.rcParams['text.usetex'] = True
+plt.rcParams['text.latex.preamble'] = r'\usepackage{bm}'
 
 cmap = cm_teal_cream_orange
 BASE_CFG = paths.static / 'base.cfg'
@@ -102,7 +105,7 @@ if __name__ in "__main__":
     
     ax1.zaxis.set_rotate_label(False)
     ax1.set_ylabel('NIR $\\leftarrow\\lambda\\rightarrow$ MIR',fontsize=FONTSIZE,labelpad=-10)
-    ax1.set_zlabel('$\\mathbf{f}$\t',fontsize=FONTSIZE,labelpad=-10)
+    ax1.set_zlabel('$\\bm{f}$\t',fontsize=FONTSIZE,labelpad=-10)
     ax1.set_xlabel('$t$',fontsize=FONTSIZE,labelpad=-10)
     ax1.tick_params(axis='both', which='major', labelsize=FONTSIZE,length=0)
     ax1.set_xlim(0,2*np.pi)

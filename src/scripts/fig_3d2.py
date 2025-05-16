@@ -16,6 +16,10 @@ import paths
 
 plt.rcParams['font.family'] = 'serif'
 plt.rcParams['figure.constrained_layout.use'] = True
+plt.rcParams['mathtext.fontset'] = 'dejavuserif'
+plt.rcParams['text.usetex'] = True
+plt.rcParams['text.latex.preamble'] = r'\usepackage{bm}'
+
 
 cmap = cm_teal_cream_orange
 BASE_CFG = paths.static / 'base.cfg'
@@ -49,7 +53,7 @@ if __name__ in "__main__":
     )
     
     fig = plt.figure(figsize=(3, 7))
-    gs = fig.add_gridspec(5,1,height_ratios=[1,0.1,1,1,0.1],hspace=0.2)
+    gs = fig.add_gridspec(5,1,height_ratios=[1,0.1,1,1,0.1],hspace=0.1)
     ax1:Axes3D = fig.add_subplot(gs[0,0],projection='3d')
     cbar_ax1 = fig.add_subplot(gs[1,0])
     ax2:Axes3D = fig.add_subplot(gs[2,0],projection='3d')
@@ -78,7 +82,7 @@ if __name__ in "__main__":
         ax1.plot(x,y,z,lw=2,c=color,zorder=100)
     
     ax1.set_ylabel('NIR $\\leftarrow\\lambda\\rightarrow$ MIR',fontsize=FONTSIZE,labelpad=-10)
-    ax1.set_zlabel('$\\mathbf{f}$\t',fontsize=FONTSIZE,labelpad=-10)
+    ax1.set_zlabel(r'$\bm{f}$',fontsize=FONTSIZE,labelpad=-10)
     ax1.set_xlabel('$t$',fontsize=FONTSIZE,labelpad=-10)
     ax1.tick_params(axis='both', which='major', labelsize=FONTSIZE,length=0)
     ax1.zaxis.set_rotate_label(False)
@@ -91,6 +95,7 @@ if __name__ in "__main__":
     fdat_real = np.array(fdat_real)
     
     # Bottom part
+    # pylint: disable-next=no-member
     dcmap = plt.cm.bwr
     yy,xx = np.meshgrid(y,phase)
     zz = np.full_like(xx,np.min(np.log10(fdat_big_planet))-0.1)
@@ -102,7 +107,7 @@ if __name__ in "__main__":
     ax1.plot_surface(xx,yy,zz,facecolors=colors,shade=False,zorder=-100)
     im = ScalarMappable(norm, dcmap)
     cbar = fig.colorbar(im, cax=cbar_ax1, orientation='horizontal')
-    cbar.set_label('variation (%)',fontsize=LG_FONTSIZE)
+    cbar.set_label('variation (\\%)',fontsize=LG_FONTSIZE)
     # End bottom part
     
     
@@ -127,7 +132,7 @@ if __name__ in "__main__":
     
     ax2.zaxis.set_rotate_label(False)
     ax2.set_ylabel('NIR $\\leftarrow\\lambda\\rightarrow$ MIR',fontsize=FONTSIZE,labelpad=-10)
-    ax2.set_zlabel('$\\mathbf{f}$\t',fontsize=FONTSIZE,labelpad=-10)
+    ax2.set_zlabel(r'$\bm{f}^{(k)}$',fontsize=FONTSIZE,labelpad=-10)
     ax2.set_xlabel('$t$',fontsize=FONTSIZE,labelpad=-10)
     ax2.tick_params(axis='both', which='major', labelsize=FONTSIZE,length=0)
     ax2.set_xlim(0,2*np.pi)
@@ -156,10 +161,11 @@ if __name__ in "__main__":
     ax3.zaxis.set_rotate_label(False)
     ax3.spines[['right', 'top']].set_visible(False)
     ax3.set_ylabel('NIR $\\leftarrow\\lambda\\rightarrow$ MIR',fontsize=FONTSIZE,labelpad=-10)
-    ax3.set_zlabel('$\\tilde{\\mathbf{f}}$\t',fontsize=FONTSIZE,labelpad=-10)
+    ax3.set_zlabel(r'$\tilde{\bm{f}}$',fontsize=FONTSIZE,labelpad=-10)
     ax3.set_xlabel('$t$',fontsize=FONTSIZE,labelpad=-10)
     
     # Bottom part
+    # pylint: disable-next=no-member
     dcmap = plt.cm.bwr
     yy,xx = np.meshgrid(y,phase)
     zz = np.full_like(xx,np.min(np.log10(fdat_big_planet))-0.1)
@@ -171,7 +177,7 @@ if __name__ in "__main__":
     ax3.plot_surface(xx,yy,zz,facecolors=colors,shade=False,zorder=-100)
     im = ScalarMappable(norm, dcmap)
     cbar = fig.colorbar(im, cax=cbar_ax3, orientation='horizontal')
-    cbar.set_label('variation (%)',fontsize=LG_FONTSIZE)
+    cbar.set_label('variation (\\%)',fontsize=LG_FONTSIZE)
     # End bottom part
     
     
