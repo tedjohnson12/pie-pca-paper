@@ -167,48 +167,20 @@ The vector $\bm{\delta}$ is the residual that is purely due to the intrinsic var
 
 Recall that minimizing BIC (or AIC) in Section \ref{sec:change-basis} resulted in a set of basis spectra, described by their indices in the spectral time-series. Those same indices describe the planetary spectral basis, denoted by the index $k$ in equation (\ref{eq:def-delta}). Note that the sum goes up to $q$, which is the number of basis spectra preferred by our model selection criterion. The coefficient, written $a_k$, was found by fitting the stellar basis spectra to the NIR spectra using least-squares. It is the contribution from the $k$th basis spectrum, and it has a different value at every epoch. See equations (\ref{eq:mir-error}-\ref{eq:calc-glob-delta}) for a more concise definition of the matrix version of $\bm{\delta}$. 
 
-\subsection{Demonstration}
-\TJ{Figure with noise and stuff}
-In this section we will do a proof-of-concept demonstration of the VPIE method, walking through the steps outlined in previous sections. We will generate a dataset using the Variable Star PhasE Curve code \citep[VSPEC][]{johnson2025}, which uses the Planetary Spectrum Generator's Global Emission Spectra application \citep[PSG/GlobES][]{villanueva2018,kofman2024} to create combined light spectral timeseries.
-
-\subsection{Retrievals}
-Sections \ref{sec:residuals} \& \ref{sec:compute-delta} provide two quantities necessary to characterize a planet from a VPIE observation.
-\begin{enumerate}
-    \item $\bm{\epsilon} + \bm{\delta}$, the VPIE residuals defined in equation (\ref{eq:def-residuals}), which can be computed without making any assumptions about the planet.
-    \item $\bm{\delta}(\theta)$, the model residuals, computed by reconstructing a model phase curve using the same change-of-basis as found for the NIR stellar spectra.
-\end{enumerate}
-
-To characterize the planet, all we have to do is change model parameters until $\bm{\delta}(\theta) \approx \bm{\epsilon} + \bm{\delta}$. We choose to do this using nested-sampling algorithms \TJ{(ref?)} for a number of reasons, including their ability to handle and characterize degeneracy between parameters. Most nested-sampling codes require users to provide a set of priors for each parameter and a way to map parameter sets to a likelihood. In our simplified notation, the log-likelihood is
-\begin{equation}
-    \label{eq:logL}
-    \ln{L(\theta)} = \sum_{\text{epoch}} \sum_\text{channel} \frac{(\bm{\epsilon} + \bm{\delta} - \bm{\delta}(\theta))^2}{\bm{\sigma}^2}\, ,
-\end{equation}
-where all the operations within the sum are done element-wise. Priors should be chosen by the user based on the parameters of a specific model.
-
-\section{Modeling}
-In this section we describe a simple planetary model and demonstrate its applicability in generating inferences via nested-sampling retrievals.
-
-\subsection{Two-faced planet}
-Our simple planet model consists of two independent 1D atmosphere models which are interpolated between the day side and night side to create a realistic 3D planet from a few parameters with minimal computational cost. Each vertical temperature profile is piece-wise, with a linear component at low altitudes and a constant component at high altitudes. This is
-\begin{equation}
-    T(P) = \begin{cases}
-        T_0 - (T_0 - T_1)\frac{\ln{P/P_0}}{\ln{P_1/P_0}} & {\rm if}\quad P_0 \le P < P_1 \\
-        T_1 & {\rm if}\quad P_1 \le P \le P_2
-    \end{cases}\, .
-\end{equation}
-
-We also consider \ce{H2O} abundance profiles of the same form, but restrict other molecules to have constant abundance with pressure. We interpolate between a day model and a night model to extend these 1D profiles to 3D. The interpolation is done according to a point's distance from the substellar (day) and antistellar (night) points. For example, the base pressure ($P_0$), at some spherical-polar coordinate $(\phi,\,\theta)$ (with the substellar point at $(0,\,\pi/2)$) is
-\begin{equation}
-    P_0(\phi,\,\theta) = P_{0,\,\text{day}} \frac{1+\sin\theta\cos\phi}{2} + P_{0,\,\text{night}} \frac{1-\sin\theta\cos\phi}{2}\, .
-\end{equation}
-
-\subsection{Nested-sampling}
-Nested-sampling codes such as \texttt{dynesty} \citep{speagle2020} will sample the model parameter space to maximize equation (\ref{eq:logL}). The resulting posterior distribution can be used to make inferences about the properties of the planet. 
-
-
-
 \section{Examples}
-\subsection{Example 1: A hot Sub-Neptune with JWST}
+In this section we will do two proof-of-concept demonstrations of the VPIE method, walking through the steps outlined in previous sections. We will generate a dataset using the Variable Star PhasE Curve code \citep[\texttt{VSPEC}][]{johnson2025}, which uses the Planetary Spectrum Generator's Global Emission Spectra application \citep[PSG/GlobES][]{villanueva2018,kofman2024} to create combined light spectral timeseries.
+
+\subsection{Example 1: A hot Sub-Neptune with JWST}'
+In our first example, we demonstrate the capabilities of the VPIE method to detect variations in the lightcurve of a generic hot sub-Neptune at 10pc using JWST. Our \texttt{VSPEC} model uses the parameters given in Table \ref{tab:jwst-parameters}. Figure \ref{fig:jwst} shows the planetary spectra and stellar variability used in this example, and the bottom panel shows the VPIE residual signal ($\bm{\epsilon} + \bm{\delta}$, see Section \ref{sec:residuals}).
+
+\variable{output/jwst.txt}
+
+\begin{figure}
+    \includegraphics[width=0.5\textwidth]{figures/jwst.pdf}
+    \caption{VPIE observation and analysis of a hot Sub-Neptune with JWST. {\bf a)} Planetary thermal emission as a function of time and wavelength over the one orbit observed. {\bf b)} Day and night thermal emission spectra of the observed planet. {\bf c)} Normalized stellar white lightcurve. Overplotted are the time-dependent basis coefficients ($a_k$ in equation (\ref{eq:def-frec})). {\bf d)} VPIE residual as a fraction of the stellar spectrum, including realistic noise.}
+    \label{fig:jwst}
+    \script{plot_jwst.py}
+\end{figure}
 
 \subsection{Example 2: Proxima Centauri b with an M-Earth Mission}
 
