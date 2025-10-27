@@ -3,6 +3,7 @@ Simulate an observation of a hot sub-Neptune with JWST
 """
 
 from pathlib import Path
+from copy import deepcopy
 from matplotlib import pyplot as plt
 import numpy as np
 import astropy.units as u
@@ -15,10 +16,11 @@ import paths
 
 
 TABLE_FILE = paths.output / 'jwst.txt'
+TRUE_EPSILON = 0.1
 
 
 HEADER = VSPEC.params.Header(
-    data_path=Path(__file__).parent / '.vspec' / 'jwst',
+    data_path=Path(__file__).parent / '.vspec' / f'jwst_{TRUE_EPSILON:.2f}',
     seed=110,
     spec_grid=VSPEC.params.VSPECGridParameters(
         max_teff=3300 * u.K,
@@ -88,7 +90,7 @@ OBS = VSPEC.params.ObservationParameters(
 )
 
 PSG = VSPEC.params.psgParameters(
-    gcm_binning=6,
+    gcm_binning=200,
     phase_binning=1,
     use_continuum_stellar=True,
     use_molecular_signatures=True,
@@ -133,7 +135,7 @@ GCM_DICT = {
                 'nlayer': 30,
                 'nlon': 90,
                 'nlat': 45,
-                'epsilon': 0.1,
+                'epsilon': TRUE_EPSILON,
                 'psurf': 2*u.bar,
                 'ptop': 1e-5*u.bar,
                 'wind': {'U': 0*u.m/u.s, 'V': 0*u.m/u.s},
@@ -162,6 +164,25 @@ VSPEC_PARAMS = VSPEC.params.InternalParameters(
     inst=INST,
     gcm=GCM
 )
+
+def get_grid_params(epsilon: float):
+    _gcm = GCM_DICT.copy()
+    _gcm['gcm']['vspec']['epsilon'] = epsilon
+    _header = deepcopy(HEADER)
+    _header.data_path = Path(__file__).parent / '.vspec' / 'jwst-grid'
+    return VSPEC.params.InternalParameters(
+        header=_header,
+        star=STAR,
+        planet=PLANET,
+        system=SYSTEM,
+        obs=OBS,
+        psg=PSG,
+        inst=INST,
+        gcm=VSPEC.params.gcmParameters.from_dict(
+            _gcm
+        )
+    )
+
 
 def get_model():
     return VSPEC.ObservationModel(VSPEC_PARAMS)
@@ -208,11 +229,23 @@ def write_table():
     
     with open(TABLE_FILE, 'w', encoding='utf-8') as f:
         f.write('\n'.join(lines))
+ 
+ 
+def get_temperature_ratio(epsilon: float):
+    if epsilon < 1:
+        mode = 'ivp_reflect'
+    elif epsilon < 10:
+        mode = 'bvp'
+    else:
+        mode = 'analytic'
+    _, tsurf = VSPEC.gcm.heat_transfer.get_equator_curve(epsilon, 180, mode)
+    return np.min(tsurf)/np.max(tsurf)
+    
     
 if __name__ == '__main__':
     write_table()
-    # psg.docker.set_url_and_run()
-    # model = get_model()
-    # model.build_planet()
-    # model.build_spectra()
+    psg.docker.set_url_and_run()
+    model = get_model()
+    model.build_planet()
+    model.build_spectra()
     
