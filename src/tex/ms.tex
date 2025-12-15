@@ -182,7 +182,26 @@ In our first example, we demonstrate the capabilities of the VPIE method to dete
     \script{plot_jwst.py}
 \end{figure}
 
+\begin{figure}
+    \includegraphics[width=0.45\textwidth]{figures/jwst_retrieval_red_chi_square_distance_1.pdf}
+    \includegraphics[width=0.45\textwidth]{figures/jwst_retrieval_red_chi_square_distance_5.pdf}
+    \includegraphics[width=0.45\textwidth]{figures/jwst_retrieval_red_chi_square_distance_9.pdf}
+    \caption{caption}
+    \label{fig:jwst-chisq}
+    \script{retrieve_jwst.py}
+\end{figure}
+
 \subsection{Example 2: Proxima Centauri b with an M-Earth Mission}
+In our second demonstration of VPIE's effectiveness, we simulate an observation of the nearest exoplanet, Proxima Centauri b, using the Mid-IR Exoplanet CLimate Explorer \citep[MIRECLE][]{mandell2022} mission concept, which is designed to characterize the thermal emission of potentially-habitable rocky exoplanets. Table \ref{tab:mirecle-parameters} shows the simulation parameters used in this example. Figure \ref{fig:mirecle} summarizes the simulation
+
+\variable{output/mirecle.txt}
+
+\begin{figure}
+    \includegraphics[width=0.5\textwidth]{figures/mirecle.pdf}
+    \caption{Same as Figure \ref{fig:jwst}, but for observing two orbits of Proxima Centauri b with MIRECLE.}
+    \label{fig:mirecle}
+    \script{plot_mirecle.py}
+\end{figure}
 
 \section{Discussion}
 

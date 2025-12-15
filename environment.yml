@@ -6,6 +6,10 @@ dependencies:
       - astropy
       - pandas
       - requests
+      - loguru
       - libpypsg
       - GridPolator
+      - VSPEC
+      - asdf
+      - asdf-astropy==0.8.0
       - git+https://github.com/tedjohnson12/vpie-rs.git

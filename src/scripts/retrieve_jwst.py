@@ -1,164 +1,360 @@
 """
-JWST retrieval
+Simplified JWST retrieval script
+
+1. Generate observation
+
 """
 
-from pathlib import Path
-from time import time as current_wall_time
+import contextlib
 import matplotlib.pyplot as plt
-import dynesty.plotting
+from matplotlib.colors import LogNorm
 import numpy as np
-from scipy.interpolate import RegularGridInterpolator
 from astropy import units as u
-import dynesty
-import VSPEC
-from scipy.special import erfc
-from vpie.retrieve import Parameter, Prior
-import vpie
 from loguru import logger
 
-from jwst_grid import get_interp, LOG_EPSILON_GRID, TRAT_GRID, dt_to_eps
-from run_jwst import get_model as get_vspec_model, get_temperature_ratio, TRUE_EPSILON
+from vpie import vpie
+import VSPEC
 
 import paths
+from jwst_grid import get_interp, dt_to_eps as temp_to_log_epsilon
+from run_jwst import get_model, get_temperature_ratio as epsilon_to_temp
 
-PARAMETERS = [
-    Parameter(
-        name='$T_{\\rm night}/T_{\\rm day}$',
-        prior=Prior.uniform(0.11, 0.98),
-        truth=get_temperature_ratio(TRUE_EPSILON),
-        values=TRAT_GRID
-    )
-]
+TRUE_TEMPERATURE_RATIO = 0.5
+TRUE_EPSILON = temp_to_log_epsilon([TRUE_TEMPERATURE_RATIO])
 NOISE_SCALE = 1.0
-SEED = 10
-flux_unit = u.Unit('W m-2 um-1')
-OUTFILE_CORNER = paths.figures / 'jwst_corner.pdf'
-OUTFILE_LOGL = paths.figures / 'jwst_logl.pdf'
-OUTFILE_CHISQ = paths.figures / 'jwst_chisq.pdf'
-OUTFILE_RESIDUALS = paths.figures / 'jwst_residuals.pdf'
+CHI2_NOISE_SCALE = np.sqrt(2.41)
+THERMAL_SCALE = 4.0
+SEED = 100
+FLUX_UNIT = u.Unit('W m-2 um-1')
+CUTOFF_WL = 1*u.um
+OUTLIER_PERCENTILE = 100
 
-def get_model(log_epsilon: float, _interp: RegularGridInterpolator):
-    return _interp(([log_epsilon],))[0,:,:]
-
-def get_data():
-    return VSPEC.PhaseAnalyzer.from_model(get_vspec_model())
-
+@contextlib.contextmanager
+def figure_context(*args, **kwargs):
+    fig:plt.Figure = plt.figure(*args,**kwargs)
+    yield fig
+    plt.close(fig)
+    
 
 if __name__ in '__main__':
+    interpolator = get_interp()
+    """
+    Takes in [log_epsilon]
+    """
+    thermal = THERMAL_SCALE*interpolator([np.log10(TRUE_EPSILON)])[0,:,:].T #m x n
+    data = VSPEC.PhaseAnalyzer.from_model(get_model())
+    wl = data.wavelength
+    time = data.time
+    
+    with figure_context(figsize=(6,4)) as fig:
+        ax:plt.Axes = fig.subplots(1,1)
+        im=ax.pcolormesh(
+            wl.to_value(u.um),
+            time.to_value(u.hr),
+            thermal,cmap='gist_heat_r',
+            rasterized=True
+        )
+        ax.set_xlabel('$\\lambda/[\\rm \\mu m]$')
+        ax.set_ylabel('$t/[\\rm hr]$')
+        ax.set_xscale('log')
+        cbar = fig.colorbar(im,ax=ax)
+        cbar.set_label('$F_\\lambda/[\\rm W m^{-2} \\mu m^{-1}]$')
+        fig.tight_layout()
+        fig.savefig(paths.figures / 'jwst_retrieval_thermal.pdf')
+    
     rng = np.random.default_rng(SEED)
-    interp = get_interp()
-    data = get_data()
-    thermal = data.thermal.to_value(flux_unit)
-    noise = data.noise.to_value(flux_unit) * NOISE_SCALE
-    total = data.total.to_value(flux_unit)
-    observed = total + rng.normal(0,noise)
-    wl = data.wavelength.to_value(u.um)
-    n_wl = wl.size
-    time = data.time.to_value(u.day)
-    n_time = time.size
-    cutoff_index = np.argwhere(wl > 0.8)[0][0]
-    logger.info(f'Cutoff index: {cutoff_index}')
-    long_cutoff_index = np.argwhere(wl > 2)[0][0]
+    stellar = data.star.T.to_value(FLUX_UNIT)
+    true_noise = data.noise.T.to_value(FLUX_UNIT)
+    noise = true_noise * NOISE_SCALE
+    total_true = stellar + thermal
+    scatter = rng.normal(loc=0,scale = noise)
+    total_observed = total_true + scatter
+    
+    with figure_context(figsize=(6,4)) as fig:
+        ax:plt.Axes = fig.subplots(1,1)
+        z = 1e6*(scatter/total_true)
+        vminmax = np.max(np.abs(z))
+        im=ax.pcolormesh(
+            wl.to_value(u.um),
+            time.to_value(u.hr),
+            z,cmap='bwr',
+            rasterized=True,
+            vmin = -vminmax, vmax = vminmax
+        )
+        ax.set_title(f'Mean {np.mean(z):.1f} ppm, Stdev {np.std(z):.1f} ppm')
+        ax.set_xscale('log')
+        ax.set_xlabel('$\\lambda/[\\rm \\mu m]$')
+        ax.set_ylabel('$t/[\\rm hr]$')
+        cbar = fig.colorbar(im,ax=ax)
+        cbar.set_label('Noise (ppm)')
+        fig.tight_layout()
+        fig.savefig(paths.figures / 'jwst_retrieval_scatter.pdf')
+    
+    cutoff_index = np.argwhere(wl>CUTOFF_WL)[0][0]
+    logger.info(f'For a short-wave cutoff of {CUTOFF_WL}, we choose a cutoff index of {cutoff_index}. Total wl axis size is {wl.size}')
     s, coeffs, f_rec = vpie.get_vpie(
-        observed.T,
-        noise.T,
-        cutoff_index=cutoff_index,
-        use_mean_error=True,
+        total_observed,
+        noise,
+        cutoff_index,
+        True
     )
-    data_residual = observed.T - f_rec
-    assert data_residual.shape == (n_time, n_wl)
     
-    def get_model_residual(log_epsilon:float):
-        _thermal = get_model(log_epsilon, interp)
-        return _thermal.T - vpie.vpie.get_reconstruction(_thermal.T, coeffs, s)
+    residual = f_rec - total_observed
     
-    def get_red_chi_square(log_epsilon:float):
-        _model_residual = get_model_residual(log_epsilon)
-        _res = (data_residual - _model_residual)[:,long_cutoff_index:]
-        _noise = noise[long_cutoff_index:,:].T
-        chi_sq = np.sum((_res / _noise)**2)
-        return chi_sq/_res.size
+    with figure_context(figsize=(6,4)) as fig:
+        ax:plt.Axes = fig.subplots(1,1)
+        for i,_s in enumerate(s):
+            ax.plot(time,coeffs[:,i],label=f'$c_{{{_s}}}$')
+            ax.set_xlabel('$t/[\\rm hr]$')
+            fig.savefig(paths.figures / 'jwst_retrieval_coefficients.png')
     
-    def get_loglike(log_epsilon:float):
-        _model_residual = get_model_residual(log_epsilon)
-        _res = (data_residual - _model_residual)[:,long_cutoff_index:]
-        _noise = noise[long_cutoff_index:,:].T
-        arr_like = erfc(np.abs(_res) / np.sqrt(2)/_noise)
-        return np.sum(np.log(arr_like))/np.sqrt(_res.size)
-        # return np.sum(-0.5 * np.log(2*np.pi) - np.log(_noise) - 0.5 * (_res / _noise)**2)
     
-    def logl(x:np.ndarray):
-        return get_loglike(dt_to_eps(x)[0])
+    def get_residual_and_noise(distance,fiducial_distance=10,chi_noise_scale=1.0,epsilon=TRUE_EPSILON):
+        logger.info(f'Running distance={distance} pc with noise scale of {chi_noise_scale:.2f}')
+        distance_noise_scale = (distance/fiducial_distance)**2
+        _thermal = THERMAL_SCALE*interpolator([np.log10(epsilon)])[0,:,:].T
+        _data = VSPEC.PhaseAnalyzer.from_model(get_model())
+        _rng = np.random.default_rng(SEED)
+        _stellar = _data.star.T.to_value(FLUX_UNIT)
+        _noise = _data.noise.T.to_value(FLUX_UNIT) * NOISE_SCALE * distance_noise_scale
+        _total_true = _stellar + _thermal
+        _scatter = _rng.normal(loc=0,scale = _noise)
+        _noise = _noise * chi_noise_scale
+        _total_observed = _total_true + _scatter
+        _cutoff_index = np.argwhere(wl>CUTOFF_WL)[0][0]
+        _, _, _f_rec = vpie.get_vpie(
+            _total_observed,
+            _noise,
+            _cutoff_index,
+            True
+        )
+        _residual = _f_rec - _total_observed
+        return _residual, _noise
+        
+        
+        
+        
     
-    sampler = dynesty.NestedSampler(
-        logl,
-        lambda u: np.array([param.prior(_u) for _u, param in zip(u, PARAMETERS)]),
-        ndim=len(PARAMETERS),
+    with figure_context(figsize=(6,4)) as fig:
+        ax:plt.Axes = fig.subplots(1,1)
+        z = residual / noise
+        vminmax = np.max(np.abs(z))
+        im=ax.pcolormesh(
+            wl.to_value(u.um),
+            time.to_value(u.hr),
+            z,cmap='bwr',
+            rasterized=True,
+            vmin = -vminmax, vmax = vminmax
+        )
+        ax.set_title(f'Short: {np.mean(z[:,:cutoff_index]):.1f} $\\pm$ {np.std(z[:,:cutoff_index]):.1f} ppm | Long: {np.mean(z[:,cutoff_index:]):.1f} $\\pm$ {np.std(z[:,cutoff_index:]):.1f} ppm')
+        ax.axvline(CUTOFF_WL.to_value(u.um),ls='--',c='k')
+        ax.set_xscale('log')
+        ax.set_xlabel('$\\lambda/[\\rm \\mu m]$')
+        ax.set_ylabel('$t/[\\rm hr]$')
+        cbar = fig.colorbar(im,ax=ax)
+        cbar.set_label('Noise (ppm)')
+        fig.tight_layout()
+        fig.savefig(paths.figures / 'jwst_retrieval_residual_scatter.pdf')
+        
+        
+    true_thermal_reconstruction = vpie.get_reconstruction(
+        thermal,
+        coeffs,
+        s
     )
-    dlogz = 1.0
-    logger.info(f'Dlogz: {dlogz}')
-    sample_start = current_wall_time()
-    sampler.run_nested(dlogz=dlogz)
-    sample_end = current_wall_time()
-    logger.info(f'Wall time: {sample_end - sample_start}')
+    true_thermal_residual = true_thermal_reconstruction - thermal
     
-    results = sampler.results
-    cfig, caxes = dynesty.plotting.cornerplot(
-                results,
-                color='#458977',
-                truth_color='#DE5126',
-                truths = [p.truth for p in PARAMETERS],
-                labels = [p.name for p in PARAMETERS],
-                use_math_text=True,
-                label_kwargs={'fontsize':16,'rotation':0,'ha':'right'},
-                hist_kwargs={'alpha':1}
+    with figure_context(figsize=(6,4)) as fig:
+        ax:plt.Axes = fig.subplots(1,1)
+        vminmax = np.max(np.abs(true_thermal_residual))
+        im=ax.pcolormesh(
+            wl.to_value(u.um),
+            time.to_value(u.hr),
+            true_thermal_residual,cmap='bwr',
+            rasterized=True,
+            vmin=-vminmax,vmax=vminmax
+        )
+        ax.set_xlabel('$\\lambda/[\\rm \\mu m]$')
+        ax.set_ylabel('$t/[\\rm hr]$')
+        ax.set_xscale('log')
+        cbar = fig.colorbar(im,ax=ax)
+        cbar.set_label('Thermal Reconstruction $F_\\lambda/[\\rm W m^{-2} \\mu m^{-1}]$')
+        fig.tight_layout()
+        fig.savefig(paths.figures / 'jwst_retrieval_true_reconstruction.pdf')
+        
+        
+    with figure_context(figsize=(6,4)) as fig:
+        ax:plt.Axes = fig.subplots(1,1)
+        grid_thermal = THERMAL_SCALE*interpolator([np.log10(TRUE_EPSILON)-0.])[0,:,:].T
+        grid_reconstruction = vpie.get_reconstruction(
+            grid_thermal,
+            coeffs,
+            s
+        )
+        grid_residual = grid_reconstruction - grid_thermal
+        difference = grid_residual - residual
+        chi_sq = (
+            difference**2/noise**2
+        )
+        # chi_sq = median_filter(chi_sq,5)
+        outlier = chi_sq > np.percentile(chi_sq,100)
+        chi_sq[outlier] = np.nan
+        im=ax.pcolormesh(
+            wl.to_value(u.um),
+            time.to_value(u.hr),
+            chi_sq,
+            rasterized=True,
+            # norm=LogNorm()
+        )
+        ax.set_xlabel('$\\lambda/[\\rm \\mu m]$')
+        ax.set_ylabel('$t/[\\rm hr]$')
+        ax.set_xscale('log')
+        ax.axvline(CUTOFF_WL.to_value(u.um),ls='--',c='k')
+        cbar = fig.colorbar(im,ax=ax)
+        cbar.set_label('$\\chi^2$')
+        fig.tight_layout()
+        fig.savefig(paths.figures / 'jwst_retrieval_chi_sq_true.png')
+        
+    with figure_context(figsize=(6,4)) as fig:
+        ax:plt.Axes = fig.subplots(1,1)
+        grid_thermal = THERMAL_SCALE*interpolator([np.log10(TRUE_EPSILON)-0.])[0,:,:].T
+        grid_reconstruction = vpie.get_reconstruction(
+            grid_thermal,
+            coeffs,
+            s
+        )
+        grid_residual = grid_reconstruction - grid_thermal
+        difference = grid_residual - residual
+        chi = (
+            difference/noise
+        )
+        vminmax = np.max(np.abs(chi))
+        im=ax.pcolormesh(
+            wl.to_value(u.um),
+            time.to_value(u.hr),
+            chi,
+            rasterized=True,
+            vmin=-vminmax,vmax=vminmax
+            # norm=LogNorm()
+        )
+        ax.set_xlabel('$\\lambda/[\\rm \\mu m]$')
+        ax.set_ylabel('$t/[\\rm hr]$')
+        ax.set_xscale('log')
+        ax.set_title(f'Mean: {np.mean(chi):.2f} Std: {np.std(chi):.2f} $T_{{\\rm night}} / T_{{\\rm day}}$: {TRUE_TEMPERATURE_RATIO:.2f}')
+        ax.axvline(CUTOFF_WL.to_value(u.um),ls='--',c='k')
+        cbar = fig.colorbar(im,ax=ax)
+        cbar.set_label('$\\chi$')
+        fig.tight_layout()
+        fig.savefig(paths.figures / 'jwst_retrieval_chi_true.png')
+        
+        
+    
+    temp_array = np.linspace(0.05,0.99,1000)
+    log_eps_array = (temp_to_log_epsilon(temp_array))
+    red_chi_sq_array = []
+    red_chi_sq_short_array = []
+    red_chi_sq_long_array = []
+    for log_eps in log_eps_array:
+        grid_thermal = THERMAL_SCALE*interpolator([log_eps])[0,:,:].T
+        grid_reconstruction = vpie.get_reconstruction(
+            grid_thermal,
+            coeffs,
+            s
+        )
+        grid_residual = grid_reconstruction - grid_thermal
+        difference = grid_residual - residual
+        chi_sq_spec = difference**2/(noise*CHI2_NOISE_SCALE)**2
+        # chi_sq_spec = median_filter(chi_sq_spec,5)
+        chi_sq = np.sum(chi_sq_spec)
+        chi_sq_short = np.sum(chi_sq_spec[:,:cutoff_index])
+        red_chi_sq_short = chi_sq_short / (chi_sq_spec[:,:cutoff_index]).size
+        chi_sq_long = np.sum(chi_sq_spec[:,cutoff_index:])
+        red_chi_sq_long = chi_sq_long / (chi_sq_spec[:,cutoff_index:]).size
+        red_chi_sq = chi_sq / (chi_sq_spec).size
+        red_chi_sq_array.append(red_chi_sq)
+        red_chi_sq_short_array.append(red_chi_sq_short)
+        red_chi_sq_long_array.append(red_chi_sq_long)
+    red_chi_sq_array = np.array(red_chi_sq_array)
+    
+    with figure_context(figsize=(6,4)) as fig:
+        ax:plt.Axes = fig.subplots(1,1)
+        im=ax.plot(temp_array,red_chi_sq_array,c='k')
+        ax.plot(temp_array,red_chi_sq_short_array,c='r',label='NIR')
+        ax.plot(temp_array,red_chi_sq_long_array,c='b',label='MIR')
+        ax.set_title(f'Min $\\chi^2_{{\\rm red}}= {np.min(red_chi_sq_array):.2f}$ at $\\log \\epsilon= {log_eps_array[np.argmin(red_chi_sq_array)]:.2f}$')
+        ax.set_xlabel('$T_{\\rm night} / T_{\\rm day}$')
+        ax.set_ylabel('$\\chi^2_{\\rm red}$')
+        ax.set_yscale('log')
+        ax.axhline(1,ls='--',c='k')
+        ax.legend()
+        fig.tight_layout()
+        fig.savefig(paths.figures / 'jwst_retrieval_red_chi_square.png')
+    
+    temp_ratios = [0.1,0.5,0.9]
+    epsilons = temp_to_log_epsilon(temp_ratios)
+    fnames = ['1','5','9']
+    for epsilon, fname in zip(epsilons,fnames):
+        grid_distance = 4.6
+        distance_arr = np.logspace(0.1,0.7,21)
+        red_chi_sq_array = np.zeros((distance_arr.size,log_eps_array.size))
+        for i,dist in enumerate(distance_arr):
+            # dist_residual, dist_noise = get_residual_and_noise(dist,fiducial_distance=grid_distance,epsilon=10**epsilon)
+            # logger.info(f'Distance: {dist}')
+            # for j,log_eps in enumerate(log_eps_array):
+            #     grid_thermal = THERMAL_SCALE*interpolator([log_eps])[0,:,:].T
+            #     grid_reconstruction = vpie.get_reconstruction(
+            #         grid_thermal,
+            #         coeffs,
+            #         s
+            #     )
+            #     grid_residual = grid_reconstruction - grid_thermal
+            #     difference = grid_residual - dist_residual
+            #     chi_sq_spec = difference**2/(dist_noise)**2
+            #     chi_sq = np.sum(chi_sq_spec)
+            #     red_chi_sq = chi_sq / chi_sq_spec.size
+            #     red_chi_sq_array[i,j] = red_chi_sq
+            # chi_noise_scale = np.min(red_chi_sq_array[i,:])
+            dist_residual, dist_noise = get_residual_and_noise(dist,fiducial_distance=grid_distance,chi_noise_scale=4.47,epsilon=10**epsilon)
+            for j,log_eps in enumerate(log_eps_array):
+                grid_thermal = THERMAL_SCALE*interpolator([log_eps])[0,:,:].T
+                grid_reconstruction = vpie.get_reconstruction(
+                    grid_thermal,
+                    coeffs,
+                    s
+                )
+                grid_residual = grid_reconstruction - grid_thermal
+                difference = grid_residual - dist_residual
+                chi_sq_spec = difference**2/(dist_noise)**2
+                chi_sq = np.sum(chi_sq_spec)
+                red_chi_sq = chi_sq / chi_sq_spec.size
+                red_chi_sq_array[i,j] = red_chi_sq
+            
+        
+        with figure_context(figsize=(6,4)) as fig:
+            ax:plt.Axes = fig.subplots(1,1)
+            im=ax.pcolormesh(
+                temp_array,distance_arr,(red_chi_sq_array),
+                rasterized=True,
+                norm=LogNorm()
             )
-    cfig.subplots_adjust(left=0.18)
-    caxes[-1,-1].set_ylabel('Posterior')
-    caxes[-1,-1].set_xlim(0,1)
-    cfig.savefig(OUTFILE_CORNER)
-    plt.close('all')
-    y = []
-    x = np.linspace(0.11, 0.95, 100)
-    for _x in x:
-        y.append(logl([_x]))
-    plt.plot(x, y)
-    plt.axvline(PARAMETERS[0].truth)
-    plt.xlabel('$T_{\\mathrm{night}}/T_{\\mathrm{day}}$')
-    plt.ylabel('$\\log\\mathcal{L}$')
-    plt.savefig(OUTFILE_LOGL)
-    plt.close('all')
-    
-    y = []
-    x = np.linspace(0.11, 0.95, 100)
-    for _x in x:
-        y.append(get_red_chi_square([_x]))
-    plt.plot(x, y)
-    plt.axvline(PARAMETERS[0].truth)
-    plt.xlabel('$T_{\\mathrm{night}}/T_{\\mathrm{day}}$')
-    plt.ylabel('$\\chi^2_{\\mathrm{red}}$')
-    plt.savefig(OUTFILE_CHISQ)
-    plt.close('all')
+            ax.set_ylabel('$d/[\\rm pc]$')
+            ax.set_xlabel('$T_{\\rm night} / T_{\\rm day}$')
+            ax.set_yscale('log')
+            yticks = [1.5,2,3,4,6,8,10,12]
+            ax.set_yticks(yticks)
+            ax.set_yticklabels(yticks)
+            fig.colorbar(im,label='$\\chi^2_{\\rm red}$')
+            levels = [1,4,9,16,25]
+            fmt = lambda x: f'$\\chi^2_{{\\rm red}} = {x:.0f}$'
+            im=ax.contour(
+                temp_array,distance_arr,red_chi_sq_array,
+                levels=levels,
+                colors='k',
+                linestyles='dashed'
+            )
+            ax.clabel(im,im.levels,inline=True,fontsize=10,fmt=fmt)
+            fig.tight_layout()
+            fig.savefig(paths.figures / f'jwst_retrieval_red_chi_square_distance_{fname}.pdf')
+        
     
     
-    
-    fig = plt.figure(figsize=(20,8))
-    axes = fig.subplots(LOG_EPSILON_GRID.size+1,2)
-    
-    for i,loge in enumerate(LOG_EPSILON_GRID):
-        lax = axes[i,0]
-        rax = axes[i,1]
-        _model_residual = get_model_residual(loge)
-        _res = (data_residual - _model_residual)[:,long_cutoff_index:]
-        lax.imshow(_model_residual, cmap='bwr',vmin=-3e-18,vmax=3e-18)
-        rax.imshow(_res)
-        # lax.set_title(f'log epsilon = {loge}')
-        # rax.set_title(f'residuals')
-        # lax.set_xlabel('wavelength')
-        # rax.set_xlabel('wavelength')
-        # lax.set_ylabel('time')
-        # rax.set_ylabel('time')
-    lax = axes[-1,0]
-    lax.imshow(data_residual/observed.T, cmap='bwr')
-    plt.savefig(OUTFILE_RESIDUALS)
-    plt.close('all')

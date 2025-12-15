@@ -9,12 +9,12 @@ import paths
 import VSPEC
 import vpie
 
-from run_jwst import get_model
+from run_mirecle import get_model
 
-OUTFILE = paths.figures / 'jwst.pdf'
+OUTFILE = paths.figures / 'mirecle.pdf'
 NOISE_SCALE = 1.0
 SEED = 10
-QUARTER_PERIOD = 12
+QUARTER_PERIOD = 8
 
 if __name__ == '__main__':
     rng = np.random.default_rng(SEED)
@@ -42,7 +42,7 @@ if __name__ == '__main__':
     cbar1 = fig.colorbar(im1,ax=ax1,orientation='vertical',shrink=0.8)
     cbar1.set_label('Thermal flux ($\\rm W m^{-2} \\mu m^{-1}$)')
     
-    cutoff_index = np.argwhere(wl > 0.8)[0][0]
+    cutoff_index = np.argwhere(wl > 3)[0][0]
     print(f'Cutoff index: {cutoff_index}')
     s, coeffs, f_rec = vpie.vpie.get_vpie(
         observed.T,

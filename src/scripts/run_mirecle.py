@@ -14,33 +14,33 @@ import libpypsg as psg
 import paths
 
 
-TABLE_FILE = paths.output / 'jwst.txt'
+TABLE_FILE = paths.output / 'mirecle.txt'
 TRUE_EPSILON = 0.1
 TRUE_DAY_NIGHT_RATIOS = [0.1,0.5,0.9]
 
 
 HEADER = VSPEC.params.Header(
-    data_path=Path(__file__).parent / '.vspec' / f'jwst_{TRUE_EPSILON:.2f}',
-    seed=110,
+    data_path=Path(__file__).parent / '.vspec' / f'mirecle_{TRUE_EPSILON:.2f}',
+    seed=11,
     spec_grid=VSPEC.params.VSPECGridParameters(
-        max_teff=3300 * u.K,
-        min_teff=2800 * u.K,
+        max_teff=3100 * u.K,
+        min_teff=2600 * u.K,
         impl_bin='rust',
         impl_interp='scipy',
         fail_on_missing=False
     ),
-    # log_level='info',
-    desc='Hot Sub-Neptune with JWST',
+    log_level='info',
+    desc='Proxb with MIRECLE',
 )
 
 STAR = VSPEC.params.StarParameters(
     psg_star_template='M',
-    teff=3300 * u.K,
-    radius=0.37 * u.R_sun,
-    period=4 * u.day,
+    teff=3000 * u.K,
+    radius=0.141 * u.R_sun,
+    period=90 * u.day,
     misalignment=0 * u.deg,
     misalignment_dir=0 * u.deg,
-    mass=0.37 * u.Msun,
+    mass=0.15 * u.Msun,
     ld=VSPEC.params.LimbDarkeningParameters.proxima(),
     spots=VSPEC.params.SpotParameters(
         distribution='iso',
@@ -48,8 +48,8 @@ STAR = VSPEC.params.StarParameters(
         equillibrium_coverage=0.2,
         area_mean=500*VSPEC.config.MSH,
         area_logsigma=0.2,
-        teff_umbra=3000 * u.K,
-        teff_penumbra=3000 * u.K,
+        teff_umbra=2700 * u.K,
+        teff_penumbra=2700 * u.K,
         burn_in=0 * u.day,
         growth_rate=0 * u.day**-1,
         decay_rate=0*VSPEC.config.MSH * u.day**-1,
@@ -62,16 +62,16 @@ STAR = VSPEC.params.StarParameters(
 )
 
 PLANET = VSPEC.params.PlanetParameters(
-    name='subnep',
-    radius=1.8*u.R_earth,
+    name='proxcenb',
+    radius=1.0*u.R_earth,
     gravity=VSPEC.params.GravityParameters(
         mode='kg',
-        value=6.8*u.M_earth
+        value=1.0*u.M_earth
     ),
-    semimajor_axis=0.02*u.AU,
-    orbit_period=1.93*u.day,
-    rotation_period=1.93*u.day,
-    eccentricity=0.2,
+    semimajor_axis=0.05*u.AU,
+    orbit_period=11.19*u.day,
+    rotation_period=11.19*u.day,
+    eccentricity=0.0,
     obliquity=0.0*u.deg,
     obliquity_direction=0.0*u.deg,
     init_substellar_lon=0.0*u.deg,
@@ -79,18 +79,18 @@ PLANET = VSPEC.params.PlanetParameters(
 )
 
 SYSTEM = VSPEC.params.SystemParameters(
-    distance=4.6*u.pc,
-    inclination=59*u.deg,
+    distance=1.295*u.pc,
+    inclination=80*u.deg,
     phase_of_periastron=0*u.deg
 )
 
 OBS = VSPEC.params.ObservationParameters(
-    observation_time=1.93*u.day,
-    integration_time=60*u.min
+    observation_time=2*11.19*u.day,
+    integration_time=8*u.hr
 )
 
 PSG = VSPEC.params.psgParameters(
-    gcm_binning=6,
+    gcm_binning=200,
     phase_binning=1,
     use_continuum_stellar=True,
     use_molecular_signatures=True,
@@ -100,11 +100,14 @@ PSG = VSPEC.params.psgParameters(
 )
 
 INST = VSPEC.params.InstrumentParameters(
-    telescope=VSPEC.params.SingleDishParameters.jwst(),
+    telescope=VSPEC.params.SingleDishParameters(
+        aperture=2*u.m,
+        zodi=1.0
+        ),
     bandpass=VSPEC.params.BandpassParameters(
-        wl_blue=0.6*u.um,
-        wl_red=5.0*u.um,
-        resolving_power=100,
+        wl_blue=1*u.um,
+        wl_red=18*u.um,
+        resolving_power=50,
         wavelength_unit=u.micron,
         flux_unit=u.Unit('W m-2 um-1')
     ),
@@ -114,10 +117,10 @@ INST = VSPEC.params.InstrumentParameters(
         ccd=VSPEC.params.ccdParameters(
             pixel_sampling=8,
             read_noise=16.8*u.electron,
-            dark_current=0.005*u.electron/u.s,
-            throughput=0.4,
+            dark_current=100*u.electron/u.s,
+            throughput=0.7,
             emissivity=0.1,
-            temperature=50*u.K
+            temperature=35*u.K
         )
     )
 )
@@ -136,7 +139,7 @@ GCM_DICT = {
                 'nlon': 90,
                 'nlat': 45,
                 'epsilon': TRUE_EPSILON,
-                'psurf': 2*u.bar,
+                'psurf': 1*u.bar,
                 'ptop': 1e-5*u.bar,
                 'wind': {'U': 0*u.m/u.s, 'V': 0*u.m/u.s},
                 'gamma': 1.,
@@ -169,7 +172,7 @@ def get_grid_params(epsilon: float):
     _gcm = GCM_DICT.copy()
     _gcm['gcm']['vspec']['epsilon'] = epsilon
     _header = deepcopy(HEADER)
-    _header.data_path = Path(__file__).parent / '.vspec' / 'jwst-grid'
+    _header.data_path = Path(__file__).parent / '.vspec' / 'mirecle-grid'
     return VSPEC.params.InternalParameters(
         header=_header,
         star=STAR,
@@ -224,7 +227,7 @@ def write_table():
     lines.append('\\hline')
     lines.append('\\end{tabular}')
     lines.append('\\caption{JWST Simulation Parameters}')
-    lines.append('\\label{tab:jwst-parameters}')
+    lines.append('\\label{tab:mirecle-parameters}')
     lines.append('\\end{table}')
     
     with open(TABLE_FILE, 'w', encoding='utf-8') as f:
