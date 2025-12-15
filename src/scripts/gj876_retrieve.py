@@ -17,9 +17,10 @@ from vpie import vpie
 import VSPEC
 
 import paths
-from jwst_grid import get_interp, dt_to_eps as temp_to_log_epsilon
-from run_jwst import get_model, get_temperature_ratio as epsilon_to_temp, PLANET as PLANET_PARAMS
+from gj876_grid import get_interp, dt_to_eps as temp_to_log_epsilon
+from gj876_run import get_model, get_temperature_ratio as epsilon_to_temp, PLANET as PLANET_PARAMS
 
+PREFIX = 'gj876'
 TRUE_TEMPERATURE_RATIO = 0.5
 TRUE_EPSILON = temp_to_log_epsilon([TRUE_TEMPERATURE_RATIO])
 NOISE_SCALE = 1.0
@@ -62,7 +63,7 @@ if __name__ in '__main__':
         cbar = fig.colorbar(im,ax=ax)
         cbar.set_label('$F_\\lambda/[\\rm W m^{-2} \\mu m^{-1}]$')
         fig.tight_layout()
-        fig.savefig(paths.figures / 'jwst_retrieval_thermal.pdf')
+        fig.savefig(paths.figures / f'{PREFIX}_retrieval_thermal.pdf')
     
     rng = np.random.default_rng(SEED)
     stellar = data.star.T.to_value(FLUX_UNIT)
@@ -90,7 +91,7 @@ if __name__ in '__main__':
         cbar = fig.colorbar(im,ax=ax)
         cbar.set_label('Noise (ppm)')
         fig.tight_layout()
-        fig.savefig(paths.figures / 'jwst_retrieval_scatter.pdf')
+        fig.savefig(paths.figures / f'{PREFIX}_retrieval_scatter.pdf')
     
     cutoff_index = np.argwhere(wl>CUTOFF_WL)[0][0]
     logger.info(f'For a short-wave cutoff of {CUTOFF_WL}, we choose a cutoff index of {cutoff_index}. Total wl axis size is {wl.size}')
@@ -108,7 +109,7 @@ if __name__ in '__main__':
         for i,_s in enumerate(s):
             ax.plot(time,coeffs[:,i],label=f'$c_{{{_s}}}$')
             ax.set_xlabel('$t/[\\rm hr]$')
-            fig.savefig(paths.figures / 'jwst_retrieval_coefficients.png')
+            fig.savefig(paths.figures / f'{PREFIX}_retrieval_coefficients.png')
     
     
     def get_residual_and_noise(distance,fiducial_distance=10,chi_noise_scale=1.0,epsilon=TRUE_EPSILON):
@@ -156,7 +157,7 @@ if __name__ in '__main__':
         cbar = fig.colorbar(im,ax=ax)
         cbar.set_label('Noise (ppm)')
         fig.tight_layout()
-        fig.savefig(paths.figures / 'jwst_retrieval_residual_scatter.pdf')
+        fig.savefig(paths.figures / f'{PREFIX}_retrieval_residual_scatter.pdf')
         
         
     true_thermal_reconstruction = vpie.get_reconstruction(
@@ -182,7 +183,7 @@ if __name__ in '__main__':
         cbar = fig.colorbar(im,ax=ax)
         cbar.set_label('Thermal Reconstruction $F_\\lambda/[\\rm W m^{-2} \\mu m^{-1}]$')
         fig.tight_layout()
-        fig.savefig(paths.figures / 'jwst_retrieval_true_reconstruction.pdf')
+        fig.savefig(paths.figures / f'{PREFIX}_retrieval_true_reconstruction.pdf')
         
         
     with figure_context(figsize=(6,4)) as fig:
@@ -215,7 +216,7 @@ if __name__ in '__main__':
         cbar = fig.colorbar(im,ax=ax)
         cbar.set_label('$\\chi^2$')
         fig.tight_layout()
-        fig.savefig(paths.figures / 'jwst_retrieval_chi_sq_true.png')
+        fig.savefig(paths.figures / f'{PREFIX}_retrieval_chi_sq_true.png')
         
     with figure_context(figsize=(6,4)) as fig:
         ax:plt.Axes = fig.subplots(1,1)
@@ -247,7 +248,7 @@ if __name__ in '__main__':
         cbar = fig.colorbar(im,ax=ax)
         cbar.set_label('$\\chi$')
         fig.tight_layout()
-        fig.savefig(paths.figures / 'jwst_retrieval_chi_true.png')
+        fig.savefig(paths.figures / f'{PREFIX}_retrieval_chi_true.png')
         
         
     
@@ -290,7 +291,7 @@ if __name__ in '__main__':
         ax.axhline(1,ls='--',c='k')
         ax.legend()
         fig.tight_layout()
-        fig.savefig(paths.figures / 'jwst_retrieval_red_chi_square.png')
+        fig.savefig(paths.figures / f'{PREFIX}_retrieval_red_chi_square.png')
     
     temp_ratios = [0.1,0.5,0.9]
     epsilons = temp_to_log_epsilon(temp_ratios)
@@ -394,7 +395,7 @@ if __name__ in '__main__':
             pos0 = ax0.get_position()
             ax0.set_position([pos.x0,pos0.y0,pos.width,pos0.height])
             # fig.tight_layout()
-            fig.savefig(paths.figures / f'jwst_retrieval_red_chi_square_distance_{fname}.pdf')
+            fig.savefig(paths.figures / f'{PREFIX}_retrieval_red_chi_square_distance_{fname}.pdf')
         
     
     

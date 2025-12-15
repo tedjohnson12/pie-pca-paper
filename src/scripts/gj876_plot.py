@@ -1,5 +1,5 @@
 """
-Make figure for JWST example
+Make figure for GJ 876 example
 """
 
 import matplotlib.pyplot as plt
@@ -9,9 +9,9 @@ import paths
 import VSPEC
 import vpie
 
-from run_jwst import get_model
+from gj876_run import get_model
 
-OUTFILE = paths.figures / 'jwst.pdf'
+OUTFILE = paths.figures / 'gj876.pdf'
 NOISE_SCALE = 1.0
 SEED = 10
 QUARTER_PERIOD = 12

@@ -17,8 +17,8 @@ import vpie
 from loguru import logger
 import leopy
 
-from jwst_grid import get_interp, LOG_EPSILON_GRID, TRAT_GRID, dt_to_eps
-from run_jwst import get_model as get_vspec_model, get_temperature_ratio, TRUE_EPSILON
+from scripts.gj876_grid import get_interp, LOG_EPSILON_GRID, TRAT_GRID, dt_to_eps
+from scripts.gj876_run import get_model as get_vspec_model, get_temperature_ratio, TRUE_EPSILON
 
 import paths
 

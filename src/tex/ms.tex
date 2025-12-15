@@ -170,25 +170,25 @@ Recall that minimizing BIC (or AIC) in Section \ref{sec:change-basis} resulted i
 \section{Examples}
 In this section we will do two proof-of-concept demonstrations of the VPIE method, walking through the steps outlined in previous sections. We will generate a dataset using the Variable Star PhasE Curve code \citep[\texttt{VSPEC}][]{johnson2025}, which uses the Planetary Spectrum Generator's Global Emission Spectra application \citep[PSG/GlobES][]{villanueva2018,kofman2024} to create combined light spectral timeseries.
 
-\subsection{Example 1: A hot Sub-Neptune with JWST}'
-In our first example, we demonstrate the capabilities of the VPIE method to detect variations in the lightcurve of a generic hot sub-Neptune at 10pc using JWST. Our \texttt{VSPEC} model uses the parameters given in Table \ref{tab:jwst-parameters}. Figure \ref{fig:jwst} shows the planetary spectra and stellar variability used in this example, and the bottom panel shows the VPIE residual signal ($\bm{\epsilon} + \bm{\delta}$, see Section \ref{sec:residuals}).
+\subsection{Example 2: A hot Sub-Neptune with JWST}'
+In our first example, we demonstrate the capabilities of the VPIE method to detect variations in the lightcurve of the hot sub-Neptune GJ 876 d using JWST. Our \texttt{VSPEC} model uses the parameters given in Table \ref{tab:gj876-parameters}. Figure \ref{fig:gj876} shows the planetary spectra and stellar variability used in this example, and the bottom panel shows the VPIE residual signal ($\bm{\epsilon} + \bm{\delta}$, see Section \ref{sec:residuals}).
 
-\variable{output/jwst.txt}
+\variable{output/gj876.txt}
 
 \begin{figure}
-    \includegraphics[width=0.5\textwidth]{figures/jwst.pdf}
-    \caption{VPIE observation and analysis of a hot Sub-Neptune with JWST. {\bf a)} Planetary thermal emission as a function of time and wavelength over the one orbit observed. {\bf b)} Day and night thermal emission spectra of the observed planet. {\bf c)} Normalized stellar white lightcurve. Overplotted are the time-dependent basis coefficients ($a_k$ in equation (\ref{eq:def-frec})). {\bf d)} VPIE residual as a fraction of the stellar spectrum, including realistic noise.}
-    \label{fig:jwst}
-    \script{plot_jwst.py}
+    \includegraphics[width=0.5\textwidth]{figures/gj876.pdf}
+    \caption{VPIE observation and analysis of hot Sub-Neptune GJ 876 with JWST. {\bf a)} Planetary thermal emission as a function of time and wavelength over the one orbit observed. {\bf b)} Day and night thermal emission spectra of the observed planet. {\bf c)} Normalized stellar white lightcurve. Overplotted are the time-dependent basis coefficients ($a_k$ in equation (\ref{eq:def-frec})). {\bf d)} VPIE residual as a fraction of the stellar spectrum, including realistic noise.}
+    \label{fig:gj876}
+    \script{gj876_plot.py}
 \end{figure}
 
 \begin{figure}
-    \includegraphics[width=0.45\textwidth]{figures/jwst_retrieval_red_chi_square_distance_1.pdf}
-    \includegraphics[width=0.45\textwidth]{figures/jwst_retrieval_red_chi_square_distance_5.pdf}
-    \includegraphics[width=0.45\textwidth]{figures/jwst_retrieval_red_chi_square_distance_9.pdf}
+    \includegraphics[width=0.45\textwidth]{figures/gj876_retrieval_red_chi_square_distance_1.pdf}
+    \includegraphics[width=0.45\textwidth]{figures/gj876_retrieval_red_chi_square_distance_5.pdf}
+    \includegraphics[width=0.45\textwidth]{figures/gj876_retrieval_red_chi_square_distance_9.pdf}
     \caption{caption}
-    \label{fig:jwst-chisq}
-    \script{retrieve_jwst.py}
+    \label{fig:gj876-chisq}
+    \script{gj876_retrieve.py}
 \end{figure}
 
 \subsection{Example 2: Proxima Centauri b with an M-Earth Mission}

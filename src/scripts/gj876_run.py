@@ -1,5 +1,5 @@
 """
-Simulate an observation of a hot sub-Neptune with JWST
+Simulate an observation of GJ876 with JWST
 """
 
 from pathlib import Path
@@ -14,13 +14,13 @@ import libpypsg as psg
 import paths
 
 
-TABLE_FILE = paths.output / 'jwst.txt'
+TABLE_FILE = paths.output / 'gj876.txt'
 TRUE_EPSILON = 0.1
 TRUE_DAY_NIGHT_RATIOS = [0.1,0.5,0.9]
 
 
 HEADER = VSPEC.params.Header(
-    data_path=Path(__file__).parent / '.vspec' / f'jwst_{TRUE_EPSILON:.2f}',
+    data_path=Path(__file__).parent / '.vspec' / f'gj876_{TRUE_EPSILON:.2f}',
     seed=110,
     spec_grid=VSPEC.params.VSPECGridParameters(
         max_teff=3300 * u.K,
@@ -30,7 +30,7 @@ HEADER = VSPEC.params.Header(
         fail_on_missing=False
     ),
     # log_level='info',
-    desc='Hot Sub-Neptune with JWST',
+    desc='GJ 876 with JWST',
 )
 
 STAR = VSPEC.params.StarParameters(
@@ -199,7 +199,7 @@ def write_table():
         'Spot Coverage': f'{STAR.spots.initial_coverage:.1f}',
         'Planet Radius': f'{PLANET.radius:latex}',
         'Planet Mass': f'{PLANET.gravity.value.to(u.M_earth):latex}',
-        'Planet $T_\\\mathrm{eq}$': f'{get_teq().to(u.K).round(0):latex}',
+        'Planet $T_\\mathrm{eq}$': f'{get_teq().to(u.K).round(0):latex}',
         'Semimajor Axis': f'{PLANET.semimajor_axis:latex}',
         'Orbital Period': f'{PLANET.orbit_period:latex}',
         'Eccentricity': f'{PLANET.eccentricity:.1f}',
@@ -227,8 +227,8 @@ def write_table():
         lines.append(f'{k} & {v} \\\\')
     lines.append('\\hline')
     lines.append('\\end{tabular}')
-    lines.append('\\caption{JWST Simulation Parameters}')
-    lines.append('\\label{tab:jwst-parameters}')
+    lines.append('\\caption{GJ 876 d Simulation Parameters}')
+    lines.append('\\label{tab:gj876-parameters}')
     lines.append('\\end{table}')
     
     with open(TABLE_FILE, 'w', encoding='utf-8') as f:

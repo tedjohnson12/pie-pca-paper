@@ -1,5 +1,5 @@
 """
-1D JWST retrieval grid
+GJ 876 retrieval grid
 """
 
 from pathlib import Path
@@ -12,9 +12,9 @@ from scipy.interpolate import RegularGridInterpolator
 import matplotlib.pyplot as plt
 
 import paths
-from run_jwst import get_grid_params, get_temperature_ratio
+from gj876_run import get_grid_params, get_temperature_ratio
 
-GRID_DIR = paths.data / 'jwst_grid'
+GRID_DIR = paths.data / 'grid_gj876'
 
 LOG_EPSILON_GRID = np.linspace(-3,3,25)
 TRAT_GRID = [get_temperature_ratio(10**log_epsilon) for log_epsilon in LOG_EPSILON_GRID]
