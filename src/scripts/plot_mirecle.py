@@ -33,6 +33,7 @@ if __name__ == '__main__':
     noise = data.noise.to_value(flux_unit) * NOISE_SCALE
     total = data.total.to_value(flux_unit)
     observed = total + rng.normal(0,noise)
+    norm_obs = observed/observed[:,0][:,np.newaxis]
     
     im1 = ax1.pcolormesh(wl,time,thermal.T,rasterized=True,cmap='magma')
     ax1.set_xlabel('Wavelength ($\\rm \\mu m$)')
@@ -45,7 +46,7 @@ if __name__ == '__main__':
     cutoff_index = np.argwhere(wl > 3)[0][0]
     print(f'Cutoff index: {cutoff_index}')
     s, coeffs, f_rec = vpie.vpie.get_vpie(
-        observed.T,
+        norm_obs.T,
         noise.T,
         cutoff_index=cutoff_index,
         use_mean_error=True,
@@ -74,7 +75,7 @@ if __name__ == '__main__':
     
     ax4 = fig.add_subplot(nrow, 1, 4)
     
-    residuals = (f_rec - observed.T)/observed.T * 1e6
+    residuals = (f_rec - norm_obs.T)/norm_obs.T * 1e6
     vminmax = np.max(np.abs(residuals))
     
     im4 = ax4.pcolormesh(wl,time,residuals,rasterized=True,vmin=-vminmax,vmax=vminmax,cmap='bwr')

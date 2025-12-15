@@ -187,6 +187,9 @@ def get_grid_params(epsilon: float):
 def get_model():
     return VSPEC.ObservationModel(VSPEC_PARAMS)
 
+def get_teq():
+    return STAR.teff * np.sqrt(STAR.radius / PLANET.semimajor_axis/2) * (1-GCM_DICT['gcm']['vspec']['albedo'])
+
 def write_table():
     tab = {
         'Stellar Effective Temperature': f'{STAR.teff:latex}',
@@ -196,6 +199,7 @@ def write_table():
         'Spot Coverage': f'{STAR.spots.initial_coverage:.1f}',
         'Planet Radius': f'{PLANET.radius:latex}',
         'Planet Mass': f'{PLANET.gravity.value.to(u.M_earth):latex}',
+        'Planet $T_\\\mathrm{eq}$': f'{get_teq().to(u.K).round(0):latex}',
         'Semimajor Axis': f'{PLANET.semimajor_axis:latex}',
         'Orbital Period': f'{PLANET.orbit_period:latex}',
         'Eccentricity': f'{PLANET.eccentricity:.1f}',

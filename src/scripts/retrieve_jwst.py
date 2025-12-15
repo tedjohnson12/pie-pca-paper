@@ -11,13 +11,14 @@ from matplotlib.colors import LogNorm
 import numpy as np
 from astropy import units as u
 from loguru import logger
+from scipy.optimize import minimize_scalar
 
 from vpie import vpie
 import VSPEC
 
 import paths
 from jwst_grid import get_interp, dt_to_eps as temp_to_log_epsilon
-from run_jwst import get_model, get_temperature_ratio as epsilon_to_temp
+from run_jwst import get_model, get_temperature_ratio as epsilon_to_temp, PLANET as PLANET_PARAMS
 
 TRUE_TEMPERATURE_RATIO = 0.5
 TRUE_EPSILON = temp_to_log_epsilon([TRUE_TEMPERATURE_RATIO])
@@ -37,6 +38,7 @@ def figure_context(*args, **kwargs):
     
 
 if __name__ in '__main__':
+    plt.style.use('bmh')
     interpolator = get_interp()
     """
     Takes in [log_epsilon]
@@ -249,7 +251,7 @@ if __name__ in '__main__':
         
         
     
-    temp_array = np.linspace(0.05,0.99,1000)
+    temp_array = np.linspace(0.05,0.99,100)
     log_eps_array = (temp_to_log_epsilon(temp_array))
     red_chi_sq_array = []
     red_chi_sq_short_array = []
@@ -297,6 +299,7 @@ if __name__ in '__main__':
         grid_distance = 4.6
         distance_arr = np.logspace(0.1,0.7,21)
         red_chi_sq_array = np.zeros((distance_arr.size,log_eps_array.size))
+        best_radius_array = np.zeros((distance_arr.size,log_eps_array.size))
         for i,dist in enumerate(distance_arr):
             # dist_residual, dist_noise = get_residual_and_noise(dist,fiducial_distance=grid_distance,epsilon=10**epsilon)
             # logger.info(f'Distance: {dist}')
@@ -322,16 +325,39 @@ if __name__ in '__main__':
                     coeffs,
                     s
                 )
-                grid_residual = grid_reconstruction - grid_thermal
-                difference = grid_residual - dist_residual
-                chi_sq_spec = difference**2/(dist_noise)**2
-                chi_sq = np.sum(chi_sq_spec)
-                red_chi_sq = chi_sq / chi_sq_spec.size
-                red_chi_sq_array[i,j] = red_chi_sq
+                def get_chi_sq(rp:float):
+                    grid_residual = grid_reconstruction - grid_thermal
+                    difference = rp**2*grid_residual - dist_residual
+                    chi_sq_spec = difference**2/(dist_noise)**2
+                    chi_sq = np.sum(chi_sq_spec)
+                    red_chi_sq = chi_sq / chi_sq_spec.size
+                    return red_chi_sq
+                
+                res = minimize_scalar(get_chi_sq,bounds=(0.,50),method='bounded')
+                soln = res.x
+                # logger.info(f'Best radius: {soln}')
+                best_radius_array[i,j] = soln
+                red_chi_sq_array[i,j] = get_chi_sq(soln)
+                
+                
+                # grid_residual = grid_reconstruction - grid_thermal
+                # difference = grid_residual - dist_residual
+                # chi_sq_spec = difference**2/(dist_noise)**2
+                # chi_sq = np.sum(chi_sq_spec)
+                # red_chi_sq = chi_sq / chi_sq_spec.size
+                # red_chi_sq_array[i,j] = red_chi_sq
             
-        
-        with figure_context(figsize=(6,4)) as fig:
-            ax:plt.Axes = fig.subplots(1,1)
+        best_radius_array = best_radius_array * PLANET_PARAMS.radius.to_value(u.R_earth)
+        with figure_context(figsize=(6,4.5)) as fig:
+            axes:tuple[plt.Axes,plt.Axes] = fig.subplots(2,1,sharex=True,gridspec_kw={'height_ratios':[1,3]})
+            fig.subplots_adjust(hspace=0)
+            ax0,ax = axes
+            ax0.plot(temp_array,best_radius_array.mean(axis=0),c='k')
+            ax0.set_ylabel('$R_\\mathrm{p}/R_\\oplus$')
+            ax0.set_ylim(0,10)
+            ax0.set_yticks([0,2,4,6,8])
+            ax0.set_facecolor('w')
+            ax0.axhline(PLANET_PARAMS.radius.to_value(u.R_earth),c='r',ls='--',zorder=-100)
             im=ax.pcolormesh(
                 temp_array,distance_arr,(red_chi_sq_array),
                 rasterized=True,
@@ -340,9 +366,11 @@ if __name__ in '__main__':
             ax.set_ylabel('$d/[\\rm pc]$')
             ax.set_xlabel('$T_{\\rm night} / T_{\\rm day}$')
             ax.set_yscale('log')
+            ax.grid(False)
             yticks = [1.5,2,3,4,6,8,10,12]
             ax.set_yticks(yticks)
             ax.set_yticklabels(yticks)
+            ax.axvline(x=float(fname)/10,c='r',ls='--')
             fig.colorbar(im,label='$\\chi^2_{\\rm red}$')
             levels = [1,4,9,16,25]
             fmt = lambda x: f'$\\chi^2_{{\\rm red}} = {x:.0f}$'
@@ -353,7 +381,19 @@ if __name__ in '__main__':
                 linestyles='dashed'
             )
             ax.clabel(im,im.levels,inline=True,fontsize=10,fmt=fmt)
-            fig.tight_layout()
+            # levels=[0.1,0.5,1,2]
+            # im=ax.contour(
+            #     temp_array,distance_arr,best_radius_array,
+            #     levels=levels,
+            #     colors='r',
+            #     linestyles='-'
+            # )
+            # fmt = lambda x: f'$R_\mathrm{{p}} = {x:.1f}~R_\odot$'
+            # ax.clabel(im,im.levels,inline=True,fontsize=10,fmt=fmt)
+            pos = ax.get_position()
+            pos0 = ax0.get_position()
+            ax0.set_position([pos.x0,pos0.y0,pos.width,pos0.height])
+            # fig.tight_layout()
             fig.savefig(paths.figures / f'jwst_retrieval_red_chi_square_distance_{fname}.pdf')
         
     
