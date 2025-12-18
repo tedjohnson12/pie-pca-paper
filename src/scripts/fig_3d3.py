@@ -82,6 +82,7 @@ if __name__ in "__main__":
         f_err=fdat_real*0.01,
         cutoff_index=cutoff_index,
         use_mean_error=True,
+        ic_string='bic'
     )
     print(s)
     res = fdat_real - f_rec

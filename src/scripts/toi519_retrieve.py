@@ -25,7 +25,7 @@ IC = 'AIC'
 MAX_BASIS = 2
 TRUE_TEMPERATURE_RATIO = 0.1
 TRUE_LOG_EPSILON = temp_to_log_epsilon([TRUE_TEMPERATURE_RATIO])
-NOISE_SCALE = 1.0/10
+NOISE_SCALE = 1.0
 CHI2_NOISE_SCALE = np.sqrt(2.66)
 THERMAL_SCALE = 1.0
 SEED = 33
@@ -317,7 +317,7 @@ if __name__ in '__main__':
     for epsilon, fname in zip(epsilons, fnames):
         grid_distance = 115
         distance_arr = np.logspace(0.9, 2.2, 32)
-        distance_arr = np.array([200])
+        # distance_arr = np.array([200])
         red_chi_sq_array = np.zeros((distance_arr.size, log_eps_array.size))
         best_radius_array = np.zeros((distance_arr.size, log_eps_array.size))
         for i, dist in enumerate(distance_arr):

@@ -119,6 +119,7 @@ if __name__ in "__main__":
         f_err=fdat_big_planet*0.01,
         cutoff_index=cutoff_index,
         use_mean_error=True,
+        ic_string='bic'
     )
     f_rec_real = vpie.get_reconstruction(fdat_real, c, s)
     print(s)

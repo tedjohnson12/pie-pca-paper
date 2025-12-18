@@ -15,8 +15,10 @@ OUTFILE = paths.figures / 'toi519.pdf'
 NOISE_SCALE = 0.5
 SEED = 10
 QUARTER_PERIOD = 15
+LABEL_FONT_SIZE = 12
 
 if __name__ == '__main__':
+    plt.style.use('bmh')
     rng = np.random.default_rng(SEED)
     model = get_model()
     data = VSPEC.PhaseAnalyzer.from_model(model)
@@ -46,14 +48,16 @@ if __name__ == '__main__':
     # observed = bin_by_two(observed)
     # time = bin_by_two(time)
 
-    im1 = ax1.pcolormesh(wl, time, thermal.T, rasterized=True, cmap='magma')
-    ax1.set_xlabel('Wavelength ($\\rm \\mu m$)')
+    im1 = ax1.pcolormesh(wl, time, thermal.T, rasterized=True, cmap='afmhot_r')
+    ax1.set_xlabel('Wavelength ($\\mathrm{ \\mu m}$)')
     ax1.set_ylabel('Time (days)')
-    ax1.text(-0.17, 1.1, transform=ax1.transAxes, ha='right',
+    ax1.set_facecolor('w')
+    ax1.grid(False)
+    ax1.text(-0.23, 1.1, transform=ax1.transAxes, ha='right',
              va='top', s='a)', fontsize=12, fontweight='bold')
 
     cbar1 = fig.colorbar(im1, ax=ax1, orientation='vertical', shrink=0.8)
-    cbar1.set_label('Thermal flux ($\\rm W m^{-2} \\mu m^{-1}$)')
+    cbar1.set_label('Thermal flux ($\\mathrm{W m^{-2} \\mu m^{-1}}$)')
 
     cutoff_index = np.argwhere(wl > 0.8)[0][0]
     print(f'Cutoff index: {cutoff_index}')
@@ -76,7 +80,9 @@ if __name__ == '__main__':
     ax2.set_xlabel('Wavelength ($\\rm \\mu m$)')
     ax2.set_ylabel('Thermal flux ($\\rm W m^{-2} \\mu m^{-1}$)')
     ax2.legend()
-    ax2.text(-0.17, 1.1, transform=ax2.transAxes, ha='right',
+    ax2.set_facecolor('w')
+    ax2.grid(False)
+    ax2.text(-0.23, 1.1, transform=ax2.transAxes, ha='right',
              va='top', s='b)', fontsize=12, fontweight='bold')
 
     ax3 = fig.add_subplot(nrow, 1, 3)
@@ -89,9 +95,12 @@ if __name__ == '__main__':
     # ax3b.plot(time,coeffs[:,2], lw=2,label='$a_3$',color='xkcd:lavender')
     ax3b.legend()
     ax3.set_xlabel('Time (days)')
+    ax3.set_facecolor('w')
+    ax3.grid(False)
+    ax3b.grid(False)
     ax3.set_ylabel('Star white light ($\\rm W m^{-2}$)')
     ax3b.set_ylabel('Spectral basis coefficients')
-    ax3.text(-0.17, 1.1, transform=ax3.transAxes, ha='right',
+    ax3.text(-0.23, 1.15, transform=ax3.transAxes, ha='right',
              va='top', s='c)', fontsize=12, fontweight='bold')
 
     ax4 = fig.add_subplot(nrow, 1, 4)
@@ -106,9 +115,11 @@ if __name__ == '__main__':
 
     ax4.set_xlabel('Wavelength ($\\rm \\mu m$)')
     ax4.set_ylabel('Time (days)')
-    ax4.text(-0.17, 1.1, transform=ax4.transAxes, ha='right',
+    ax4.set_facecolor('w')
+    ax4.grid(False)
+    ax4.text(-0.23, 1.1, transform=ax4.transAxes, ha='right',
              va='top', s='d)', fontsize=12, fontweight='bold')
-
+    fig.text(0.5,0.98,'TOI-519 b',ha='center',va='center',fontsize=16,fontweight='bold')
     fig.tight_layout()
     fig.subplots_adjust(left=0.2)
     fig.savefig(OUTFILE)

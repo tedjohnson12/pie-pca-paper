@@ -29,7 +29,6 @@ HEADER = VSPEC.params.Header(
         impl_interp='scipy',
         fail_on_missing=False
     ),
-    log_level='info',
     desc='Proxb with MIRECLE',
 )
 

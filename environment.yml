@@ -12,4 +12,5 @@ dependencies:
       - VSPEC
       - asdf
       - asdf-astropy==0.8.0
+      - colorlog
       - git+https://github.com/tedjohnson12/vpie-rs.git

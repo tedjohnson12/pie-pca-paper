@@ -168,7 +168,39 @@ The vector $\bm{\delta}$ is the residual that is purely due to the intrinsic var
 Recall that minimizing BIC (or AIC) in Section \ref{sec:change-basis} resulted in a set of basis spectra, described by their indices in the spectral time-series. Those same indices describe the planetary spectral basis, denoted by the index $k$ in equation (\ref{eq:def-delta}). Note that the sum goes up to $q$, which is the number of basis spectra preferred by our model selection criterion. The coefficient, written $a_k$, was found by fitting the stellar basis spectra to the NIR spectra using least-squares. It is the contribution from the $k$th basis spectrum, and it has a different value at every epoch. See equations (\ref{eq:mir-error}-\ref{eq:calc-glob-delta}) for a more concise definition of the matrix version of $\bm{\delta}$. 
 
 \section{Examples}
-In this section we will do two proof-of-concept demonstrations of the VPIE method, walking through the steps outlined in previous sections. We will generate a dataset using the Variable Star PhasE Curve code \citep[\texttt{VSPEC}][]{johnson2025}, which uses the Planetary Spectrum Generator's Global Emission Spectra application \citep[PSG/GlobES][]{villanueva2018,kofman2024} to create combined light spectral timeseries.
+In this section we do three proof-of-concept demonstrations of the VPIE method, walking through the steps outlined in previous sections. We will generate a dataset using the Variable Star PhasE Curve code \citep[\texttt{VSPEC}][]{johnson2025}, which uses the Planetary Spectrum Generator's Global Emission Spectra application \citep[PSG/GlobES][]{villanueva2018,kofman2024} to create combined light spectral timeseries.
+
+A grid of phase curve models and a stellar variability model is produced for each example. We then select three representative models from that grid to assess their detectability. The models represent three atmospheric scenarios: 1) No atmosphere/hichly-inefficient heat redistribution, where the night-side of the planet is very cold compared to the day-side, 2) moderately-efficient heat transport, which is expected for highly-irradiated giant planets \citet{perna2012,perez-becker2013,komacek2016} as well as rocky planets with moderately thick atmospheres like Earth, and 3) highly-efficient heat transport, where the day- and night-sides are the same or nearly the same temperature. This is expected on cooler giant planets and terrestrial planets with thick atmospheres like Venus.
+
+For each model, we analyze the combined-light phase curve, using VPIE to isolate the planet's own variability. We calculate the long-wavelength residuals ($\bm{\epsilon}+\bm{\delta}$, see equation (\ref{eq:def-residuals})). By comparing the residual pattern to those expected from each model in the grid, we compute $\chi^2_\mathrm{red}$. We repeat this calculation for various system distances, changing the noise and scatter appropriately. At each distance, the error bars are further inflated so that the minimum $\chi^2_\mathrm{red}=1$; this inflation is necessary because the basis-vector reconstruction procedure introduces some additional noise.
+
+\subsection{Example 1: JWST GEMS}
+Giant exoplanets around M-stars (GEMS) are prime candidates for PIE observations because the flux ratios between planet and star are relatively favorable. We simulate a JWST phase-curve observation of the warm ($T_\mathrm{eq}\approx 750\; \mathrm{K}$) Jupiter-sized exoplanet TOI-519 b, which transits its mid-M host \citep{parviainen2021,hartman2023,kagetani2023}. Table \ref{tab:toi519-parameters} gives the VSPEC model parameters used in this simulation.
+
+\variable{output/toi519.txt}
+
+The data from this simulation are shown and analyzed in figures \ref{fig:toi519} \& \ref{fig:toi519-chi2}.
+
+\begin{figure}
+    \includegraphics[width=0.5\textwidth]{figures/toi519.pdf}
+    \caption{
+        PIE phase curve and VPIE analysis of the warm giant planet TOI-519 b. {\bf a)} Thermal emission phase curve over one orbit in the spectra range $0.6-5\;\mathrm{\mu m}$. {\bf b)} Representative day and night thermal emission spectra. {\bf c)} Stellar variability. Left axis (blue line) shows the normalized white light curve of the star over the observation. The right axis shows the best-fit coefficients of the basis spectra ($a_k$ in equation (\ref{eq:def-frec})). {\bf d)} VPIE residual pattern. This is the signal which can be matched with a model to infer planetary properties.
+    }
+    \label{fig:toi519}
+    \script{toi519_plot.py}
+\end{figure}
+
+\begin{figure}
+    \begin{center}
+        {\bf\large TOI-519 b}
+    \end{center}
+    \includegraphics[width=0.5\textwidth]{figures/toi519_retrieval_red_chi_square_distance_1.pdf}
+    \includegraphics[width=0.5\textwidth]{figures/toi519_retrieval_red_chi_square_distance_5.pdf}
+    \includegraphics[width=0.5\textwidth]{figures/toi519_retrieval_red_chi_square_distance_9.pdf}
+    \caption{Atmospheric heat-redistribution inference for TOI-519 b as a function of distance from the solar system. In each panel, a single atmospheric scenario (low, moderate, and high heat redistribution) is assessed for VPIE sensitivity. }
+    \label{fig:toi519-chi2}
+    \script{toi519_retrieve.py}
+\end{figure}
 
 \subsection{Example 2: A hot Sub-Neptune with JWST}'
 In our first example, we demonstrate the capabilities of the VPIE method to detect variations in the lightcurve of the hot sub-Neptune GJ 876 d using JWST. Our \texttt{VSPEC} model uses the parameters given in Table \ref{tab:gj876-parameters}. Figure \ref{fig:gj876} shows the planetary spectra and stellar variability used in this example, and the bottom panel shows the VPIE residual signal ($\bm{\epsilon} + \bm{\delta}$, see Section \ref{sec:residuals}).
@@ -191,7 +223,7 @@ In our first example, we demonstrate the capabilities of the VPIE method to dete
     \script{gj876_retrieve.py}
 \end{figure}
 
-\subsection{Example 2: Proxima Centauri b with an M-Earth Mission}
+\subsection{Example 3: Proxima Centauri b with an M-Earth Mission}
 In our second demonstration of VPIE's effectiveness, we simulate an observation of the nearest exoplanet, Proxima Centauri b, using the Mid-IR Exoplanet CLimate Explorer \citep[MIRECLE][]{mandell2022} mission concept, which is designed to characterize the thermal emission of potentially-habitable rocky exoplanets. Table \ref{tab:mirecle-parameters} shows the simulation parameters used in this example. Figure \ref{fig:mirecle} summarizes the simulation
 
 \variable{output/mirecle.txt}
@@ -200,7 +232,13 @@ In our second demonstration of VPIE's effectiveness, we simulate an observation 
     \includegraphics[width=0.5\textwidth]{figures/mirecle.pdf}
     \caption{Same as Figure \ref{fig:jwst}, but for observing two orbits of Proxima Centauri b with MIRECLE.}
     \label{fig:mirecle}
-    \script{plot_mirecle.py}
+    \script{mirecle_plot.py}
+\end{figure}
+
+\begin{figure}
+    \includegraphics[width=0.5\textwidth]{figures/mirecle_retrieval_red_chi_square_distance_1.pdf}
+    \includegraphics[width=0.5\textwidth]{figures/mirecle_retrieval_red_chi_square_distance_5.pdf}
+    \includegraphics[width=0.5\textwidth]{figures/mirecle_retrieval_red_chi_square_distance_9.pdf}
 \end{figure}
 
 \section{Discussion}

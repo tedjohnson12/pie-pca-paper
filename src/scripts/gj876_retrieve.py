@@ -132,7 +132,7 @@ if __name__ in '__main__':
         _noise = _noise * chi_noise_scale
         _total_observed = _total_true + _scatter
         _cutoff_index = np.argwhere(wl > CUTOFF_WL)[0][0]
-        _, _, _f_rec = vpie.get_vpie(
+        _s, _coeffs, _f_rec = vpie.get_vpie(
             _total_observed,
             _noise,
             _cutoff_index,
@@ -140,7 +140,7 @@ if __name__ in '__main__':
             IC
         )
         _residual = _f_rec - _total_observed
-        return _residual, _noise
+        return _residual, _noise, _s, _coeffs
 
     with figure_context(figsize=(6, 4)) as fig:
         ax: plt.Axes = fig.subplots(1, 1)
