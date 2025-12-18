@@ -32,7 +32,7 @@ SOLAR_SYSTEM_FONT_SIZE = 16
 AXES_LABEL_FONT_SIZE = 16
 TICK_LABEL_SIZE = 16
 LEGEND_TEXT_SIZE = 12
-FIGSIZE = (10,6)
+FIGSIZE = (10, 6)
 
 
 def build_query(max_teff: int, max_dist: float) -> str:
@@ -111,18 +111,19 @@ def apply_corrections(
     _df['pl_approx_insol'] = 10**(_df['st_lum']) / (_df['pl_orbsmax'])**2
     t_eq_earth = 255
     _df['pl_eqt'] = t_eq_earth * _df['pl_approx_insol']**(1/4)
-    
+
     dist_ratio = _df['pl_orbsmax']**-2
     lum_ratio = 10**_df['st_lum']
     _df['xuv_ratio'] = dist_ratio.values * lum_ratio.values**0.4
-    
+
     log_xuv = np.log10(_df['xuv_ratio'].values) - np.log10(0.4)
     # pylint: disable-next=no-member
-    escape_vel = np.sqrt(2*c.G * _df['pl_bmasse'].values*u.M_earth/ get_radius(_df['pl_bmasse'].values*u.M_earth,1.0))
+    escape_vel = np.sqrt(2*c.G * _df['pl_bmasse'].values*u.M_earth /
+                         get_radius(_df['pl_bmasse'].values*u.M_earth, 1.0))
     log_vesc = np.log10(escape_vel.to_value(u.km/u.s)) - np.log10(5)
     dist_above_shoreline = log_xuv - log_vesc**4
     priority_metric = np.log(80) - np.log(13)
-        
+
     _df['priority_metric'] = dist_above_shoreline/priority_metric
     print(_df['priority_metric'])
 
@@ -132,17 +133,18 @@ def apply_corrections(
         _df['pl_bmasse'] < max_mass) & (_df['pl_approx_insol'] < max_insolation)
     return _df[keep]
 
-def get_radius(mass: u.Quantity,scale:float)->u.Quantity:
+
+def get_radius(mass: u.Quantity, scale: float) -> u.Quantity:
     """
     M-R relation from 2023arXiv231016733E
-    
+
     Parameters
     ----------
     mass : u.Quantity
         The mass of the planet.
     scale : float
         The scale factor.
-    
+
     Returns
     -------
     u.Quantity
@@ -153,17 +155,17 @@ def get_radius(mass: u.Quantity,scale:float)->u.Quantity:
         mass = np.array([mass.value]) * mass.unit
     k = np.zeros_like(mass.value) + 13.0
     beta = np.zeros_like(mass.value) + 0.012
-    
-    k = np.where(mass < 115*u.M_earth,0.53,k)
-    beta = np.where(mass < 115*u.M_earth,0.68,beta)
-    
-    k = np.where(mass < 4.95*u.M_earth,1.01,k)
-    beta = np.where(mass < 4.95*u.M_earth,0.28,beta)
-    
+
+    k = np.where(mass < 115*u.M_earth, 0.53, k)
+    beta = np.where(mass < 115*u.M_earth, 0.68, beta)
+
+    k = np.where(mass < 4.95*u.M_earth, 1.01, k)
+    beta = np.where(mass < 4.95*u.M_earth, 0.28, beta)
+
     radius = mass.to_value(u.M_earth)**beta * k * u.R_earth * scale
 
     if not is_array:
-        return radius[0] 
+        return radius[0]
     else:
         return radius
 
@@ -181,18 +183,19 @@ def get_mirecle_targets() -> pd.DataFrame:
     mirecle_list = pd.read_csv(path, names=['name'])
     return mirecle_list
 
+
 def get_hwo_targets() -> pd.DataFrame:
     """
     Get the HWO target list from Table A
     of https://exoplanetarchive.ipac.caltech.edu/docs/2645_NASA_ExEP_Target_List_HWO_Documentation_2023.pdf
-    
+
     Returns
     -------
     pd.DataFrame
         The HWO target list.
     """
     path = Path(__file__).parent / 'hwo_targets.txt'
-    hwo_list = pd.read_csv(path,engine='python')
+    hwo_list = pd.read_csv(path, engine='python')
     return hwo_list
 
 
@@ -219,7 +222,7 @@ def setup_fig(credit=True):
     """
     plt.style.use('bmh')
     rc('font', weight='bold')
-    _fig, _axes, = plt.subplots(1, 2, figsize=FIGSIZE,width_ratios=[30,1])
+    _fig, _axes, = plt.subplots(1, 2, figsize=FIGSIZE, width_ratios=[30, 1])
     _fig.subplots_adjust(wspace=0.0)
     _ax = _axes[0]
     _cbarax = _axes[1]
@@ -233,9 +236,10 @@ def setup_fig(credit=True):
         f.write(date)
     if credit:
         _fig.text(0.6, dist_from_bottom, 'Created by: Ted Johnson (UNLV, GSFC)',
-                fontfamily='serif', fontsize=CREDIT_TEXT_SIZE, ha='left', weight='normal')
+                  fontfamily='serif', fontsize=CREDIT_TEXT_SIZE, ha='left', weight='normal')
 
     return _fig, _ax, _cbarax
+
 
 def get_data_dicts(
     _df: pd.DataFrame,
@@ -243,7 +247,7 @@ def get_data_dicts(
     plot_hwo: bool,
     size_func: Callable,
     _alpha: float,
-    method:str
+    method: str
 ):
     """
     Get data for plotting.
@@ -264,61 +268,61 @@ def get_data_dicts(
     c_kw = 'st_teff'
     size_kw = 'pl_bmasse'
     data = []
-    
+
     if method == 'transit':
         data.append(
             {
                 'x': _df.loc[~is_transit, x_kw],
                 'y': (_df.loc[~is_transit, y_kw]),
-                'label':'Non-transiting',
-                'c' : f'#{NONTRANSIT_COLOR}',
-                's' : size_func(_df.loc[~is_transit, size_kw]),
-                'alpha' : _alpha
+                'label': 'Non-transiting',
+                'c': f'#{NONTRANSIT_COLOR}',
+                's': size_func(_df.loc[~is_transit, size_kw]),
+                'alpha': _alpha
             })
         data.append({
-                'x': _df.loc[is_transit, x_kw],
-                'y': (_df.loc[is_transit, y_kw]),
-                'label':'Transiting',
-                'c' : f'#{TRANSIT_COLOR}',
-                's' : size_func(_df.loc[is_transit, size_kw]),
-                'alpha' : _alpha
-            })
+            'x': _df.loc[is_transit, x_kw],
+            'y': (_df.loc[is_transit, y_kw]),
+            'label': 'Transiting',
+            'c': f'#{TRANSIT_COLOR}',
+            's': size_func(_df.loc[is_transit, size_kw]),
+            'alpha': _alpha
+        })
     elif method == 'teff':
         data.append({
-                'x': _df.loc[:, x_kw],
-                'y': _df.loc[:, y_kw],
-                'c': _df.loc[:, c_kw],
-                's': size_func(_df.loc[:, size_kw]),
-                'alpha': _alpha,
-                'cmap':'gist_heat',
-                'edgecolors':'k'
-            })
+            'x': _df.loc[:, x_kw],
+            'y': _df.loc[:, y_kw],
+            'c': _df.loc[:, c_kw],
+            's': size_func(_df.loc[:, size_kw]),
+            'alpha': _alpha,
+            'cmap': 'gist_heat',
+            'edgecolors': 'k'
+        })
     else:
         raise ValueError('Please choose a valid method.')
-    
+
     if plot_mirecle:
         data.append({
-                'x': _df.loc[in_mirecle, x_kw],
-                'y': (_df.loc[in_mirecle, y_kw]),
-                'label':'MIRECLE Targets',
-                'facecolors': 'none',
-                'edgecolors': 'k',
-                'linewidth':2,
-                's': size_func(_df.loc[in_mirecle, size_kw]),
-                'alpha' : _alpha
-            })
+            'x': _df.loc[in_mirecle, x_kw],
+            'y': (_df.loc[in_mirecle, y_kw]),
+            'label': 'MIRECLE Targets',
+            'facecolors': 'none',
+            'edgecolors': 'k',
+            'linewidth': 2,
+            's': size_func(_df.loc[in_mirecle, size_kw]),
+            'alpha': _alpha
+        })
 
     if plot_hwo:
         data.append({
-                'x': _df.loc[in_hwo, x_kw],
-                'y': (_df.loc[in_hwo, y_kw]),
-                'label':'HWO Targets',
-                'facecolors': 'none',
-                'edgecolors': 'k',
-                'linewidth':2,
-                's': size_func(_df.loc[in_hwo, size_kw]),
-                'alpha' : _alpha
-            })
+            'x': _df.loc[in_hwo, x_kw],
+            'y': (_df.loc[in_hwo, y_kw]),
+            'label': 'HWO Targets',
+            'facecolors': 'none',
+            'edgecolors': 'k',
+            'linewidth': 2,
+            's': size_func(_df.loc[in_hwo, size_kw]),
+            'alpha': _alpha
+        })
     data.append({
         'x': np.nan,
         'y': -1,
@@ -352,7 +356,7 @@ def plot(
     plot_hwo: bool,
     size_func: Callable,
     _alpha: float,
-    method:str,
+    method: str,
     max_dist: float,
     credit: bool,
     output: str
@@ -374,10 +378,10 @@ def plot(
         The function to determine the marker size
     _alpha : float
         The marker transparency
-    """    
-    data = get_data_dicts(_df, plot_mirecle, plot_hwo, size_func, _alpha, method)
-    
-    
+    """
+    data = get_data_dicts(_df, plot_mirecle, plot_hwo,
+                          size_func, _alpha, method)
+
     fig, _ax, _cbar_ax = setup_fig(credit)
     fig: plt.Figure
     _ax: plt.Axes
@@ -386,11 +390,12 @@ def plot(
     for d in data:
         _im = _ax.scatter(**d)
         if 'cmap' in d:
-            _ax.get_figure().colorbar(_im, ax=_ax,cax=_cbar_ax, label='Stellar Effective Temperature (K)', pad=0.01,fraction=0.05,shrink=0.5)
+            _ax.get_figure().colorbar(_im, ax=_ax, cax=_cbar_ax,
+                                      label='Stellar Effective Temperature (K)', pad=0.01, fraction=0.05, shrink=0.5)
             turn_off_cbar = False
     if turn_off_cbar:
         _cbar_ax.set_axis_off()
-    
+
     add_solar_system_planets(_ax)
     add_legend(_ax, size_func, method)
     add_labels(_ax, max_dist)
@@ -441,7 +446,7 @@ def add_solar_system_planets(_ax: plt.Axes):
     _ax.set_yscale('log')
 
 
-def add_legend(_ax: plt.Axes, size_func: Callable,method:str):
+def add_legend(_ax: plt.Axes, size_func: Callable, method: str):
     """
     Add the legend.
 
@@ -460,7 +465,7 @@ def add_legend(_ax: plt.Axes, size_func: Callable,method:str):
         lgnd.legend_handles[1]._sizes = [legend_marker_size]
 
 
-def add_labels(_ax: plt.Axes,max_dist: float):
+def add_labels(_ax: plt.Axes, max_dist: float):
     """
     Add the labels.
 
@@ -513,7 +518,7 @@ if __name__ in '__main__':
     args = parser.parse_args()
 
     df = get_data(args.max_teff, args.max_dist)
-    
+
     if len(df) == 0:
         s = f"""There were no exoplanets found with the following parameters:
         Maximum stellar effective temperature: {args.max_teff} K
@@ -532,13 +537,12 @@ if __name__ in '__main__':
     )
 
     print_demographics(df)
-    
-    interesting_cols = ['pl_name','st_teff','pl_approx_insol','pl_eqt','tran_flag','pl_orbper','pl_bmasse','sy_dist','xuv_ratio','priority_metric']
+
+    interesting_cols = ['pl_name', 'st_teff', 'pl_approx_insol', 'pl_eqt',
+                        'tran_flag', 'pl_orbper', 'pl_bmasse', 'sy_dist', 'xuv_ratio', 'priority_metric']
     print(df[interesting_cols])
     # df.to_csv('nearby_exoplanets.csv')
     # df[interesting_cols].to_csv('nearby_exoplanets_info.csv')
-
-    
 
     alpha = args.alpha  # transparency
 
@@ -559,10 +563,9 @@ if __name__ in '__main__':
         k = 30*args.size  # scales size of markers
         return k*mass
 
-    plot(df, args.mirecle, args.hwo, size, alpha, args.method, args.max_dist, args.no_credit,args.output)
-    
+    plot(df, args.mirecle, args.hwo, size, alpha, args.method,
+         args.max_dist, args.no_credit, args.output)
+
     # ticks = [0.1,0.5,1,2,5,10,100]
     # ax.set_yticks(ticks)
     # ax.set_yticklabels(ticks)
-
-    

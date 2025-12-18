@@ -1,5 +1,5 @@
 """
-Make figure for GJ 876 example
+Make figure for TOI 519 example
 """
 
 import matplotlib.pyplot as plt
@@ -9,13 +9,12 @@ import paths
 import VSPEC
 import vpie
 
-from gj876_run import get_model
+from toi519_run import get_model
 
-OUTFILE = paths.figures / 'gj876.pdf'
-NOISE_SCALE = 1.0
+OUTFILE = paths.figures / 'toi519.pdf'
+NOISE_SCALE = 0.5
 SEED = 10
-QUARTER_PERIOD = 12
-IC = 'BIC'
+QUARTER_PERIOD = 15
 
 if __name__ == '__main__':
     rng = np.random.default_rng(SEED)
@@ -23,8 +22,8 @@ if __name__ == '__main__':
     data = VSPEC.PhaseAnalyzer.from_model(model)
 
     fig = plt.figure(figsize=(4.25, 9))
-    NROW = 4
-    ax1 = fig.add_subplot(NROW, 1, 1)
+    nrow = 4
+    ax1 = fig.add_subplot(nrow, 1, 1)
 
     wl = data.wavelength.to_value(u.um)
     time = data.time.to_value(u.day)
@@ -34,6 +33,18 @@ if __name__ == '__main__':
     noise = data.noise.to_value(flux_unit) * NOISE_SCALE
     total = data.total.to_value(flux_unit)
     observed = total + rng.normal(0, noise)
+
+    # def bin_by_two(arr):
+    #     if arr.ndim == 1:
+    #         return (arr[::2]+arr[1::2])/2
+    #     a = arr[:,::2]
+    #     b = arr[:,1::2]
+    #     return (a+b)/2
+    # thermal = bin_by_two(thermal)
+    # noise = bin_by_two(noise)/np.sqrt(2)
+    # total = bin_by_two(total)
+    # observed = bin_by_two(observed)
+    # time = bin_by_two(time)
 
     im1 = ax1.pcolormesh(wl, time, thermal.T, rasterized=True, cmap='magma')
     ax1.set_xlabel('Wavelength ($\\rm \\mu m$)')
@@ -51,15 +62,16 @@ if __name__ == '__main__':
         noise.T,
         cutoff_index=cutoff_index,
         use_mean_error=True,
-        ic_string=IC
+        ic_string='AIC',
+        max_basis_size=2
     )
 
-    ax2 = fig.add_subplot(NROW, 1, 2)
-    I_DAY = QUARTER_PERIOD*3
-    I_NIGHT = QUARTER_PERIOD
-    ax2.plot(wl, data.spectrum('thermal', I_DAY, False).to_value(
+    ax2 = fig.add_subplot(nrow, 1, 2)
+    i_day = QUARTER_PERIOD*3
+    i_night = QUARTER_PERIOD
+    ax2.plot(wl, data.spectrum('thermal', i_day, False).to_value(
         flux_unit), lw=2, label='Day', c='xkcd:goldenrod')
-    ax2.plot(wl, data.spectrum('thermal', I_NIGHT, False).to_value(
+    ax2.plot(wl, data.spectrum('thermal', i_night, False).to_value(
         flux_unit), lw=2, label='Night', c='xkcd:periwinkle')
     ax2.set_xlabel('Wavelength ($\\rm \\mu m$)')
     ax2.set_ylabel('Thermal flux ($\\rm W m^{-2} \\mu m^{-1}$)')
@@ -67,13 +79,14 @@ if __name__ == '__main__':
     ax2.text(-0.17, 1.1, transform=ax2.transAxes, ha='right',
              va='top', s='b)', fontsize=12, fontweight='bold')
 
-    ax3 = fig.add_subplot(NROW, 1, 3)
+    ax3 = fig.add_subplot(nrow, 1, 3)
     ax3b = ax3.twinx()
-    ax3.plot(time, data.lightcurve('star', (0, -1), 'max'),
-             lw=2, color='xkcd:cerulean')
+    ax3.plot(data.time.to_value(u.day), data.lightcurve(
+        'star', (0, -1), 'max'), lw=2, color='xkcd:cerulean')
     ax3b.plot(time, coeffs[:, 0], lw=2,
               label='$a_1$', color='xkcd:pale orange')
     ax3b.plot(time, coeffs[:, 1], lw=2, label='$a_2$', color='xkcd:grass')
+    # ax3b.plot(time,coeffs[:,2], lw=2,label='$a_3$',color='xkcd:lavender')
     ax3b.legend()
     ax3.set_xlabel('Time (days)')
     ax3.set_ylabel('Star white light ($\\rm W m^{-2}$)')
@@ -81,15 +94,15 @@ if __name__ == '__main__':
     ax3.text(-0.17, 1.1, transform=ax3.transAxes, ha='right',
              va='top', s='c)', fontsize=12, fontweight='bold')
 
-    ax4 = fig.add_subplot(NROW, 1, 4)
+    ax4 = fig.add_subplot(nrow, 1, 4)
 
-    residuals = (f_rec - observed.T)/observed.T * 1e6
+    residuals = (f_rec - observed.T)/observed.T * 100
     vminmax = np.max(np.abs(residuals))
 
     im4 = ax4.pcolormesh(wl, time, residuals, rasterized=True,
                          vmin=-vminmax, vmax=vminmax, cmap='bwr')
     cbar4 = fig.colorbar(im4, ax=ax4, orientation='vertical', shrink=0.8)
-    cbar4.set_label('Residual (ppm)')
+    cbar4.set_label('Residual (%)')
 
     ax4.set_xlabel('Wavelength ($\\rm \\mu m$)')
     ax4.set_ylabel('Time (days)')

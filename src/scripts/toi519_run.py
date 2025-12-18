@@ -1,5 +1,5 @@
 """
-Simulate an observation of a hot sub-Neptune with JWST
+Simulate an observation of TOI 519b with JWST
 """
 
 from pathlib import Path
@@ -14,33 +14,33 @@ import libpypsg as psg
 import paths
 
 
-TABLE_FILE = paths.output / 'mirecle.txt'
+TABLE_FILE = paths.output / 'toi519.txt'
 TRUE_EPSILON = 0.1
-TRUE_DAY_NIGHT_RATIOS = [0.1,0.5,0.9]
+TRUE_DAY_NIGHT_RATIOS = [0.5, 0.9]
 
 
 HEADER = VSPEC.params.Header(
-    data_path=Path(__file__).parent / '.vspec' / f'mirecle_{TRUE_EPSILON:.2f}',
-    seed=11,
+    data_path=Path(__file__).parent / '.vspec' / f'toi519_{TRUE_EPSILON:.2f}',
+    seed=519,
     spec_grid=VSPEC.params.VSPECGridParameters(
-        max_teff=3100 * u.K,
-        min_teff=2600 * u.K,
+        max_teff=3400 * u.K,
+        min_teff=2800 * u.K,
         impl_bin='rust',
         impl_interp='scipy',
         fail_on_missing=False
     ),
-    log_level='info',
-    desc='Proxb with MIRECLE',
+    # log_level='info',
+    desc='TOI 519 b with JWST',
 )
 
 STAR = VSPEC.params.StarParameters(
     psg_star_template='M',
-    teff=3000 * u.K,
-    radius=0.141 * u.R_sun,
-    period=90 * u.day,
+    teff=3350 * u.K,
+    radius=0.35 * u.R_sun,
+    period=4 * u.day,
     misalignment=0 * u.deg,
     misalignment_dir=0 * u.deg,
-    mass=0.15 * u.Msun,
+    mass=0.37 * u.Msun,
     ld=VSPEC.params.LimbDarkeningParameters.proxima(),
     spots=VSPEC.params.SpotParameters(
         distribution='iso',
@@ -48,8 +48,8 @@ STAR = VSPEC.params.StarParameters(
         equillibrium_coverage=0.2,
         area_mean=500*VSPEC.config.MSH,
         area_logsigma=0.2,
-        teff_umbra=2700 * u.K,
-        teff_penumbra=2700 * u.K,
+        teff_umbra=3000 * u.K,
+        teff_penumbra=3000 * u.K,
         burn_in=0 * u.day,
         growth_rate=0 * u.day**-1,
         decay_rate=0*VSPEC.config.MSH * u.day**-1,
@@ -62,15 +62,15 @@ STAR = VSPEC.params.StarParameters(
 )
 
 PLANET = VSPEC.params.PlanetParameters(
-    name='proxcenb',
-    radius=1.0*u.R_earth,
+    name='toi519',
+    radius=1.03*u.R_jup,
     gravity=VSPEC.params.GravityParameters(
         mode='kg',
-        value=1.0*u.M_earth
+        value=0.463*u.M_jup
     ),
-    semimajor_axis=0.05*u.AU,
-    orbit_period=11.19*u.day,
-    rotation_period=11.19*u.day,
+    semimajor_axis=0.0159*u.AU,
+    orbit_period=1.265*u.day,
+    rotation_period=1.265*u.day,
     eccentricity=0.0,
     obliquity=0.0*u.deg,
     obliquity_direction=0.0*u.deg,
@@ -79,14 +79,14 @@ PLANET = VSPEC.params.PlanetParameters(
 )
 
 SYSTEM = VSPEC.params.SystemParameters(
-    distance=1.295*u.pc,
-    inclination=80*u.deg,
+    distance=115*u.pc,
+    inclination=80.9*u.deg,
     phase_of_periastron=0*u.deg
 )
 
 OBS = VSPEC.params.ObservationParameters(
-    observation_time=2*11.19*u.day,
-    integration_time=8*u.hr
+    observation_time=1.265*u.day,
+    integration_time=30*u.min
 )
 
 PSG = VSPEC.params.psgParameters(
@@ -100,14 +100,11 @@ PSG = VSPEC.params.psgParameters(
 )
 
 INST = VSPEC.params.InstrumentParameters(
-    telescope=VSPEC.params.SingleDishParameters(
-        aperture=2*u.m,
-        zodi=1.0
-        ),
+    telescope=VSPEC.params.SingleDishParameters.jwst(),
     bandpass=VSPEC.params.BandpassParameters(
-        wl_blue=1*u.um,
-        wl_red=18*u.um,
-        resolving_power=50,
+        wl_blue=0.6*u.um,
+        wl_red=5.0*u.um,
+        resolving_power=100,
         wavelength_unit=u.micron,
         flux_unit=u.Unit('W m-2 um-1')
     ),
@@ -117,41 +114,41 @@ INST = VSPEC.params.InstrumentParameters(
         ccd=VSPEC.params.ccdParameters(
             pixel_sampling=8,
             read_noise=16.8*u.electron,
-            dark_current=100*u.electron/u.s,
-            throughput=0.7,
+            dark_current=0.005*u.electron/u.s,
+            throughput=0.4,
             emissivity=0.1,
-            temperature=35*u.K
+            temperature=50*u.K
         )
     )
 )
-GCM_DICT = { 
-        'star': {
-            'teff': STAR.teff,
-            'radius': STAR.radius
-        },
-        'planet': {
-            'semimajor_axis': PLANET.semimajor_axis,
+GCM_DICT = {
+    'star': {
+        'teff': STAR.teff,
+        'radius': STAR.radius
+    },
+    'planet': {
+        'semimajor_axis': PLANET.semimajor_axis,
+    },
+    'gcm': {
+        'mean_molec_weight': 2.0,
+        'vspec': {
+            'nlayer': 30,
+            'nlon': 90,
+            'nlat': 45,
+            'epsilon': TRUE_EPSILON,
+            'psurf': 2*u.bar,
+            'ptop': 1e-5*u.bar,
+            'wind': {'U': 0*u.m/u.s, 'V': 0*u.m/u.s},
+            'gamma': 1.,
+            'albedo': 0.0,
+            'emissivity': 1.0,
+            'molecules': {
+                'N2': 1e-20,
             },
-        'gcm': {
-            'mean_molec_weight': 28.0,
-            'vspec': {
-                'nlayer': 30,
-                'nlon': 90,
-                'nlat': 45,
-                'epsilon': TRUE_EPSILON,
-                'psurf': 1*u.bar,
-                'ptop': 1e-5*u.bar,
-                'wind': {'U': 0*u.m/u.s, 'V': 0*u.m/u.s},
-                'gamma': 1.,
-                'albedo': 0.0,
-                'emissivity': 1.0,
-                'molecules': {
-                    'N2': 1e-20,
-                },
-                'lat_redistribution': 0.0
-            }
+            'lat_redistribution': 0.0
         }
     }
+}
 GCM = VSPEC.params.gcmParameters.from_dict(
     GCM_DICT
 )
@@ -168,11 +165,12 @@ VSPEC_PARAMS = VSPEC.params.InternalParameters(
     gcm=GCM
 )
 
+
 def get_grid_params(epsilon: float):
     _gcm = GCM_DICT.copy()
     _gcm['gcm']['vspec']['epsilon'] = epsilon
     _header = deepcopy(HEADER)
-    _header.data_path = Path(__file__).parent / '.vspec' / 'mirecle-grid'
+    _header.data_path = Path(__file__).parent / '.vspec' / 'toi519-grid'
     return VSPEC.params.InternalParameters(
         header=_header,
         star=STAR,
@@ -190,6 +188,11 @@ def get_grid_params(epsilon: float):
 def get_model():
     return VSPEC.ObservationModel(VSPEC_PARAMS)
 
+
+def get_teq():
+    return STAR.teff * np.sqrt(STAR.radius / PLANET.semimajor_axis/2) * (1-GCM_DICT['gcm']['vspec']['albedo'])
+
+
 def write_table():
     tab = {
         'Stellar Effective Temperature': f'{STAR.teff:latex}',
@@ -199,6 +202,7 @@ def write_table():
         'Spot Coverage': f'{STAR.spots.initial_coverage:.1f}',
         'Planet Radius': f'{PLANET.radius:latex}',
         'Planet Mass': f'{PLANET.gravity.value.to(u.M_earth):latex}',
+        'Planet $T_\\mathrm{eq}$': f'{get_teq().to(u.K).round(0):latex}',
         'Semimajor Axis': f'{PLANET.semimajor_axis:latex}',
         'Orbital Period': f'{PLANET.orbit_period:latex}',
         'Eccentricity': f'{PLANET.eccentricity:.1f}',
@@ -220,20 +224,20 @@ def write_table():
         '\\begin{tabular}{cc}',
         '\\hline',
         'Quantity & Value \\\\',
-        '\\hline',    
-        ]
+        '\\hline',
+    ]
     for k, v in tab.items():
         lines.append(f'{k} & {v} \\\\')
     lines.append('\\hline')
     lines.append('\\end{tabular}')
-    lines.append('\\caption{JWST Simulation Parameters}')
-    lines.append('\\label{tab:mirecle-parameters}')
+    lines.append('\\caption{TOI-519 b Simulation Parameters}')
+    lines.append('\\label{tab:toi519-parameters}')
     lines.append('\\end{table}')
-    
+
     with open(TABLE_FILE, 'w', encoding='utf-8') as f:
         f.write('\n'.join(lines))
- 
- 
+
+
 def get_temperature_ratio(epsilon: float):
     if epsilon < 1:
         mode = 'ivp_reflect'
@@ -243,12 +247,11 @@ def get_temperature_ratio(epsilon: float):
         mode = 'analytic'
     _, tsurf = VSPEC.gcm.heat_transfer.get_equator_curve(epsilon, 180, mode)
     return np.min(tsurf)/np.max(tsurf)
-    
-    
+
+
 if __name__ == '__main__':
     write_table()
     psg.docker.set_url_and_run()
     model = get_model()
     model.build_planet()
     model.build_spectra()
-    
