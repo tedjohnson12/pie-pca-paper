@@ -31,7 +31,7 @@ THERMAL_SCALE = 1.0
 SEED = 11
 FLUX_UNIT = u.Unit('W m-2 um-1')
 CUTOFF_WL = 5*u.um
-CHI2_WL = 8*u.um
+CHI2_WL = 15*u.um
 
 
 @contextlib.contextmanager
@@ -58,7 +58,7 @@ if __name__ in '__main__':
         im = ax.pcolormesh(
             wl.to_value(u.um),
             time.to_value(u.hr),
-            thermal, cmap='gist_heat_r',
+            thermal/data.star.T.value * 1e6, cmap='gist_heat_r',
             rasterized=True
         )
         ax.axvline(x=CUTOFF_WL.to_value(u.um), c='r', ls='--')
@@ -67,7 +67,8 @@ if __name__ in '__main__':
         ax.set_ylabel('$t/[\\rm hr]$')
         ax.set_xscale('log')
         cbar = fig.colorbar(im, ax=ax)
-        cbar.set_label('$F_\\lambda/[\\rm W m^{-2} \\mu m^{-1}]$')
+        # cbar.set_label('$F_\\lambda/[\\rm W m^{-2} \\mu m^{-1}]$')
+        cbar.set_label('Thermal Flux (ppm)')
         fig.tight_layout()
         fig.savefig(paths.figures / f'{PREFIX}_retrieval_thermal.pdf')
 
@@ -272,7 +273,7 @@ if __name__ in '__main__':
     red_chi_sq_short_array = []
     red_chi_sq_long_array = []
     aperture = 2.
-    grid_aperture = 115
+    grid_aperture = 2
     aperture_residual, aperture_noise, _s, _coeffs = get_residual_and_noise(
         aperture, fiducial_aperture=grid_aperture, epsilon=10**TRUE_LOG_EPSILON, chi_noise_scale=CHI2_NOISE_SCALE)
     for log_eps in log_eps_array:
@@ -315,6 +316,25 @@ if __name__ in '__main__':
     epsilons = temp_to_log_epsilon(temp_ratios)
     fnames = ['1', '5', '9']
     bounds = (0., 50.0)
+    def bin_image(im: np.ndarray, nwl:int, ntime: int, power: int):
+        def add(*args):
+            _sum = args[0] * 0
+            for arg in args:
+                _sum += arg**power
+            return _sum**(1/power) / len(args)
+        im = np.atleast_2d(im)
+        original_size_time, original_size_wl = im.shape
+        new_size_time = int(np.ceil(original_size_time/ntime))
+        new_size_wl = int(np.ceil(original_size_wl/nwl))
+        out_arr = np.zeros((new_size_time, new_size_wl))
+        for i in range(new_size_time):
+            for j in range(new_size_wl):
+                sub_arr = (im[i*ntime:min((i+1)*ntime,original_size_time), j*nwl:min((j+1)*nwl,original_size_wl)]).flatten()
+                val = add(*sub_arr)
+                out_arr[i,j] = val
+        return out_arr
+    bin_wl = 6
+    bin_time = 4
 
     def is_one(x):
         tol = 1e-3
@@ -333,6 +353,11 @@ if __name__ in '__main__':
                     epsilon=10**epsilon,
                     chi_noise_scale=np.sqrt(lowest_chi_sq)
                 )
+                binned_aperture_residual = bin_image(aperture_residual, bin_wl, bin_time, 1)
+                binned_aperture_noise = bin_image(aperture_noise,bin_wl, bin_time,2)
+                del aperture_residual
+                del aperture_noise
+                binned_wl = bin_image(wl.to_value(u.um),bin_wl,1,1)[0,:]
                 for j, log_eps in enumerate(log_eps_array):
                     grid_thermal = THERMAL_SCALE * \
                         interpolator([log_eps])[0, :, :].T
@@ -341,12 +366,15 @@ if __name__ in '__main__':
                         _coeffs,
                         _s
                     )
+                    grid_residual = grid_reconstruction - grid_thermal
+                    binned_grid_residual = bin_image(grid_residual, bin_wl, bin_time, 1)
+                    del grid_residual
+                    
 
                     def get_chi_sq(rp: float):
-                        grid_residual = grid_reconstruction - grid_thermal
-                        difference = rp**2*grid_residual - aperture_residual
-                        chi_sq_spec = difference**2/(aperture_noise)**2
-                        long_wl = wl >= CHI2_WL
+                        difference = rp**2*binned_grid_residual - binned_aperture_residual
+                        long_wl = binned_wl >= CHI2_WL.to_value(u.um)
+                        chi_sq_spec = difference**2/(binned_aperture_noise)**2
                         chi_sq_spec = chi_sq_spec[:, long_wl]
                         chi_sq = np.sum(chi_sq_spec)
                         red_chi_sq = chi_sq / chi_sq_spec.size
@@ -371,7 +399,7 @@ if __name__ in '__main__':
             fig.subplots_adjust(hspace=0)
             ax0, ax = axes
             ax0.plot(temp_array, best_radius_array.mean(axis=0), c='k')
-            ax0.set_ylabel('$R_\\mathrm{p}/R_\\odot$')
+            ax0.set_ylabel('$R_\\mathrm{p}/R_\\oplus$')
             ax0.set_ylim(0, 3.1)
             ax0.set_yticks([0, 1, 2, 3])
             ax0.set_facecolor('w')

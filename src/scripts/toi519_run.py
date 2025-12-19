@@ -80,7 +80,7 @@ PLANET = VSPEC.params.PlanetParameters(
 
 SYSTEM = VSPEC.params.SystemParameters(
     distance=115*u.pc,
-    inclination=80.9*u.deg,
+    inclination=88.9*u.deg,
     phase_of_periastron=0*u.deg
 )
 
@@ -94,8 +94,8 @@ PSG = VSPEC.params.psgParameters(
     phase_binning=1,
     use_continuum_stellar=True,
     use_molecular_signatures=True,
-    nmax=2,
-    lmax=1,
+    nmax=1,
+    lmax=2,
     continuum=['Rayleigh', 'CIA_all', 'Refraction']
 )
 
@@ -110,7 +110,7 @@ INST = VSPEC.params.InstrumentParameters(
     ),
     detector=VSPEC.params.DetectorParameters(
         beam_width=0.5*u.arcsec,
-        integration_time=0.1*u.s,
+        integration_time=10*u.s,
         ccd=VSPEC.params.ccdParameters(
             pixel_sampling=8,
             read_noise=16.8*u.electron,

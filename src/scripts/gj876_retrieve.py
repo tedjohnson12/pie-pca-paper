@@ -17,6 +17,7 @@ from vpie import vpie
 import VSPEC
 
 import paths
+from common import bin_image
 from gj876_grid import get_interp, dt_to_eps as temp_to_log_epsilon
 from gj876_run import get_model, PLANET as PLANET_PARAMS
 
@@ -32,6 +33,8 @@ CUTOFF_WL = 1*u.um
 CHI2_WL = 3*u.um
 OUTLIER_PERCENTILE = 100
 IC = 'BIC'
+BIN_WL = 6
+BIN_TIME = 3
 
 
 @contextlib.contextmanager
@@ -321,6 +324,9 @@ if __name__ in '__main__':
                     epsilon=10**epsilon,
                     chi_noise_scale=np.sqrt(lowest_chi_sq)
                 )
+                dist_residual = bin_image(dist_residual, BIN_WL, BIN_TIME, 1)
+                dist_noise = bin_image(dist_noise, BIN_WL, BIN_TIME, 2)
+                _wl = bin_image(wl.to_value(u.um), BIN_WL, 1, 1)[0, :]
                 for j, log_eps in enumerate(log_eps_array):
                     grid_thermal = THERMAL_SCALE * \
                         interpolator([log_eps])[0, :, :].T
@@ -329,15 +335,15 @@ if __name__ in '__main__':
                         _coeffs,
                         _s
                     )
-
+                    grid_residual = grid_reconstruction - grid_thermal
+                    grid_residual = bin_image(grid_residual, BIN_WL, BIN_TIME, 1)
                     def get_chi_sq(rp: float):
-                        grid_residual = grid_reconstruction - grid_thermal
                         difference = rp**2*grid_residual - dist_residual
                         chi_sq_spec = difference**2/(dist_noise)**2
-                        long_wl = wl >= CHI2_WL
+                        long_wl = _wl >= CHI2_WL.to_value(u.um)
                         chi_sq_spec = chi_sq_spec[:, long_wl]
                         chi_sq = np.sum(chi_sq_spec)
-                        red_chi_sq = chi_sq / chi_sq_spec.size
+                        red_chi_sq = chi_sq / (chi_sq_spec.size + 2)
                         return red_chi_sq
                     res = minimize_scalar(
                         get_chi_sq, bounds=bounds, method='bounded')
@@ -350,51 +356,6 @@ if __name__ in '__main__':
                     lowest_chi_sq = new_lowest_chi_sq
                 else:
                     lowest_chi_sq = lowest_chi_sq * new_lowest_chi_sq
-            # dist_residual, dist_noise = get_residual_and_noise(dist,fiducial_distance=grid_distance,epsilon=10**epsilon)
-            # logger.info(f'Distance: {dist}')
-            # for j,log_eps in enumerate(log_eps_array):
-            #     grid_thermal = THERMAL_SCALE*interpolator([log_eps])[0,:,:].T
-            #     grid_reconstruction = vpie.get_reconstruction(
-            #         grid_thermal,
-            #         coeffs,
-            #         s
-            #     )
-            #     grid_residual = grid_reconstruction - grid_thermal
-            #     difference = grid_residual - dist_residual
-            #     chi_sq_spec = difference**2/(dist_noise)**2
-            #     chi_sq = np.sum(chi_sq_spec)
-            #     red_chi_sq = chi_sq / chi_sq_spec.size
-            #     red_chi_sq_array[i,j] = red_chi_sq
-            # chi_noise_scale = np.min(red_chi_sq_array[i,:])
-            # dist_residual, dist_noise = get_residual_and_noise(dist,fiducial_distance=grid_distance,chi_noise_scale=np.sqrt(4.47),epsilon=10**epsilon)
-            # for j,log_eps in enumerate(log_eps_array):
-            #     grid_thermal = THERMAL_SCALE*interpolator([log_eps])[0,:,:].T
-            #     grid_reconstruction = vpie.get_reconstruction(
-            #         grid_thermal,
-            #         coeffs,
-            #         s
-            #     )
-            #     def get_chi_sq(rp:float):
-            #         grid_residual = grid_reconstruction - grid_thermal
-            #         difference = rp**2*grid_residual - dist_residual
-            #         chi_sq_spec = difference**2/(dist_noise)**2
-            #         chi_sq = np.sum(chi_sq_spec)
-            #         red_chi_sq = chi_sq / chi_sq_spec.size
-            #         return red_chi_sq
-
-            #     res = minimize_scalar(get_chi_sq,bounds=(0.,50),method='bounded')
-            #     soln = res.x
-            #     # logger.info(f'Best radius: {soln}')
-            #     best_radius_array[i,j] = soln
-            #     red_chi_sq_array[i,j] = get_chi_sq(soln)
-
-                # grid_residual = grid_reconstruction - grid_thermal
-                # difference = grid_residual - dist_residual
-                # chi_sq_spec = difference**2/(dist_noise)**2
-                # chi_sq = np.sum(chi_sq_spec)
-                # red_chi_sq = chi_sq / chi_sq_spec.size
-                # red_chi_sq_array[i,j] = red_chi_sq
-
         best_radius_array = best_radius_array * \
             PLANET_PARAMS.radius.to_value(u.R_earth)
         with figure_context(figsize=(6, 4.5)) as fig:

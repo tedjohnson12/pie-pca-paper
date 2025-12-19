@@ -17,12 +17,13 @@ from vpie import vpie
 import VSPEC
 
 import paths
+from common import bin_image
 from toi519_grid import get_interp, dt_to_eps as temp_to_log_epsilon
 from toi519_run import get_model, PLANET as PLANET_PARAMS
 
 PREFIX = 'toi519'
-IC = 'AIC'
-MAX_BASIS = 2
+IC = 'BIC'
+MAX_BASIS = 3
 TRUE_TEMPERATURE_RATIO = 0.1
 TRUE_LOG_EPSILON = temp_to_log_epsilon([TRUE_TEMPERATURE_RATIO])
 NOISE_SCALE = 1.0
@@ -32,8 +33,8 @@ SEED = 33
 FLUX_UNIT = u.Unit('W m-2 um-1')
 CUTOFF_WL = 0.8*u.um
 CHI2_WL = 4.0*u.um
-OUTLIER_PERCENTILE = 100
-
+BIN_WL = 6
+BIN_TIME = 4
 
 @contextlib.contextmanager
 def figure_context(*args, **kwargs):
@@ -122,7 +123,8 @@ if __name__ in '__main__':
         logger.info(
             f'Running distance={distance} pc with noise scale of {chi_noise_scale:.2f}')
         distance_noise_scale = (distance/fiducial_distance)**2
-        _thermal = THERMAL_SCALE*interpolator([np.log10(epsilon)])[0, :, :].T
+        nullify = epsilon is None
+        _thermal = THERMAL_SCALE*interpolator([np.log10(epsilon)])[0, :, :].T if not nullify else 0
         _data = VSPEC.PhaseAnalyzer.from_model(get_model())
         _rng = np.random.default_rng(SEED)
         _stellar = _data.star.T.to_value(FLUX_UNIT)
@@ -130,7 +132,6 @@ if __name__ in '__main__':
             FLUX_UNIT) * NOISE_SCALE * distance_noise_scale
         _total_true = _stellar + _thermal
         _scatter = _rng.normal(loc=0, scale=_scatter_mag)
-        # logger.info(f'Thermal/scatter: {_thermal[:,cutoff_index]/_noise[:,cutoff_index]}')
         _uncertainty = _scatter_mag * chi_noise_scale
         _total_observed = _total_true + _scatter
         _cutoff_index = np.argwhere(wl > CUTOFF_WL)[0][0]
@@ -261,8 +262,8 @@ if __name__ in '__main__':
         fig.tight_layout()
         fig.savefig(paths.figures / f'{PREFIX}_retrieval_chi_true.png')
 
-    temp_array = np.linspace(0.05, 0.99, 100)
-    log_eps_array = (temp_to_log_epsilon(temp_array))
+    temp_array = np.linspace(0.05, 1.0, 100)
+    log_eps_array = [temp_to_log_epsilon([_temp_array])[0] if _temp_array != 1.0 else None for _temp_array in temp_array]
     red_chi_sq_array = []
     red_chi_sq_short_array = []
     red_chi_sq_long_array = []
@@ -271,7 +272,7 @@ if __name__ in '__main__':
     dist_residual, dist_noise, _s, _coeffs = get_residual_and_noise(
         distance, fiducial_distance=grid_distance, epsilon=10**TRUE_LOG_EPSILON, chi_noise_scale=CHI2_NOISE_SCALE)
     for log_eps in log_eps_array:
-        grid_thermal = THERMAL_SCALE*interpolator([log_eps])[0, :, :].T
+        grid_thermal = THERMAL_SCALE*interpolator([log_eps])[0, :, :].T if log_eps is not None else 0*dist_residual
         grid_reconstruction = vpie.get_reconstruction(
             grid_thermal,
             _coeffs,
@@ -306,9 +307,9 @@ if __name__ in '__main__':
         fig.tight_layout()
         fig.savefig(paths.figures / f'{PREFIX}_retrieval_red_chi_square.png')
 
-    temp_ratios = [0.1, 0.5, 0.9]
-    epsilons = temp_to_log_epsilon(temp_ratios)
-    fnames = ['1', '5', '9']
+    temp_ratios = [ 0.5, 1.0]
+    epsilons = [10**temp_to_log_epsilon([temp_ratio])[0] if temp_ratio != 1.0 else None for temp_ratio in temp_ratios]
+    fnames = ['5', '10']
     bounds = (0., 50.0)
 
     def is_one(x):
@@ -316,33 +317,38 @@ if __name__ in '__main__':
         return (x < 1+tol) and (x > 1-tol)
     for epsilon, fname in zip(epsilons, fnames):
         grid_distance = 115
-        distance_arr = np.logspace(0.9, 2.2, 32)
+        distance_arr = np.logspace(1.3, 2.4, 9)
         # distance_arr = np.array([200])
-        red_chi_sq_array = np.zeros((distance_arr.size, log_eps_array.size))
-        best_radius_array = np.zeros((distance_arr.size, log_eps_array.size))
+        red_chi_sq_array = np.zeros((distance_arr.size, len(log_eps_array)))
+        best_radius_array = np.zeros((distance_arr.size, len(log_eps_array)))
         for i, dist in enumerate(distance_arr):
             lowest_chi_sq = 2.0
             while not is_one(lowest_chi_sq):
                 dist_residual, dist_noise, _s, _coeffs = get_residual_and_noise(
                     dist,
                     fiducial_distance=grid_distance,
-                    epsilon=10**epsilon,
+                    epsilon=epsilon,
                     chi_noise_scale=np.sqrt(lowest_chi_sq)
                 )
+                dist_residual = bin_image(dist_residual, BIN_WL, BIN_TIME, 1)
+                dist_noise = bin_image(dist_noise, BIN_WL, BIN_TIME, 2)
+                _wl = bin_image(wl.to_value(u.um), BIN_WL, 1, 1)[0, :]
                 for j, log_eps in enumerate(log_eps_array):
                     grid_thermal = THERMAL_SCALE * \
-                        interpolator([log_eps])[0, :, :].T
+                        interpolator([log_eps])[0, :, :].T if log_eps is not None else 0*interpolator([0])[0, :, :].T
                     grid_reconstruction = vpie.get_reconstruction(
                         grid_thermal,
                         _coeffs,
                         _s
                     )
+                    grid_residual = grid_reconstruction - grid_thermal
+                    grid_residual = bin_image(
+                        grid_residual, BIN_WL, BIN_TIME, 1)
 
                     def get_chi_sq(rp: float):
-                        grid_residual = grid_reconstruction - grid_thermal
                         difference = rp**2*grid_residual - dist_residual
                         chi_sq_spec = difference**2/(dist_noise)**2
-                        long_wl = wl >= CHI2_WL
+                        long_wl = _wl >= CHI2_WL.to_value(u.um)
                         chi_sq_spec = chi_sq_spec[:, long_wl]
                         chi_sq = np.sum(chi_sq_spec)
                         red_chi_sq = chi_sq / chi_sq_spec.size
@@ -358,39 +364,6 @@ if __name__ in '__main__':
                     lowest_chi_sq = new_lowest_chi_sq
                 else:
                     lowest_chi_sq = lowest_chi_sq * new_lowest_chi_sq
-
-            #     red_chi_sq_array[i,j] = get_chi_sq(soln)
-            # chi_noise_scale = np.min(red_chi_sq_array[i,:])**0.5
-            # dist_residual, dist_noise, _s, _coeffs = get_residual_and_noise(dist,fiducial_distance=grid_distance,chi_noise_scale=chi_noise_scale,epsilon=10**epsilon)
-            # for j,log_eps in enumerate(log_eps_array):
-            #     grid_thermal = THERMAL_SCALE*interpolator([log_eps])[0,:,:].T
-            #     grid_reconstruction = vpie.get_reconstruction(
-            #         grid_thermal,
-            #         _coeffs,
-            #         _s
-            #     )
-            #     def get_chi_sq(rp:float):
-            #         grid_residual = grid_reconstruction - grid_thermal
-            #         difference = rp**2*grid_residual - dist_residual
-            #         chi_sq_spec = difference**2/(dist_noise)**2
-            #         chi_sq = np.sum(chi_sq_spec)
-            #         red_chi_sq = chi_sq / chi_sq_spec.size
-            #         return red_chi_sq
-
-            #     res = minimize_scalar(get_chi_sq,bounds=bounds,method='bounded')
-            #     soln = res.x
-            #     # logger.info(f'Best radius: {soln}')
-            #     best_radius_array[i,j] = soln
-            #     red_chi_sq_array[i,j] = get_chi_sq(soln)
-
-            #     # grid_residual = grid_reconstruction - grid_thermal
-            #     # difference = grid_residual - dist_residual
-            #     # chi_sq_spec = difference**2/(dist_noise)**2
-            #     # chi_sq = np.sum(chi_sq_spec)
-            #     # red_chi_sq = chi_sq / chi_sq_spec.size
-            #     # red_chi_sq_array[i,j] = red_chi_sq
-            # if np.any(red_chi_sq_array[i,:] >= 1-1e-3):
-            #     logger.error(f'Chi2 too small!, Found {np.min(red_chi_sq_array[i,:]):.2f}')
         best_radius_array = best_radius_array * \
             PLANET_PARAMS.radius.to_value(u.R_jup)
         with figure_context(figsize=(6, 4.5)) as fig:
@@ -414,7 +387,7 @@ if __name__ in '__main__':
             ax.set_xlabel('$T_{\\rm night} / T_{\\rm day}$')
             ax.set_yscale('log')
             ax.grid(False)
-            yticks = [10, 20, 30, 40, 60, 100, 140]
+            yticks = [10, 20, 40, 60, 100, 140,180]
             ax.set_yticks(yticks)
             ax.set_yticklabels(yticks)
             ax.axvline(x=float(fname)/10, c='r', ls='--')

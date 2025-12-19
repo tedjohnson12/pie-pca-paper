@@ -12,7 +12,7 @@ import vpie
 from toi519_run import get_model
 
 OUTFILE = paths.figures / 'toi519.pdf'
-NOISE_SCALE = 0.5
+NOISE_SCALE = 1.0
 SEED = 10
 QUARTER_PERIOD = 15
 LABEL_FONT_SIZE = 12
@@ -59,7 +59,7 @@ if __name__ == '__main__':
     cbar1 = fig.colorbar(im1, ax=ax1, orientation='vertical', shrink=0.8)
     cbar1.set_label('Thermal flux ($\\mathrm{W m^{-2} \\mu m^{-1}}$)')
 
-    cutoff_index = np.argwhere(wl > 0.8)[0][0]
+    cutoff_index = np.argwhere(wl > 1.5)[0][0]
     print(f'Cutoff index: {cutoff_index}')
     s, coeffs, f_rec = vpie.vpie.get_vpie(
         observed.T,
@@ -67,7 +67,7 @@ if __name__ == '__main__':
         cutoff_index=cutoff_index,
         use_mean_error=True,
         ic_string='AIC',
-        max_basis_size=2
+        max_basis_size=None
     )
 
     ax2 = fig.add_subplot(nrow, 1, 2)
@@ -92,7 +92,7 @@ if __name__ == '__main__':
     ax3b.plot(time, coeffs[:, 0], lw=2,
               label='$a_1$', color='xkcd:pale orange')
     ax3b.plot(time, coeffs[:, 1], lw=2, label='$a_2$', color='xkcd:grass')
-    # ax3b.plot(time,coeffs[:,2], lw=2,label='$a_3$',color='xkcd:lavender')
+    ax3b.plot(time,coeffs[:,2], lw=2,label='$a_3$',color='xkcd:lavender')
     ax3b.legend()
     ax3.set_xlabel('Time (days)')
     ax3.set_facecolor('w')
@@ -123,3 +123,12 @@ if __name__ == '__main__':
     fig.tight_layout()
     fig.subplots_adjust(left=0.2)
     fig.savefig(OUTFILE)
+
+    # plt.close(fig)
+    
+    # Z = (f_rec - observed.T)/noise.T
+    # plt.imshow(Z[:,:cutoff_index],aspect='auto')
+    # plt.colorbar()
+    # plt.title(np.std(Z[:,:cutoff_index]))
+    
+    # plt.savefig(paths.figures / 'test.png')

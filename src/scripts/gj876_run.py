@@ -62,11 +62,11 @@ STAR = VSPEC.params.StarParameters(
 )
 
 PLANET = VSPEC.params.PlanetParameters(
-    name='subnep',
-    radius=1.8*u.R_earth,
+    name='gj876d',
+    radius=2.5*u.R_earth,
     gravity=VSPEC.params.GravityParameters(
         mode='kg',
-        value=6.8*u.M_earth
+        value=7.5*u.M_earth
     ),
     semimajor_axis=0.02*u.AU,
     orbit_period=1.93*u.day,
@@ -80,7 +80,7 @@ PLANET = VSPEC.params.PlanetParameters(
 
 SYSTEM = VSPEC.params.SystemParameters(
     distance=4.6*u.pc,
-    inclination=59*u.deg,
+    inclination=53*u.deg,
     phase_of_periastron=0*u.deg
 )
 
@@ -110,7 +110,7 @@ INST = VSPEC.params.InstrumentParameters(
     ),
     detector=VSPEC.params.DetectorParameters(
         beam_width=0.5*u.arcsec,
-        integration_time=0.1*u.s,
+        integration_time=5*u.s,
         ccd=VSPEC.params.ccdParameters(
             pixel_sampling=8,
             read_noise=16.8*u.electron,

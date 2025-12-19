@@ -112,9 +112,9 @@ INST = VSPEC.params.InstrumentParameters(
     ),
     detector=VSPEC.params.DetectorParameters(
         beam_width=0.5*u.arcsec,
-        integration_time=0.1*u.s,
+        integration_time=10*u.s,
         ccd=VSPEC.params.ccdParameters(
-            pixel_sampling=8,
+            pixel_sampling=1,
             read_noise=16.8*u.electron,
             dark_current=100*u.electron/u.s,
             throughput=0.7,
