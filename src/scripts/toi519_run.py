@@ -18,6 +18,14 @@ TABLE_FILE = paths.output / 'toi519.txt'
 TRUE_EPSILON = 0.1
 TRUE_DAY_NIGHT_RATIOS = [0.5, 0.9]
 
+TEFF = 3354
+SPOT_FRAC = 0.2
+TSPOT = 3000
+# (1-SPOT_FRAC)*TPHOT**4 + SPOT_FRAC*TSPOT**4 = TEFF**4
+TPHOT = ((TEFF**4 - SPOT_FRAC*TSPOT**4)/(1-SPOT_FRAC))**0.25
+SHORT_WL_CUTOFF = 0.8*u.um
+
+
 
 HEADER = VSPEC.params.Header(
     data_path=Path(__file__).parent / '.vspec' / f'toi519_{TRUE_EPSILON:.2f}',
@@ -35,8 +43,8 @@ HEADER = VSPEC.params.Header(
 
 STAR = VSPEC.params.StarParameters(
     psg_star_template='M',
-    teff=3350 * u.K,
-    radius=0.35 * u.R_sun,
+    teff=TPHOT * u.K,
+    radius=0.3578 * u.R_sun,
     period=4 * u.day,
     misalignment=0 * u.deg,
     misalignment_dir=0 * u.deg,
@@ -44,12 +52,12 @@ STAR = VSPEC.params.StarParameters(
     ld=VSPEC.params.LimbDarkeningParameters.proxima(),
     spots=VSPEC.params.SpotParameters(
         distribution='iso',
-        initial_coverage=0.2,
-        equillibrium_coverage=0.2,
+        initial_coverage=SPOT_FRAC,
+        equillibrium_coverage=SPOT_FRAC,
         area_mean=500*VSPEC.config.MSH,
         area_logsigma=0.2,
-        teff_umbra=3000 * u.K,
-        teff_penumbra=3000 * u.K,
+        teff_umbra=TSPOT * u.K,
+        teff_penumbra=TSPOT * u.K,
         burn_in=0 * u.day,
         growth_rate=0 * u.day**-1,
         decay_rate=0*VSPEC.config.MSH * u.day**-1,
@@ -69,8 +77,8 @@ PLANET = VSPEC.params.PlanetParameters(
         value=0.463*u.M_jup
     ),
     semimajor_axis=0.0159*u.AU,
-    orbit_period=1.265*u.day,
-    rotation_period=1.265*u.day,
+    orbit_period=1.2652328*u.day,
+    rotation_period=1.2652328*u.day,
     eccentricity=0.0,
     obliquity=0.0*u.deg,
     obliquity_direction=0.0*u.deg,
@@ -123,7 +131,7 @@ INST = VSPEC.params.InstrumentParameters(
 )
 GCM_DICT = {
     'star': {
-        'teff': STAR.teff,
+        'teff': TEFF*u.K,
         'radius': STAR.radius
     },
     'planet': {
@@ -190,33 +198,50 @@ def get_model():
 
 
 def get_teq():
-    return STAR.teff * np.sqrt(STAR.radius / PLANET.semimajor_axis/2) * (1-GCM_DICT['gcm']['vspec']['albedo'])
+    return TEFF*u.K * np.sqrt(STAR.radius / PLANET.semimajor_axis/2) * (1-GCM_DICT['gcm']['vspec']['albedo'])
+
+def foot(t):
+    return rf'$^{t}$'
+
+REF = {
+    'assumed': '\\dagger',
+    'kagetani2023': 'a',
+    'gaiacollaboration2020': 'b'
+    
+}
+def cite(k):
+    if k in ['assumed']:
+        return k
+    else:
+        return f'\\citet{{{k}}}'
 
 
 def write_table():
     tab = {
-        'Stellar Effective Temperature': f'{STAR.teff:latex}',
-        'Stellar Radius': f'{STAR.radius:latex}',
-        'Stellar Rotation Period': f'{STAR.period:latex}',
-        'Spot Temperature': f'{STAR.spots.teff_umbra:latex}',
-        'Spot Coverage': f'{STAR.spots.initial_coverage:.1f}',
-        'Planet Radius': f'{PLANET.radius:latex}',
-        'Planet Mass': f'{PLANET.gravity.value.to(u.M_earth):latex}',
+        'Stellar Effective Temperature': f'{(TEFF*u.K):latex}{foot(REF["kagetani2023"])}',
+        'Stellar Radius': f'{round(STAR.radius,2):latex}{foot(REF["kagetani2023"])}',
+        'Stellar Rotation Period': f'{STAR.period:latex}{foot(REF["assumed"])}',
+        'Spot Temperature': f'{STAR.spots.teff_umbra:latex}{foot(REF["assumed"])}',
+        'Spot Coverage': f'{SPOT_FRAC:.1f}{foot(REF["assumed"])}',
+        'Photosphere Temperature': f'{STAR.teff.round(0):latex}',
+        'Planet Radius': f'{PLANET.radius.round(2):latex}{foot(REF["kagetani2023"])}',
+        'Planet Mass': f'{PLANET.gravity.value.to(u.M_earth).round(0):latex}{foot(REF["kagetani2023"])}',
         'Planet $T_\\mathrm{eq}$': f'{get_teq().to(u.K).round(0):latex}',
-        'Semimajor Axis': f'{PLANET.semimajor_axis:latex}',
-        'Orbital Period': f'{PLANET.orbit_period:latex}',
-        'Eccentricity': f'{PLANET.eccentricity:.1f}',
-        'Initial Phase': f'{PLANET.init_phase:latex}',
-        'Distance': f'{SYSTEM.distance:latex}',
-        'Inclination': f'{SYSTEM.inclination:latex}',
+        'Semimajor Axis': f'{PLANET.semimajor_axis:latex}{foot(REF["kagetani2023"])}',
+        'Orbital Period': f'{PLANET.orbit_period.round(3):latex}{foot(REF["kagetani2023"])}',
+        'Eccentricity': f'{PLANET.eccentricity:.1f}{foot(REF["assumed"])}',
+        'Initial Phase': f'{PLANET.init_phase:latex}{foot(REF["assumed"])}',
+        'Distance': f'{SYSTEM.distance:latex}{foot(REF["gaiacollaboration2020"])}',
+        'Inclination': f'{SYSTEM.inclination:latex}{foot(REF["kagetani2023"])}',
         'Observation Length': f'{OBS.observation_time:latex}',
+        'Integration Length': f'{INST.detector.integration_time:latex}',
         'Time Bin Size': f'{OBS.integration_time:latex}',
         'Short Wavelength': f'{INST.bandpass.wl_blue:latex}',
         'Long Wavelength': f'{INST.bandpass.wl_red:latex}',
+        'PIE Cutoff': f'{SHORT_WL_CUTOFF:latex}',
         'Resolving Power': f'{INST.bandpass.resolving_power:.0f}',
-        'Mean Molecular Weight': f'{GCM_DICT["gcm"]["mean_molec_weight"]:.0f}',
-        'Albedo': f'{GCM_DICT["gcm"]["vspec"]["albedo"]:.1f}',
-        '$T_\\text{night}/T_\\text{day}$': ', '.join([f'{x:.1f}' for x in TRUE_DAY_NIGHT_RATIOS]),
+        'Mean Molecular Weight': f'{GCM_DICT["gcm"]["mean_molec_weight"]:.0f}{foot(REF["assumed"])}',
+        'Albedo': f'{GCM_DICT["gcm"]["vspec"]["albedo"]:.1f}{foot(REF["assumed"])}',
     }
     lines = [
         '\\begin{table}',
@@ -230,7 +255,8 @@ def write_table():
         lines.append(f'{k} & {v} \\\\')
     lines.append('\\hline')
     lines.append('\\end{tabular}')
-    lines.append('\\caption{TOI-519 b Simulation Parameters}')
+    refsline = '; '.join(f"{foot(b)}{cite(a)}" for a,b in REF.items())
+    lines.append(f'\\caption{{TOI-519 b Simulation Parameters. {refsline}}}')
     lines.append('\\label{tab:toi519-parameters}')
     lines.append('\\end{table}')
 
@@ -251,7 +277,7 @@ def get_temperature_ratio(epsilon: float):
 
 if __name__ == '__main__':
     write_table()
-    psg.docker.set_url_and_run()
-    model = get_model()
-    model.build_planet()
-    model.build_spectra()
+    # psg.docker.set_url_and_run()
+    # model = get_model()
+    # model.build_planet()
+    # model.build_spectra()

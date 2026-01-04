@@ -34,6 +34,7 @@
 
 \definecolor{tedcommentcolor}{HTML}{e17701}
 \newcommand{\TJ}[1]{\textcolor{tedcommentcolor}{#1}}
+\newcommand{\AMM}[1]{\textcolor{cyan}{#1}}
 
 \DeclareMathOperator{\Span}{span}
 
@@ -168,18 +169,22 @@ The vector $\bm{\delta}$ is the residual that is purely due to the intrinsic var
 Recall that minimizing BIC (or AIC) in Section \ref{sec:change-basis} resulted in a set of basis spectra, described by their indices in the spectral time-series. Those same indices describe the planetary spectral basis, denoted by the index $k$ in equation (\ref{eq:def-delta}). Note that the sum goes up to $q$, which is the number of basis spectra preferred by our model selection criterion. The coefficient, written $a_k$, was found by fitting the stellar basis spectra to the NIR spectra using least-squares. It is the contribution from the $k$th basis spectrum, and it has a different value at every epoch. See equations (\ref{eq:mir-error}-\ref{eq:calc-glob-delta}) for a more concise definition of the matrix version of $\bm{\delta}$. 
 
 \section{Examples}
-In this section we do three proof-of-concept demonstrations of the VPIE method, walking through the steps outlined in previous sections. We will generate a dataset using the Variable Star PhasE Curve code \citep[\texttt{VSPEC}][]{johnson2025}, which uses the Planetary Spectrum Generator's Global Emission Spectra application \citep[PSG/GlobES][]{villanueva2018,kofman2024} to create combined light spectral timeseries.
+In this section we do three proof-of-concept demonstrations of the VPIE method, walking through the steps outlined in previous sections. We generate datasets using the Variable Star PhasE Curve code \citep[\texttt{VSPEC}][]{johnson2025}, which uses the Planetary Spectrum Generator's Global Emission Spectra application \citep[PSG/GlobES][]{villanueva2018,kofman2024} to create combined light spectral timeseries.
 
 A grid of phase curve models and a stellar variability model is produced for each example. We then select three representative models from that grid to assess their detectability. The models represent three atmospheric scenarios: 1) No atmosphere/hichly-inefficient heat redistribution, where the night-side of the planet is very cold compared to the day-side, 2) moderately-efficient heat transport, which is expected for highly-irradiated giant planets \citet{perna2012,perez-becker2013,komacek2016} as well as rocky planets with moderately thick atmospheres like Earth, and 3) highly-efficient heat transport, where the day- and night-sides are the same or nearly the same temperature. This is expected on cooler giant planets and terrestrial planets with thick atmospheres like Venus.
 
-For each model, we analyze the combined-light phase curve, using VPIE to isolate the planet's own variability. We calculate the long-wavelength residuals ($\bm{\epsilon}+\bm{\delta}$, see equation (\ref{eq:def-residuals})). By comparing the residual pattern to those expected from each model in the grid, we compute $\chi^2_\mathrm{red}$. We repeat this calculation for various system distances, changing the noise and scatter appropriately. At each distance, the error bars are further inflated so that the minimum $\chi^2_\mathrm{red}=1$; this inflation is necessary because the basis-vector reconstruction procedure introduces some additional noise.
+For each model, we analyze the combined-light phase curve, using VPIE to isolate the planet's own variability. We calculate the long-wavelength residuals ($\bm{\epsilon}+\bm{\delta}$, see equation (\ref{eq:def-residuals})). By comparing the residual pattern to those expected from each model in the grid, we compute $\chi^2_\mathrm{red}$. The basis-vector reconstruction procedure introduces additional noise, which is mostly mitigated by binning in time and wavelength after the reconstruction; additionally, we inflate the error bars so that the minimum $\chi^2_\mathrm{red}=1$.
 
-\subsection{Example 1: JWST GEMS}
-Giant exoplanets around M-stars (GEMS) are prime candidates for PIE observations because the flux ratios between planet and star are relatively favorable. We simulate a JWST phase-curve observation of the warm ($T_\mathrm{eq}\approx 750\; \mathrm{K}$) Jupiter-sized exoplanet TOI-519 b, which transits its mid-M host \citep{parviainen2021,hartman2023,kagetani2023}. Table \ref{tab:toi519-parameters} gives the VSPEC model parameters used in this simulation.
+\subsection{Example 1: A Warm Giant Planet Around a M-star}
+Giant exoplanets around M-stars (GEMS) are the optimal candidates for demonstrating VPIE observations because the combination of a large planet and small star maximizes the planet/star flux ratio. The discovery of GEMS has been catalyzed by the combination of TESS and ground-based RV studies of nearby M-dwarfs, and there are now more than \AMM{XX} planets more massive than Saturn known around M-stars with $T_\mathrm{eff}<3500$K (\AMM{CITE NExSci}). In particular, GEMS with equilibrium temperatures below $\sim$800K would produce minimal thermal flux below 1.5$\mathrm{\mu m}$, and would therefore be amenable to VPIE analysis using observations spanning the 0.6 - 5$\mathrm{\mu m}$ NIR wavelength range covered by several JWST instruments (NIRSpec, NIRCam).
+
+To determine the effectiveness of VPIE for a GEMS target with JWST under realistic observing conditions, we simulate a JWST phase-curve observation of the warm ($T_\mathrm{eq}\approx 750\; \mathrm{K}$) Jupiter-sized exoplanet TOI-519 b, which transits its mid-M host star with $T_\mathrm{eff}\approx 3300\; \mathrm{K}$ \citep{parviainen2021,hartman2023,kagetani2023}. TOI-519b is the largest planet detected so far that meets the stellar and planetary temperature criteria above, and is therefore the optimal test case.
+
+Table \ref{tab:toi519-parameters} gives the VSPEC model parameters used in this simulation.  The bulk stellar and planetary parameters were taken from the most recent values listed in the NExSci Exoplanet Archive; individual references are listed next to each value. We defined the stellar photospheric temperature to be 3427 K, with a spot temperature of 3000 K and a spot coverage fraction of 20\%; these stellar spot parameters are selected based on \AMM{XXXX (survey values?)}. The planetary $T_\mathrm{eq}$ of 758K is based on an assumption of a geometric albedo of zero, which is obviously a lower limit but similar to values measured for hot Jupiters \AMM{(CITE)}.  Observation parameters were based on values for the JWST NIRSpec/PRISM instrument, with VPIE-specific parameters such as the time bin size and cut-off wavelength optimized for this target.
 
 \variable{output/toi519.txt}
 
-The data from this simulation are shown and analyzed in figures \ref{fig:toi519} \& \ref{fig:toi519-chi2}.
+The results of the VPIE analysis are shown in Figures \ref{fig:toi519} and \ref{fig:toi519-chirad}.  Figure \ref{fig:toi519} demonstrates the steps involved in the VPIE method, including the calculation of the basis coefficients in panel (c) and the final residual image in panel (d). Figure \ref{fig:toi519-chirad} shows the VPIE method's ability to distinguish between different atmospheric scenarios with high certainty.
 
 \begin{figure}
     \includegraphics[width=0.5\textwidth]{figures/toi519.pdf}
@@ -191,16 +196,30 @@ The data from this simulation are shown and analyzed in figures \ref{fig:toi519}
 \end{figure}
 
 \begin{figure}
-    \begin{center}
-        {\bf\large TOI-519 b}
-    \end{center}
-    \includegraphics[width=0.5\textwidth]{figures/toi519_retrieval_red_chi_square_distance_1.pdf}
-    \includegraphics[width=0.5\textwidth]{figures/toi519_retrieval_red_chi_square_distance_5.pdf}
-    \includegraphics[width=0.5\textwidth]{figures/toi519_retrieval_red_chi_square_distance_9.pdf}
-    \caption{Atmospheric heat-redistribution inference for TOI-519 b as a function of distance from the solar system. In each panel, a single atmospheric scenario (low, moderate, and high heat redistribution) is assessed for VPIE sensitivity. }
-    \label{fig:toi519-chi2}
-    \script{toi519_retrieve.py}
+    \includegraphics[width=0.5\textwidth]{figures/toi519_retrieval_red_chi_square_radius.pdf}
+    \includegraphics[width=0.5\textwidth]{figures/toi519_retrieval_red_chi_square_radius_eclipse_null.pdf}
+    \includegraphics[width=0.5\textwidth]{figures/toi519_retrieval_red_chi_square_radius_eclipse_half.pdf}
+    \caption{
+        Heat distribution and planet radius mismatch for TOI-519 b.
+        {\bf a)} Ground truth has zero variability and the eclipse is ignored. This case simulates a non-transiting planet; in the absence of an eclipse, the minimum $\chi_\mathrm{red}^2$ is degenerate between heat redistribution and planet radius. At the true $\sim R_\mathrm{J}$ radius of TOI-519 b, the moderate-redistribution model is rejected at $10\sigma$.
+        {\bf b)} Zero variability and eclipse considered. By including the eclipsing epochs in the VPIE analysis the radius of the planet is constrained. The star indicates the ground-truth used in calculating $\chi_\mathrm{red}^2$.
+        {\bf c)} Same as (b), but the $T_\mathrm{night}/T_\mathrm{day}$ of the ground-truth is 0.5.
+    }
+    \label{fig:toi519-chirad}
+    \script{toi519_radius2d.py}
 \end{figure}
+
+% \begin{figure}
+%     \begin{center}
+%         {\bf\large TOI-519 b}
+%     \end{center}
+%     \includegraphics[width=0.5\textwidth]{figures/toi519_retrieval_red_chi_square_distance_1.pdf}
+%     \includegraphics[width=0.5\textwidth]{figures/toi519_retrieval_red_chi_square_distance_5.pdf}
+%     \includegraphics[width=0.5\textwidth]{figures/toi519_retrieval_red_chi_square_distance_9.pdf}
+%     \caption{Atmospheric heat-redistribution inference for TOI-519 b as a function of distance from the solar system. In each panel, a single atmospheric scenario (low, moderate, and high heat redistribution) is assessed for VPIE sensitivity. }
+%     \label{fig:toi519-chi2}
+%     \script{toi519_retrieve.py}
+% \end{figure}
 
 \subsection{Example 2: A hot Sub-Neptune with JWST}'
 In our first example, we demonstrate the capabilities of the VPIE method to detect variations in the lightcurve of the hot sub-Neptune GJ 876 d using JWST. Our \texttt{VSPEC} model uses the parameters given in Table \ref{tab:gj876-parameters}. Figure \ref{fig:gj876} shows the planetary spectra and stellar variability used in this example, and the bottom panel shows the VPIE residual signal ($\bm{\epsilon} + \bm{\delta}$, see Section \ref{sec:residuals}).

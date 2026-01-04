@@ -17,21 +17,24 @@ from vpie import vpie
 import VSPEC
 
 import paths
+from common import bin_image
 from mirecle_grid import get_interp, dt_to_eps as temp_to_log_epsilon
 from mirecle_run import get_model, PLANET as PLANET_PARAMS
 
 PREFIX = 'mirecle'
 IC = 'AIC'
 MAX_BASIS = 4
-TRUE_TEMPERATURE_RATIO = 0.1
-TRUE_LOG_EPSILON = temp_to_log_epsilon([TRUE_TEMPERATURE_RATIO])
-NOISE_SCALE = 1.0/np.sqrt(2)
+TRUE_TEMPERATURE_RATIO = 1.0
+TRUE_LOG_EPSILON = temp_to_log_epsilon([TRUE_TEMPERATURE_RATIO]) if TRUE_TEMPERATURE_RATIO != 1.0 else None
+NOISE_SCALE = 1.0#/np.sqrt(16)
 CHI2_NOISE_SCALE = 1
 THERMAL_SCALE = 1.0
 SEED = 11
 FLUX_UNIT = u.Unit('W m-2 um-1')
 CUTOFF_WL = 5*u.um
 CHI2_WL = 15*u.um
+BIN_WL = 6
+BIN_TIME = 4
 
 
 @contextlib.contextmanager
@@ -48,7 +51,7 @@ if __name__ in '__main__':
     Takes in [log_epsilon]
     """
     thermal = THERMAL_SCALE * \
-        interpolator([TRUE_LOG_EPSILON])[0, :, :].T  # m x n
+        interpolator([TRUE_LOG_EPSILON])[0, :, :].T if TRUE_LOG_EPSILON is not None else 0* interpolator([0.0])[0, :, :].T  # m x n
     data = VSPEC.PhaseAnalyzer.from_model(get_model())
     wl = data.wavelength
     time = data.time
@@ -123,11 +126,12 @@ if __name__ in '__main__':
             ax.set_xlabel('$t/[\\rm hr]$')
             fig.savefig(paths.figures / f'{PREFIX}_retrieval_coefficients.png')
 
-    def get_residual_and_noise(aperture, fiducial_aperture=2, chi_noise_scale=1.0, epsilon=10**TRUE_LOG_EPSILON):
+    def get_residual_and_noise(aperture, fiducial_aperture, chi_noise_scale, epsilon):
         logger.info(
             f'Running aperture={aperture:.1f} m with noise scale of {chi_noise_scale:.2f}')
         aperture_noise_scale = (aperture/fiducial_aperture)**-2
-        _thermal = THERMAL_SCALE*interpolator([np.log10(epsilon)])[0, :, :].T
+        nullify = epsilon is None
+        _thermal = THERMAL_SCALE*interpolator([np.log10(epsilon)])[0, :, :].T if not nullify else 0
         _data = VSPEC.PhaseAnalyzer.from_model(get_model())
         _rng = np.random.default_rng(SEED)
         _stellar = _data.star.T.to_value(FLUX_UNIT)
@@ -203,7 +207,7 @@ if __name__ in '__main__':
     with figure_context(figsize=(6, 4)) as fig:
         ax: plt.Axes = fig.subplots(1, 1)
         grid_thermal = THERMAL_SCALE * \
-            interpolator([TRUE_LOG_EPSILON-0.])[0, :, :].T
+            interpolator([TRUE_LOG_EPSILON])[0, :, :].T if TRUE_LOG_EPSILON is not None else 0*interpolator([0])[0, :, :].T
         grid_reconstruction = vpie.get_reconstruction(
             grid_thermal,
             coeffs,
@@ -236,7 +240,7 @@ if __name__ in '__main__':
     with figure_context(figsize=(6, 4)) as fig:
         ax: plt.Axes = fig.subplots(1, 1)
         grid_thermal = THERMAL_SCALE * \
-            interpolator([TRUE_LOG_EPSILON-0.])[0, :, :].T
+            interpolator([TRUE_LOG_EPSILON])[0, :, :].T if TRUE_LOG_EPSILON is not None else 0 * interpolator([0])[0, :, :].T
         grid_reconstruction = vpie.get_reconstruction(
             grid_thermal,
             coeffs,
@@ -267,34 +271,44 @@ if __name__ in '__main__':
         fig.tight_layout()
         fig.savefig(paths.figures / f'{PREFIX}_retrieval_chi_true.png')
 
-    temp_array = np.linspace(0.05, 0.99, 100)
-    log_eps_array = (temp_to_log_epsilon(temp_array))
+    temp_array = np.linspace(0.05, 0.99, 5)
+    log_eps_array = [temp_to_log_epsilon([a])[0] if a != 1.0 else None for a in temp_array]
     red_chi_sq_array = []
     red_chi_sq_short_array = []
     red_chi_sq_long_array = []
+    red_chi_sq_mid_array = []
     aperture = 2.
     grid_aperture = 2
     aperture_residual, aperture_noise, _s, _coeffs = get_residual_and_noise(
-        aperture, fiducial_aperture=grid_aperture, epsilon=10**TRUE_LOG_EPSILON, chi_noise_scale=CHI2_NOISE_SCALE)
+        aperture, fiducial_aperture=grid_aperture, epsilon=10**TRUE_LOG_EPSILON if TRUE_LOG_EPSILON is not None else None, chi_noise_scale=CHI2_NOISE_SCALE)
+    aperture_residual = bin_image(aperture_residual, BIN_WL, BIN_TIME, 1)
+    aperture_noise = bin_image(aperture_noise, BIN_WL, BIN_TIME, 1)
+    _wl = bin_image(wl.to_value(u.um), BIN_WL, 1, 1)[0, :]
+    is_long = _wl > CHI2_WL.to_value(u.um)
+    is_short = _wl < CUTOFF_WL.to_value(u.um)
     for log_eps in log_eps_array:
-        grid_thermal = THERMAL_SCALE*interpolator([log_eps])[0, :, :].T
+        grid_thermal = THERMAL_SCALE*interpolator([log_eps])[0, :, :].T if log_eps is not None else 0*interpolator([0])[0, :, :].T
         grid_reconstruction = vpie.get_reconstruction(
             grid_thermal,
             _coeffs,
             _s
         )
         grid_residual = grid_reconstruction - grid_thermal
+        grid_residual = bin_image(grid_residual, BIN_WL, BIN_TIME, 1)
         difference = grid_residual - aperture_residual
         chi_sq_spec = difference**2/(aperture_noise)**2
         chi_sq = np.sum(chi_sq_spec)
-        chi_sq_short = np.sum(chi_sq_spec[:, :cutoff_index])
-        red_chi_sq_short = chi_sq_short / (chi_sq_spec[:, :cutoff_index]).size
-        chi_sq_long = np.sum(chi_sq_spec[:, cutoff_index:])
-        red_chi_sq_long = chi_sq_long / (chi_sq_spec[:, cutoff_index:]).size
+        chi_sq_short = np.sum(chi_sq_spec[:, is_short])
+        red_chi_sq_short = chi_sq_short / (chi_sq_spec[:, is_short]).size
+        chi_sq_long = np.sum(chi_sq_spec[:, is_long])
+        red_chi_sq_long = chi_sq_long / (chi_sq_spec[:, is_long]).size
         red_chi_sq = chi_sq / (chi_sq_spec).size
+        chi_sq_mid = np.sum(chi_sq_spec[:, (~is_long & ~is_short)])
+        red_chi_sq_mid = chi_sq_mid / (chi_sq_spec[:, (~is_long & ~is_short)]).size
         red_chi_sq_array.append(red_chi_sq)
         red_chi_sq_short_array.append(red_chi_sq_short)
         red_chi_sq_long_array.append(red_chi_sq_long)
+        red_chi_sq_mid_array.append(red_chi_sq_mid)
     red_chi_sq_array = np.array(red_chi_sq_array)
 
     with figure_context(figsize=(6, 4)) as fig:
@@ -302,6 +316,7 @@ if __name__ in '__main__':
         im = ax.plot(temp_array, red_chi_sq_array, c='k')
         ax.plot(temp_array, red_chi_sq_short_array, c='r', label='NIR')
         ax.plot(temp_array, red_chi_sq_long_array, c='b', label='MIR')
+        ax.plot(temp_array, red_chi_sq_mid_array, c='g', label='between')
         ax.set_title(
             f'Min $\\chi^2_{{\\rm red}}= {np.min(red_chi_sq_array):.2f}$ at $\\log \\epsilon= {log_eps_array[np.argmin(red_chi_sq_array)]:.2f}$')
         ax.set_xlabel('$T_{\\rm night} / T_{\\rm day}$')
@@ -312,68 +327,52 @@ if __name__ in '__main__':
         fig.tight_layout()
         fig.savefig(paths.figures / f'{PREFIX}_retrieval_red_chi_square.png')
 
-    temp_ratios = [0.1, 0.5, 0.9]
-    epsilons = temp_to_log_epsilon(temp_ratios)
+    temp_ratios = [0.1, 0.5, 0.99]
+    temp_ratios = [1.0]
+    epsilons = [temp_to_log_epsilon([temp_ratio])[0] if temp_ratio != 1.0 else None for temp_ratio in temp_ratios]
     fnames = ['1', '5', '9']
+    fnames = ['9']
     bounds = (0., 50.0)
-    def bin_image(im: np.ndarray, nwl:int, ntime: int, power: int):
-        def add(*args):
-            _sum = args[0] * 0
-            for arg in args:
-                _sum += arg**power
-            return _sum**(1/power) / len(args)
-        im = np.atleast_2d(im)
-        original_size_time, original_size_wl = im.shape
-        new_size_time = int(np.ceil(original_size_time/ntime))
-        new_size_wl = int(np.ceil(original_size_wl/nwl))
-        out_arr = np.zeros((new_size_time, new_size_wl))
-        for i in range(new_size_time):
-            for j in range(new_size_wl):
-                sub_arr = (im[i*ntime:min((i+1)*ntime,original_size_time), j*nwl:min((j+1)*nwl,original_size_wl)]).flatten()
-                val = add(*sub_arr)
-                out_arr[i,j] = val
-        return out_arr
-    bin_wl = 6
-    bin_time = 4
+    
 
     def is_one(x):
         tol = 1e-3
         return (x < 1+tol) and (x > 1-tol)
-    for epsilon, fname in zip(epsilons, fnames):
+    for epsilon, fname, temp in zip(epsilons, fnames, temp_ratios):
         grid_aperture = 2
-        aperture_arr = np.logspace(-0.3, 1.5, 32)
-        red_chi_sq_array = np.zeros((aperture_arr.size, log_eps_array.size))
-        best_radius_array = np.zeros((aperture_arr.size, log_eps_array.size))
+        aperture_arr = np.logspace(-0.5, 1.05, 11)
+        red_chi_sq_array = np.zeros((aperture_arr.size, len(log_eps_array)))
+        best_radius_array = np.zeros((aperture_arr.size, len(log_eps_array)))
         for i, aperture in enumerate(aperture_arr):
             lowest_chi_sq = 2.0
             while not is_one(lowest_chi_sq):
                 aperture_residual, aperture_noise, _s, _coeffs = get_residual_and_noise(
                     aperture,
                     fiducial_aperture=grid_aperture,
-                    epsilon=10**epsilon,
+                    epsilon=10**epsilon if epsilon is not None else None,
                     chi_noise_scale=np.sqrt(lowest_chi_sq)
                 )
-                binned_aperture_residual = bin_image(aperture_residual, bin_wl, bin_time, 1)
-                binned_aperture_noise = bin_image(aperture_noise,bin_wl, bin_time,2)
+                binned_aperture_residual = bin_image(aperture_residual, BIN_WL, BIN_TIME, 1)
+                binned_aperture_noise = bin_image(aperture_noise,BIN_WL, BIN_TIME,2)
                 del aperture_residual
                 del aperture_noise
-                binned_wl = bin_image(wl.to_value(u.um),bin_wl,1,1)[0,:]
+                binned_wl = bin_image(wl.to_value(u.um),BIN_WL,1,1)[0,:]
+                long_wl = binned_wl >= CHI2_WL.to_value(u.um)
                 for j, log_eps in enumerate(log_eps_array):
                     grid_thermal = THERMAL_SCALE * \
-                        interpolator([log_eps])[0, :, :].T
+                        interpolator([log_eps])[0, :, :].T if log_eps is not None else 0*interpolator([0])[0, :, :].T
                     grid_reconstruction = vpie.get_reconstruction(
                         grid_thermal,
                         _coeffs,
                         _s
                     )
                     grid_residual = grid_reconstruction - grid_thermal
-                    binned_grid_residual = bin_image(grid_residual, bin_wl, bin_time, 1)
+                    binned_grid_residual = bin_image(grid_residual, BIN_WL, BIN_TIME, 1)
                     del grid_residual
                     
 
                     def get_chi_sq(rp: float):
                         difference = rp**2*binned_grid_residual - binned_aperture_residual
-                        long_wl = binned_wl >= CHI2_WL.to_value(u.um)
                         chi_sq_spec = difference**2/(binned_aperture_noise)**2
                         chi_sq_spec = chi_sq_spec[:, long_wl]
                         chi_sq = np.sum(chi_sq_spec)
@@ -414,10 +413,10 @@ if __name__ in '__main__':
             ax.set_xlabel('$T_{\\rm night} / T_{\\rm day}$')
             ax.set_yscale('log')
             ax.grid(False)
-            yticks = [0.5, 1, 2, 4, 8, 16]
+            yticks = [0.5, 1, 2, 4, 8]
             ax.set_yticks(yticks)
             ax.set_yticklabels(yticks)
-            ax.axvline(x=float(fname)/10, c='r', ls='--')
+            ax.axvline(x=temp, c='r', ls='--')
             fig.colorbar(im, label='$\\chi^2_{\\rm red}$')
             levels = [1, 4, 9, 16, 25]
             def fmt(x): return f'$\\chi^2_{{\\rm red}} = {x:.0f}$'

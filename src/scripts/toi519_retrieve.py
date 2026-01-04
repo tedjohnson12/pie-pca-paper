@@ -24,8 +24,8 @@ from toi519_run import get_model, PLANET as PLANET_PARAMS
 PREFIX = 'toi519'
 IC = 'BIC'
 MAX_BASIS = 3
-TRUE_TEMPERATURE_RATIO = 0.1
-TRUE_LOG_EPSILON = temp_to_log_epsilon([TRUE_TEMPERATURE_RATIO])
+TRUE_TEMPERATURE_RATIO = 1.0
+TRUE_LOG_EPSILON = temp_to_log_epsilon([TRUE_TEMPERATURE_RATIO]) if TRUE_TEMPERATURE_RATIO != 1.0 else None
 NOISE_SCALE = 1.0
 CHI2_NOISE_SCALE = np.sqrt(2.66)
 THERMAL_SCALE = 1.0
@@ -49,8 +49,18 @@ if __name__ in '__main__':
     """
     Takes in [log_epsilon]
     """
-    thermal = THERMAL_SCALE * \
-        interpolator([TRUE_LOG_EPSILON])[0, :, :].T  # m x n
+    def get_thermal(log_epsilon):
+        if log_epsilon is not None:
+            return THERMAL_SCALE * interpolator([log_epsilon])[0, :, :].T
+        else:
+            _therm = THERMAL_SCALE * interpolator([2.0])[0, :, :].T
+            in_transit = _therm[0,:] = 0
+            dayside = np.argmax(_therm[0,:])
+            _therm[:,~in_transit] = _therm[:,dayside]
+            return _therm
+    # thermal = THERMAL_SCALE * \
+    #     interpolator([TRUE_LOG_EPSILON])[0, :, :].T  # m x n
+    thermal = get_thermal(TRUE_LOG_EPSILON)
     data = VSPEC.PhaseAnalyzer.from_model(get_model())
     wl = data.wavelength
     time = data.time
@@ -119,12 +129,13 @@ if __name__ in '__main__':
             ax.set_xlabel('$t/[\\rm hr]$')
             fig.savefig(paths.figures / f'{PREFIX}_retrieval_coefficients.png')
 
-    def get_residual_and_noise(distance, fiducial_distance=10, chi_noise_scale=1.0, epsilon=10**TRUE_LOG_EPSILON):
+    def get_residual_and_noise(distance, fiducial_distance, chi_noise_scale, log_epsilon):
         logger.info(
             f'Running distance={distance} pc with noise scale of {chi_noise_scale:.2f}')
         distance_noise_scale = (distance/fiducial_distance)**2
-        nullify = epsilon is None
-        _thermal = THERMAL_SCALE*interpolator([np.log10(epsilon)])[0, :, :].T if not nullify else 0
+        # nullify = epsilon is None
+        _thermal = get_thermal(log_epsilon)
+        # _thermal = THERMAL_SCALE*interpolator([np.log10(epsilon)])[0, :, :].T if not nullify else 0
         _data = VSPEC.PhaseAnalyzer.from_model(get_model())
         _rng = np.random.default_rng(SEED)
         _stellar = _data.star.T.to_value(FLUX_UNIT)
@@ -197,8 +208,9 @@ if __name__ in '__main__':
 
     with figure_context(figsize=(6, 4)) as fig:
         ax: plt.Axes = fig.subplots(1, 1)
-        grid_thermal = THERMAL_SCALE * \
-            interpolator([TRUE_LOG_EPSILON-0.])[0, :, :].T
+        grid_thermal = get_thermal(TRUE_LOG_EPSILON)
+        # grid_thermal = THERMAL_SCALE * \
+        #     interpolator([TRUE_LOG_EPSILON-0.])[0, :, :].T
         grid_reconstruction = vpie.get_reconstruction(
             grid_thermal,
             coeffs,
@@ -230,8 +242,9 @@ if __name__ in '__main__':
 
     with figure_context(figsize=(6, 4)) as fig:
         ax: plt.Axes = fig.subplots(1, 1)
-        grid_thermal = THERMAL_SCALE * \
-            interpolator([TRUE_LOG_EPSILON-0.])[0, :, :].T
+        grid_thermal = get_thermal(TRUE_LOG_EPSILON)
+        # grid_thermal = THERMAL_SCALE * \
+        #     interpolator([TRUE_LOG_EPSILON-0.])[0, :, :].T
         grid_reconstruction = vpie.get_reconstruction(
             grid_thermal,
             coeffs,
@@ -270,9 +283,10 @@ if __name__ in '__main__':
     distance = 70.
     grid_distance = 115
     dist_residual, dist_noise, _s, _coeffs = get_residual_and_noise(
-        distance, fiducial_distance=grid_distance, epsilon=10**TRUE_LOG_EPSILON, chi_noise_scale=CHI2_NOISE_SCALE)
+        distance, fiducial_distance=grid_distance, log_epsilon=TRUE_LOG_EPSILON, chi_noise_scale=CHI2_NOISE_SCALE)
     for log_eps in log_eps_array:
-        grid_thermal = THERMAL_SCALE*interpolator([log_eps])[0, :, :].T if log_eps is not None else 0*dist_residual
+        grid_thermal = get_thermal(log_eps)
+        # grid_thermal = THERMAL_SCALE*interpolator([log_eps])[0, :, :].T if log_eps is not None else 0*dist_residual
         grid_reconstruction = vpie.get_reconstruction(
             grid_thermal,
             _coeffs,
@@ -297,8 +311,8 @@ if __name__ in '__main__':
         im = ax.plot(temp_array, red_chi_sq_array, c='k')
         ax.plot(temp_array, red_chi_sq_short_array, c='r', label='NIR')
         ax.plot(temp_array, red_chi_sq_long_array, c='b', label='MIR')
-        ax.set_title(
-            f'Min $\\chi^2_{{\\rm red}}= {np.min(red_chi_sq_array):.2f}$ at $\\log \\epsilon= {log_eps_array[np.argmin(red_chi_sq_array)]:.2f}$')
+        # ax.set_title(
+        #     f'Min $\\chi^2_{{\\rm red}}= {np.min(red_chi_sq_array):.2f}$ at $\\log \\epsilon= {log_eps_array[np.argmin(red_chi_sq_array)]:.2f}$')
         ax.set_xlabel('$T_{\\rm night} / T_{\\rm day}$')
         ax.set_ylabel('$\\chi^2_{\\rm red}$')
         ax.set_yscale('log')
@@ -308,14 +322,14 @@ if __name__ in '__main__':
         fig.savefig(paths.figures / f'{PREFIX}_retrieval_red_chi_square.png')
 
     temp_ratios = [ 0.5, 1.0]
-    epsilons = [10**temp_to_log_epsilon([temp_ratio])[0] if temp_ratio != 1.0 else None for temp_ratio in temp_ratios]
+    logepsilons = [temp_to_log_epsilon([temp_ratio])[0] if temp_ratio != 1.0 else None for temp_ratio in temp_ratios]
     fnames = ['5', '10']
     bounds = (0., 50.0)
 
     def is_one(x):
         tol = 1e-3
         return (x < 1+tol) and (x > 1-tol)
-    for epsilon, fname in zip(epsilons, fnames):
+    for epsilon, fname in zip(logepsilons, fnames):
         grid_distance = 115
         distance_arr = np.logspace(1.3, 2.4, 9)
         # distance_arr = np.array([200])
@@ -327,15 +341,16 @@ if __name__ in '__main__':
                 dist_residual, dist_noise, _s, _coeffs = get_residual_and_noise(
                     dist,
                     fiducial_distance=grid_distance,
-                    epsilon=epsilon,
+                    log_epsilon=epsilon,
                     chi_noise_scale=np.sqrt(lowest_chi_sq)
                 )
                 dist_residual = bin_image(dist_residual, BIN_WL, BIN_TIME, 1)
                 dist_noise = bin_image(dist_noise, BIN_WL, BIN_TIME, 2)
                 _wl = bin_image(wl.to_value(u.um), BIN_WL, 1, 1)[0, :]
                 for j, log_eps in enumerate(log_eps_array):
-                    grid_thermal = THERMAL_SCALE * \
-                        interpolator([log_eps])[0, :, :].T if log_eps is not None else 0*interpolator([0])[0, :, :].T
+                    grid_thermal = get_thermal(log_eps)
+                    # grid_thermal = THERMAL_SCALE * \
+                    #     interpolator([log_eps])[0, :, :].T if log_eps is not None else 0*interpolator([0])[0, :, :].T
                     grid_reconstruction = vpie.get_reconstruction(
                         grid_thermal,
                         _coeffs,

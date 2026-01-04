@@ -1,5 +1,7 @@
 import numpy as np
 
+COLWIDTH = 8.5/2
+
 
 def bin_image(im: np.ndarray, nwl:int, ntime: int, power: int):
     """

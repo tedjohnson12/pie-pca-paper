@@ -35,6 +35,8 @@ dependencies:
   #   - src/data/dataset_for_my_script.dat
   # src/tex/ms.tex:
   #   - src/tex/stylesheet.tex
+  src/tex/figures/toi519_retrieval_red_chi_square_radius_eclipse_null.pdf:
+    - src/scripts/toi519_radius2d_eclipse_null.py 
 
 # Name of the `.tex` manuscript and corresponding `.pdf` article
 ms_name: ms

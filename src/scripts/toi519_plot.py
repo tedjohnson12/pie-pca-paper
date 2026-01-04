@@ -14,7 +14,7 @@ from toi519_run import get_model
 OUTFILE = paths.figures / 'toi519.pdf'
 NOISE_SCALE = 1.0
 SEED = 10
-QUARTER_PERIOD = 15
+QUARTER_PERIOD = 14
 LABEL_FONT_SIZE = 12
 
 if __name__ == '__main__':
@@ -67,7 +67,7 @@ if __name__ == '__main__':
         cutoff_index=cutoff_index,
         use_mean_error=True,
         ic_string='AIC',
-        max_basis_size=None
+        max_basis_size=2
     )
 
     ax2 = fig.add_subplot(nrow, 1, 2)
@@ -92,13 +92,13 @@ if __name__ == '__main__':
     ax3b.plot(time, coeffs[:, 0], lw=2,
               label='$a_1$', color='xkcd:pale orange')
     ax3b.plot(time, coeffs[:, 1], lw=2, label='$a_2$', color='xkcd:grass')
-    ax3b.plot(time,coeffs[:,2], lw=2,label='$a_3$',color='xkcd:lavender')
+    # ax3b.plot(time,coeffs[:,2], lw=2,label='$a_3$',color='xkcd:lavender')
     ax3b.legend()
     ax3.set_xlabel('Time (days)')
     ax3.set_facecolor('w')
     ax3.grid(False)
     ax3b.grid(False)
-    ax3.set_ylabel('Star white light ($\\rm W m^{-2}$)')
+    ax3.set_ylabel('Star white light (normalized)')
     ax3b.set_ylabel('Spectral basis coefficients')
     ax3.text(-0.23, 1.15, transform=ax3.transAxes, ha='right',
              va='top', s='c)', fontsize=12, fontweight='bold')
