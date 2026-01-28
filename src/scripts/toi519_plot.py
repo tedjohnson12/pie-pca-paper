@@ -10,11 +10,13 @@ import VSPEC
 import vpie
 
 from toi519_run import get_model
+from common import bin_image, figure_context, COLWIDTH
 
-OUTFILE = paths.figures / 'toi519.pdf'
+OUTFILE_PREFIX = 'toi519_fig'
+FIGSIZE = (COLWIDTH, 0.7*COLWIDTH)
+
 NOISE_SCALE = 1.0
 SEED = 10
-QUARTER_PERIOD = 14
 LABEL_FONT_SIZE = 12
 
 if __name__ == '__main__':
@@ -22,10 +24,6 @@ if __name__ == '__main__':
     rng = np.random.default_rng(SEED)
     model = get_model()
     data = VSPEC.PhaseAnalyzer.from_model(model)
-
-    fig = plt.figure(figsize=(4.25, 9))
-    nrow = 4
-    ax1 = fig.add_subplot(nrow, 1, 1)
 
     wl = data.wavelength.to_value(u.um)
     time = data.time.to_value(u.day)
@@ -35,29 +33,18 @@ if __name__ == '__main__':
     noise = data.noise.to_value(flux_unit) * NOISE_SCALE
     total = data.total.to_value(flux_unit)
     observed = total + rng.normal(0, noise)
-
-    # def bin_by_two(arr):
-    #     if arr.ndim == 1:
-    #         return (arr[::2]+arr[1::2])/2
-    #     a = arr[:,::2]
-    #     b = arr[:,1::2]
-    #     return (a+b)/2
-    # thermal = bin_by_two(thermal)
-    # noise = bin_by_two(noise)/np.sqrt(2)
-    # total = bin_by_two(total)
-    # observed = bin_by_two(observed)
-    # time = bin_by_two(time)
-
-    im1 = ax1.pcolormesh(wl, time, thermal.T, rasterized=True, cmap='afmhot_r')
-    ax1.set_xlabel('Wavelength ($\\mathrm{ \\mu m}$)')
-    ax1.set_ylabel('Time (days)')
-    ax1.set_facecolor('w')
-    ax1.grid(False)
-    ax1.text(-0.23, 1.1, transform=ax1.transAxes, ha='right',
-             va='top', s='a)', fontsize=12, fontweight='bold')
-
-    cbar1 = fig.colorbar(im1, ax=ax1, orientation='vertical', shrink=0.8)
-    cbar1.set_label('Thermal flux ($\\mathrm{W m^{-2} \\mu m^{-1}}$)')
+    
+    with figure_context(figsize=FIGSIZE) as fig:
+        ax = fig.add_subplot(1, 1, 1)
+        im = ax.pcolormesh(wl, time, thermal.T, rasterized=True, cmap='afmhot_r')
+        ax.set_xlabel('Wavelength ($\\mathrm{ \\mu m}$)')
+        ax.set_ylabel('Time (days)')
+        ax.set_facecolor('w')
+        ax.grid(False)
+        cbar = fig.colorbar(im, ax=ax, orientation='vertical', shrink=0.8)
+        cbar.set_label('Thermal emission ($\\mathrm{W m^{-2} \\mu m^{-1}}$)')
+        fig.tight_layout()
+        fig.savefig(paths.figures / f'{OUTFILE_PREFIX}_thermal.pdf')
 
     cutoff_index = np.argwhere(wl > 1.5)[0][0]
     print(f'Cutoff index: {cutoff_index}')
@@ -69,66 +56,75 @@ if __name__ == '__main__':
         ic_string='AIC',
         max_basis_size=2
     )
+    
+    with figure_context(figsize=FIGSIZE) as fig:
+        ax = fig.add_subplot(1, 1, 1)
+        tax = ax.twinx()
+        ax.plot(
+            data.time.to_value(u.day),
+            data.lightcurve('star', (0, -1), 'max'),
+            lw=2,
+            color='xkcd:cerulean',
+            label='White light',
+        )
+        _, q = coeffs.shape
+        colors = ['xkcd:lavender', 'xkcd:golden rod', 'xkcd:forest green']
+        for i in range(q):
+            tax.plot(time, coeffs[:, i], lw=2, label=f'$a_{i+1}$', color=colors[i])
+        h1, l1 = ax.get_legend_handles_labels()
+        h2, l2 = tax.get_legend_handles_labels()
+        ax.legend(h1 + h2, l1 + l2, loc='upper left')
+        ax.set_xlabel('Time (days)')
+        ax.set_facecolor('w')
+        ax.grid(False)
+        tax.grid(False)
+        tax.set_ylabel('Spectral basis coefficients')
+        ax.set_ylabel('Star white light (normalized)')
+        fig.tight_layout()
+        fig.savefig(paths.figures / f'{OUTFILE_PREFIX}_coeffs.pdf')
 
-    ax2 = fig.add_subplot(nrow, 1, 2)
-    i_day = QUARTER_PERIOD*3
-    i_night = QUARTER_PERIOD
-    ax2.plot(wl, data.spectrum('thermal', i_day, False).to_value(
-        flux_unit), lw=2, label='Day', c='xkcd:goldenrod')
-    ax2.plot(wl, data.spectrum('thermal', i_night, False).to_value(
-        flux_unit), lw=2, label='Night', c='xkcd:periwinkle')
-    ax2.set_xlabel('Wavelength ($\\rm \\mu m$)')
-    ax2.set_ylabel('Thermal flux ($\\rm W m^{-2} \\mu m^{-1}$)')
-    ax2.legend()
-    ax2.set_facecolor('w')
-    ax2.grid(False)
-    ax2.text(-0.23, 1.1, transform=ax2.transAxes, ha='right',
-             va='top', s='b)', fontsize=12, fontweight='bold')
-
-    ax3 = fig.add_subplot(nrow, 1, 3)
-    ax3b = ax3.twinx()
-    ax3.plot(data.time.to_value(u.day), data.lightcurve(
-        'star', (0, -1), 'max'), lw=2, color='xkcd:cerulean')
-    ax3b.plot(time, coeffs[:, 0], lw=2,
-              label='$a_1$', color='xkcd:pale orange')
-    ax3b.plot(time, coeffs[:, 1], lw=2, label='$a_2$', color='xkcd:grass')
-    # ax3b.plot(time,coeffs[:,2], lw=2,label='$a_3$',color='xkcd:lavender')
-    ax3b.legend()
-    ax3.set_xlabel('Time (days)')
-    ax3.set_facecolor('w')
-    ax3.grid(False)
-    ax3b.grid(False)
-    ax3.set_ylabel('Star white light (normalized)')
-    ax3b.set_ylabel('Spectral basis coefficients')
-    ax3.text(-0.23, 1.15, transform=ax3.transAxes, ha='right',
-             va='top', s='c)', fontsize=12, fontweight='bold')
-
-    ax4 = fig.add_subplot(nrow, 1, 4)
 
     residuals = (f_rec - observed.T)/observed.T * 100
     vminmax = np.max(np.abs(residuals))
 
-    im4 = ax4.pcolormesh(wl, time, residuals, rasterized=True,
-                         vmin=-vminmax, vmax=vminmax, cmap='bwr')
-    cbar4 = fig.colorbar(im4, ax=ax4, orientation='vertical', shrink=0.8)
-    cbar4.set_label('Residual (%)')
-
-    ax4.set_xlabel('Wavelength ($\\rm \\mu m$)')
-    ax4.set_ylabel('Time (days)')
-    ax4.set_facecolor('w')
-    ax4.grid(False)
-    ax4.text(-0.23, 1.1, transform=ax4.transAxes, ha='right',
-             va='top', s='d)', fontsize=12, fontweight='bold')
-    fig.text(0.5,0.98,'TOI-519 b',ha='center',va='center',fontsize=16,fontweight='bold')
-    fig.tight_layout()
-    fig.subplots_adjust(left=0.2)
-    fig.savefig(OUTFILE)
-
-    # plt.close(fig)
     
-    # Z = (f_rec - observed.T)/noise.T
-    # plt.imshow(Z[:,:cutoff_index],aspect='auto')
-    # plt.colorbar()
-    # plt.title(np.std(Z[:,:cutoff_index]))
+    with figure_context(figsize=FIGSIZE) as fig:
+        ax = fig.add_subplot(1, 1, 1)
+        im = ax.pcolormesh(
+            wl, time, residuals,
+            rasterized=True,
+            vmin=-vminmax, vmax=vminmax,
+            cmap='bwr'
+        )
+        cbar = fig.colorbar(im, ax=ax, orientation='vertical', shrink=0.8)
+        cbar.set_label('Residual (%)')
+        ax.set_xlabel('Wavelength ($\\rm \\mu m$)')
+        ax.set_ylabel('Time (days)')
+        ax.grid(False)
+        fig.tight_layout()
+        fig.savefig(paths.figures / f'{OUTFILE_PREFIX}_residuals_unbinned.pdf')
     
-    # plt.savefig(paths.figures / 'test.png')
+    wl_bin = 6
+    time_bin = 4
+    binned_residuals = bin_image(residuals, wl_bin, time_bin,1)
+    binned_wl = bin_image(wl, wl_bin, 1,1)[0,:]
+    binned_time = bin_image(time, time_bin, 1,1)[0,:]
+    vminmax = np.max(np.abs(binned_residuals))
+    
+    with figure_context(figsize=FIGSIZE) as fig:
+        ax = fig.add_subplot(1, 1, 1)
+        im = ax.pcolormesh(
+            binned_wl, binned_time, binned_residuals,
+            rasterized=True,
+            vmin=-vminmax, vmax=vminmax,
+            cmap='bwr'
+        )
+        cbar = fig.colorbar(im, ax=ax, orientation='vertical', shrink=0.8)
+        cbar.set_label('Residual (%)')
+        ax.set_xlabel('Wavelength ($\\rm \\mu m$)')
+        ax.set_ylabel('Time (days)')
+        ax.grid(False)
+        fig.tight_layout()
+        fig.savefig(paths.figures / f'{OUTFILE_PREFIX}_residuals_binned.pdf')
+    
+    

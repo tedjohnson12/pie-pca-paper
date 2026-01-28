@@ -13,6 +13,11 @@ rule toi519_radius_eclipse_half:
         "src/tex/figures/toi519_retrieval_red_chi_square_radius_eclipse_half.pdf"
     script:
         "src/scripts/toi519_radius2d_eclipse_half.py"
+rule toi519_radius_half:
+    output:
+        "src/tex/figures/toi519_retrieval_red_chi_square_radius_half.pdf"
+    script:
+        "src/scripts/toi519_radius2d_half.py"
 rule toi_table:
     output:
         "src/tex/output/toi519.txt"

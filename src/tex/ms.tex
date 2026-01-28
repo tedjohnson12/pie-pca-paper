@@ -180,34 +180,48 @@ Giant exoplanets around M-stars (GEMS) are the optimal candidates for demonstrat
 
 To determine the effectiveness of VPIE for a GEMS target with JWST under realistic observing conditions, we simulate a JWST phase-curve observation of the warm ($T_\mathrm{eq}\approx 750\; \mathrm{K}$) Jupiter-sized exoplanet TOI-519 b, which transits its mid-M host star with $T_\mathrm{eff}\approx 3300\; \mathrm{K}$ \citep{parviainen2021,hartman2023,kagetani2023}. TOI-519b is the largest planet detected so far that meets the stellar and planetary temperature criteria above, and is therefore the optimal test case.
 
-Table \ref{tab:toi519-parameters} gives the VSPEC model parameters used in this simulation.  The bulk stellar and planetary parameters were taken from the most recent values listed in the NExSci Exoplanet Archive; individual references are listed next to each value. We defined the stellar photospheric temperature to be 3427 K, with a spot temperature of 3000 K and a spot coverage fraction of 20\%; these stellar spot parameters are selected based on \AMM{XXXX (survey values?)}. The planetary $T_\mathrm{eq}$ of 758K is based on an assumption of a geometric albedo of zero, which is obviously a lower limit but similar to values measured for hot Jupiters \AMM{(CITE)}.  Observation parameters were based on values for the JWST NIRSpec/PRISM instrument, with VPIE-specific parameters such as the time bin size and cut-off wavelength optimized for this target.
+Table \ref{tab:toi519-parameters} gives the \texttt{VSPEC} model parameters used in this simulation.  The bulk stellar and planetary parameters were taken from the most recent values listed in the NExSci Exoplanet Archive; individual references are listed next to each value. We defined the stellar photospheric temperature to be 3427 K, with a spot temperature of 3000 K and a spot coverage fraction of 20\%; these stellar spot parameters are selected based on \AMM{XXXX (survey values?)}. The planetary $T_\mathrm{eq}$ of 758~K is based on an assumption of a geometric albedo of zero, which is obviously a lower limit but similar to values measured for hot Jupiters \AMM{(CITE)}.  Observation parameters were based on values for the JWST NIRSpec/PRISM instrument, with VPIE-specific parameters such as the time bin size and cut-off wavelength optimized for this target.
 
 \variable{output/toi519.txt}
 
 The results of the VPIE analysis are shown in Figures \ref{fig:toi519} and \ref{fig:toi519-chirad}.  Figure \ref{fig:toi519} demonstrates the steps involved in the VPIE method, including the calculation of the basis coefficients in panel (c) and the final residual image in panel (d). Figure \ref{fig:toi519-chirad} shows the VPIE method's ability to distinguish between different atmospheric scenarios with high certainty.
 
-\begin{figure}
-    \includegraphics[width=0.5\textwidth]{figures/toi519.pdf}
+\begin{figure*}
+    \gridline{
+        \fig{figures/toi519_fig_thermal.pdf}{0.5\textwidth}{\bf (a)}
+        \fig{figures/toi519_fig_coeffs.pdf}{0.5\textwidth}{\bf (b)}
+    }
+    \gridline{
+        \fig{figures/toi519_fig_residuals_unbinned.pdf}{0.5\textwidth}{\bf(c)}
+        \fig{figures/toi519_fig_residuals_binned.pdf}{0.5\textwidth}{\bf(d)}
+    }
     \caption{
-        PIE phase curve and VPIE analysis of the warm giant planet TOI-519 b. {\bf a)} Thermal emission phase curve over one orbit in the spectra range $0.6-5\;\mathrm{\mu m}$. {\bf b)} Representative day and night thermal emission spectra. {\bf c)} Stellar variability. Left axis (blue line) shows the normalized white light curve of the star over the observation. The right axis shows the best-fit coefficients of the basis spectra ($a_k$ in equation (\ref{eq:def-frec})). {\bf d)} VPIE residual pattern. This is the signal which can be matched with a model to infer planetary properties.
+        PIE phase curve and VPIE analysis of the warm giant planet TOI-519 b. {\bf a)} Thermal emission phase curve over one orbit in the spectra range $0.6-5\;\mathrm{\mu m}$. {\bf b)} Stellar variability. Left axis (blue line) shows the normalized white light curve of the star over the observation. The right axis shows the best-fit coefficients of the basis spectra ($a_k$ in equation (\ref{eq:def-frec})). {\bf c)} VPIE residual pattern. This is the signal which can be matched with a model to infer planetary properties. {\bf d)} Binned VPIE residual pattern. Same as {\bf (c)}, but binned by 6 pixels in wavelength and 4 pixels in time in order to remove correlated noise.
     }
     \label{fig:toi519}
     \script{toi519_plot.py}
-\end{figure}
+\end{figure*}
 
-\begin{figure}
+\begin{figure*}
+    \gridline{
     \includegraphics[width=0.5\textwidth]{figures/toi519_retrieval_red_chi_square_radius.pdf}
+    \includegraphics[width=0.5\textwidth]{figures/toi519_retrieval_red_chi_square_radius_half.pdf}
+    }
+    \gridline{
     \includegraphics[width=0.5\textwidth]{figures/toi519_retrieval_red_chi_square_radius_eclipse_null.pdf}
     \includegraphics[width=0.5\textwidth]{figures/toi519_retrieval_red_chi_square_radius_eclipse_half.pdf}
+    }
+    
     \caption{
         Heat distribution and planet radius mismatch for TOI-519 b.
         {\bf a)} Ground truth has zero variability and the eclipse is ignored. This case simulates a non-transiting planet; in the absence of an eclipse, the minimum $\chi_\mathrm{red}^2$ is degenerate between heat redistribution and planet radius. At the true $\sim R_\mathrm{J}$ radius of TOI-519 b, the moderate-redistribution model is rejected at $10\sigma$.
-        {\bf b)} Zero variability and eclipse considered. By including the eclipsing epochs in the VPIE analysis the radius of the planet is constrained. The star indicates the ground-truth used in calculating $\chi_\mathrm{red}^2$.
-        {\bf c)} Same as (b), but the $T_\mathrm{night}/T_\mathrm{day}$ of the ground-truth is 0.5.
+        {\bf b)} Same a (a), but the $T_\mathrm{night}/T_\mathrm{day}$ of the ground-truth is 0.5.
+        {\bf c)} Zero variability and eclipse considered. By including the eclipsing epochs in the VPIE analysis the radius of the planet is constrained. The star indicates the ground-truth used in calculating $\chi_\mathrm{red}^2$.
+        {\bf d)} Same as (c), but the $T_\mathrm{night}/T_\mathrm{day}$ of the ground-truth is 0.5.
     }
     \label{fig:toi519-chirad}
     \script{toi519_radius2d.py}
-\end{figure}
+\end{figure*}
 
 % \begin{figure}
 %     \begin{center}

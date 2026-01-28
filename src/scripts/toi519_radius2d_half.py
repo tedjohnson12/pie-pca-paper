@@ -18,14 +18,16 @@ import VSPEC
 import paths
 from common import bin_image
 from toi519_grid import get_interp, dt_to_eps as temp_to_log_epsilon
-from toi519_run import get_model, PLANET as PLANET_PARAMS, get_temperature_ratio
+from toi519_run import get_model, PLANET as PLANET_PARAMS
 from toi519_radius2d import FIGSIZE
 
 PREFIX = 'toi519'
 IC = 'BIC'
+TRUE_TEMPERATURE_RATIO = 0.5
+TRUE_LOG_EPSILON = temp_to_log_epsilon([TRUE_TEMPERATURE_RATIO])
 MAX_BASIS = None
 NOISE_SCALE = 1.0
-CHI2_NOISE_SCALE = np.sqrt(4.879016284333331)
+CHI2_NOISE_SCALE = np.sqrt(5.671790795629628)
 THERMAL_SCALE = 1.0
 SEED = 33
 FLUX_UNIT = u.Unit('W m-2 um-1')
@@ -33,8 +35,6 @@ CUTOFF_WL = 0.8*u.um
 CHI2_WL = 4.0*u.um
 BIN_WL = 6
 BIN_TIME = 4
-TRUE_LOG_EPSILON = 3.0
-TRUE_TEMPERATURE_RATIO = get_temperature_ratio(10**TRUE_LOG_EPSILON)
 
 
 @contextlib.contextmanager
@@ -61,6 +61,11 @@ if __name__ in '__main__':
     data = VSPEC.PhaseAnalyzer.from_model(get_model())
     wl = data.wavelength
     time = data.time
+    
+    test_thermal = THERMAL_SCALE*interpolator([1])[0, :, :].T
+    logger.info(f'Thermal has shape {test_thermal.shape}.')
+    eclipse_index = find_eclipse(test_thermal[:, -1])
+    logger.info(f'Eclipse index is {eclipse_index}.')
     
     def get_residual_and_noise(chi_noise_scale=1.0):
         # logger.info(
@@ -96,8 +101,8 @@ if __name__ in '__main__':
     dist_residual, dist_noise, _s, _coeffs = get_residual_and_noise(
         chi_noise_scale=CHI2_NOISE_SCALE
     )
-    # dist_residual = remove_epoch(dist_residual, eclipse_index)
-    # dist_noise = remove_epoch(dist_noise, eclipse_index)
+    dist_residual = remove_epoch(dist_residual, eclipse_index)
+    dist_noise = remove_epoch(dist_noise, eclipse_index)
     dist_residual = bin_image(dist_residual,BIN_WL,BIN_TIME,1)
     dist_noise = bin_image(dist_noise,BIN_WL,BIN_TIME,2)
     binned_wl = bin_image(wl.to_value(u.um),BIN_WL,1,1)[0,:]
@@ -111,7 +116,7 @@ if __name__ in '__main__':
                 _s
             )
             grid_residual = grid_reconstruction - grid_thermal
-            # grid_residual = remove_epoch(grid_residual, eclipse_index)
+            grid_residual = remove_epoch(grid_residual, eclipse_index)
             binned_grid_residual = bin_image(grid_residual, BIN_WL,BIN_TIME, 1)
             difference = binned_grid_residual - dist_residual
             chi_sq_spec = difference**2/(dist_noise)**2
@@ -133,7 +138,7 @@ if __name__ in '__main__':
         ax.grid(False)
         # ax.axhline(y=pl_true_radius.to_value(u.R_jup), c='r', ls='--')
         fig.colorbar(im, label='$\\chi^2_{\\rm red}$')
-        levels = [1, 4, 9, 16, 25, 100, 225, 400, 900]
+        levels = [1, 4, 9, 16, 25, 100, 225, 400]
         def fmt(x):
             return f'$\\chi^2_{{\\rm red}} = {x:.0f}$'
         im = ax.contour(
@@ -143,10 +148,8 @@ if __name__ in '__main__':
             linestyles='dashed'
         )
         ax.clabel(im, im.levels, inline=True, fontsize=10, fmt=fmt)
-        xlims = ax.get_xlim()
-        ax.text(0.05,0.05,'c) Eclipse considered',transform=ax.transAxes,fontsize=10,color='w',ha='left',va='center',fontweight='bold')
+        ax.text(0.05,0.05,'b) Eclipse ignored',transform=ax.transAxes,fontsize=10,color='w',ha='left',va='center',fontweight='bold')
         ax.scatter(TRUE_TEMPERATURE_RATIO,pl_true_radius.to_value(u.R_jup),marker='*',c='w',s=200,edgecolor='k')
-        ax.set_xlim(*xlims)
         fig.tight_layout()
         fig.savefig(
-            paths.figures / f'{PREFIX}_retrieval_red_chi_square_radius_eclipse_null.pdf')
+            paths.figures / f'{PREFIX}_retrieval_red_chi_square_radius_half.pdf')

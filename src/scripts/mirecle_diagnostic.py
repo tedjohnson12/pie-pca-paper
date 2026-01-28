@@ -21,7 +21,7 @@ TRUE_LOG_EPSILON = temp_to_log_epsilon([TRUE_TEMPERATURE_RATIO])
 NOISE_SCALE = 1.0/np.sqrt(2)
 CHI2_NOISE_SCALE = 1
 THERMAL_SCALE = 1.0
-SEED = 11
+SEED = 110
 FLUX_UNIT = u.Unit('W m-2 um-1')
 CUTOFF_WL = 5*u.um
 CHI2_WL = 10*u.um
@@ -183,8 +183,8 @@ if __name__ in '__main__':
                 out_arr[i,j] = val
         return out_arr
     
-    BIN_TIME = 4
-    BIN_WL = 6
+    BIN_TIME = 16
+    BIN_WL = 9
     with figure_context(figsize=(12, 12)) as fig:
         fig.text(0.5,0.98,f'WL BIN = {BIN_WL}, TIME BIN = {BIN_TIME}')
         ax1 = fig.add_subplot(3, 2, 1)
@@ -239,14 +239,14 @@ if __name__ in '__main__':
     
     
     with figure_context(figsize=(6, 4)) as fig:
-        max_bin_wl = 3
-        max_bin_time = 2
+        max_bin_wl = 1
+        max_bin_time = 20
         ax = fig.add_subplot(1,1,1)
         im = np.zeros((max_bin_wl,max_bin_time))
         temp_array = np.linspace(0.05, 0.99, 100)
         log_eps_array = (temp_to_log_epsilon(temp_array))
         for i in range(max_bin_wl):
-            for j in range(max_bin_time):
+            for j in range(0,max_bin_time,2):
                 data_residual = bin_image(null_residual,i+1,j+1,1)
                 data_uncertainty = bin_image(uncertainty,i+1,j+1,2)
                 reg = bin_image(wl.to_value(WL_UNIT),i+1,1,1)[0,:] > CHI2_WL.to_value(WL_UNIT)

@@ -134,7 +134,7 @@ if __name__ in '__main__':
         ax.set_ylabel('$R_\\mathrm{p}/R_\\mathrm{J}$')
         ax.set_xlabel('$T_{\\rm night} / T_{\\rm day}$')
         ax.grid(False)
-        ax.axhline(y=pl_true_radius.to_value(u.R_jup), c='w', ls='--')
+        # ax.axhline(y=pl_true_radius.to_value(u.R_jup), c='w', ls='--')
         fig.colorbar(im, label='$\\chi^2_{\\rm red}$')
         levels = [1, 4, 9, 16, 25, 100, 225, 400, 900]
         def fmt(x):
@@ -148,7 +148,7 @@ if __name__ in '__main__':
         ax.clabel(im, im.levels, inline=True, fontsize=10, fmt=fmt)
         xlims = ax.get_xlim()
         ax.text(0.05,0.05,'a) Eclipse ignored',transform=ax.transAxes,fontsize=10,color='w',ha='left',va='center',fontweight='bold')
-        # ax.scatter(1.0,pl_true_radius.to_value(u.R_jup),marker='*',c='w',s=200,edgecolor='k')
+        ax.scatter(1.0,pl_true_radius.to_value(u.R_jup),marker='*',c='w',s=200,edgecolor='k')
         ax.set_xlim(*xlims)
         fig.tight_layout()
         fig.savefig(

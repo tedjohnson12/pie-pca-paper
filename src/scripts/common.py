@@ -1,6 +1,18 @@
+
+import contextlib
+import matplotlib.pyplot as plt
+
 import numpy as np
 
+
 COLWIDTH = 8.5/2
+
+
+@contextlib.contextmanager
+def figure_context(*args, **kwargs):
+    fig: plt.Figure = plt.figure(*args, **kwargs)
+    yield fig
+    plt.close(fig)
 
 
 def bin_image(im: np.ndarray, nwl:int, ntime: int, power: int):
