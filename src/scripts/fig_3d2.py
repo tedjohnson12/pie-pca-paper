@@ -24,7 +24,7 @@ cmap = cm_teal_cream_orange
 BASE_CFG = paths.static / 'base.cfg'
 OUTPATH = paths.figures / 'fig_3d2.pdf'
 
-PL_MULTIPLIER = 1e4
+PL_MULTIPLIER = 5e3
 FONTSIZE = 14
 LG_FONTSIZE = 12
 WL_SHORT = 1.5*u.um
@@ -82,7 +82,7 @@ if __name__ in "__main__":
         x = np.ones_like(y) * phi
         ax1.plot(x, y, z, lw=2, c=color, zorder=100)
 
-    ax1.set_ylabel('NIR $\\leftarrow\\lambda\\rightarrow$ MIR',
+    ax1.set_ylabel('SW $\\leftarrow\\lambda\\rightarrow$ LW',
                    fontsize=FONTSIZE, labelpad=-10)
     ax1.set_zlabel(r'$\bm{f}$', fontsize=FONTSIZE, labelpad=-10)
     ax1.set_xlabel('$t$', fontsize=FONTSIZE, labelpad=-10)
@@ -131,7 +131,7 @@ if __name__ in "__main__":
             ax2.plot(x, y, z, lw=2, c=color)
 
     ax2.zaxis.set_rotate_label(False)
-    ax2.set_ylabel('NIR $\\leftarrow\\lambda\\rightarrow$ MIR',
+    ax2.set_ylabel('SW $\\leftarrow\\lambda\\rightarrow$ LW',
                    fontsize=FONTSIZE, labelpad=-10)
     ax2.set_zlabel(r'$\bm{f}^{(k)}$', fontsize=FONTSIZE, labelpad=-10)
     ax2.set_xlabel('$t$', fontsize=FONTSIZE, labelpad=-10)
@@ -160,7 +160,7 @@ if __name__ in "__main__":
     ax3.set_zticks([])
     ax3.zaxis.set_rotate_label(False)
     ax3.spines[['right', 'top']].set_visible(False)
-    ax3.set_ylabel('NIR $\\leftarrow\\lambda\\rightarrow$ MIR',
+    ax3.set_ylabel('SW $\\leftarrow\\lambda\\rightarrow$ LW',
                    fontsize=FONTSIZE, labelpad=-10)
     ax3.set_zlabel(r'$\tilde{\bm{f}}$', fontsize=FONTSIZE, labelpad=-10)
     ax3.set_xlabel('$t$', fontsize=FONTSIZE, labelpad=-10)

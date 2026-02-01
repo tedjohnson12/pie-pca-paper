@@ -65,7 +65,7 @@ if __name__ in "__main__":
         x = np.ones_like(y) * phi
         ax1.plot(x, y, z, lw=2, c=color)
     ax1.zaxis.set_rotate_label(False)
-    ax1.set_ylabel('NIR $\\leftarrow\\lambda\\rightarrow$ MIR',
+    ax1.set_ylabel('SW $\\leftarrow\\lambda\\rightarrow$ LW',
                    fontsize=FONTSIZE, labelpad=-10)
     ax1.set_zlabel('$\\mathbf{f}_{\\lambda}$\t',
                    fontsize=FONTSIZE, rotation='vertical', labelpad=-10)

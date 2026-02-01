@@ -21,7 +21,7 @@ cmap = cm_teal_cream_orange
 BASE_CFG = paths.static / 'base.cfg'
 OUTPATH = paths.figures / 'fig_3d3.pdf'
 
-PL_MULTIPLIER = 1e4
+PL_MULTIPLIER = 5e3
 FONTSIZE = 14
 LG_FONTSIZE = 12
 WL_SHORT = 1.5*u.um
@@ -106,7 +106,7 @@ if __name__ in "__main__":
     cbar.set_label('residual (ppm)', fontsize=LG_FONTSIZE)
 
     ax1.zaxis.set_rotate_label(False)
-    ax1.set_ylabel('NIR $\\leftarrow\\lambda\\rightarrow$ MIR',
+    ax1.set_ylabel('SW $\\leftarrow\\lambda\\rightarrow$ LW',
                    fontsize=FONTSIZE, labelpad=-10)
     ax1.set_zlabel('$\\bm{f}$\t', fontsize=FONTSIZE, labelpad=-10)
     ax1.set_xlabel('$t$', fontsize=FONTSIZE, labelpad=-10)
