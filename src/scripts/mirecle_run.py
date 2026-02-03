@@ -98,31 +98,32 @@ PSG = VSPEC.params.psgParameters(
     continuum=['Rayleigh', 'CIA_all', 'Refraction']
 )
 
-INST = VSPEC.params.InstrumentParameters(
-    telescope=VSPEC.params.SingleDishParameters(
-        aperture=2*u.m,
-        zodi=1.0
-    ),
-    bandpass=VSPEC.params.BandpassParameters(
-        wl_blue=1*u.um,
-        wl_red=18*u.um,
-        resolving_power=50,
-        wavelength_unit=u.micron,
-        flux_unit=u.Unit('W m-2 um-1')
-    ),
-    detector=VSPEC.params.DetectorParameters(
-        beam_width=0.5*u.arcsec,
-        integration_time=10*u.s,
-        ccd=VSPEC.params.ccdParameters(
-            pixel_sampling=1,
-            read_noise=16.8*u.electron,
-            dark_current=100*u.electron/u.s,
-            throughput=0.7,
-            emissivity=0.1,
-            temperature=35*u.K
-        )
-    )
-)
+INST = VSPEC.params.InstrumentParameters.miri_lrs()
+# INST = VSPEC.params.InstrumentParameters(
+#     telescope=VSPEC.params.SingleDishParameters(
+#         aperture=2*u.m,
+#         zodi=1.0
+#     ),
+#     bandpass=VSPEC.params.BandpassParameters(
+#         wl_blue=1*u.um,
+#         wl_red=18*u.um,
+#         resolving_power=50,
+#         wavelength_unit=u.micron,
+#         flux_unit=u.Unit('W m-2 um-1')
+#     ),
+#     detector=VSPEC.params.DetectorParameters(
+#         beam_width=0.5*u.arcsec,
+#         integration_time=10*u.s,
+#         ccd=VSPEC.params.ccdParameters(
+#             pixel_sampling=1,
+#             read_noise=16.8*u.electron,
+#             dark_current=100*u.electron/u.s,
+#             throughput=0.7,
+#             emissivity=0.1,
+#             temperature=35*u.K
+#         )
+#     )
+# )
 GCM_DICT = {
     'star': {
         'teff': STAR.teff,

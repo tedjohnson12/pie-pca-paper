@@ -250,12 +250,12 @@ Figure \ref{fig:gj876} shows the planetary spectra and stellar variability used 
 \end{figure}
 
 \begin{figure}
-    \includegraphics[width=0.45\textwidth]{figures/gj876_retrieval_red_chi_square_distance_1.pdf}
-    \includegraphics[width=0.45\textwidth]{figures/gj876_retrieval_red_chi_square_distance_5.pdf}
-    \includegraphics[width=0.45\textwidth]{figures/gj876_retrieval_red_chi_square_distance_9.pdf}
-    \caption{caption}
+    \includegraphics[width=0.45\textwidth]{figures/gj876_retrieval_red_chi_square_radius_null.pdf}
+    \includegraphics[width=0.45\textwidth]{figures/gj876_retrieval_red_chi_square_radius_half.pdf}
+    \includegraphics[width=0.45\textwidth]{figures/gj876_retrieval_red_chi_square_radius_full.pdf}
+    \caption{\TJ{Write Caption}}
     \label{fig:gj876-chisq}
-    \script{gj876_retrieve.py}
+    \script{gj876_radius2d.py}
 \end{figure}
 
 \subsection{Example 3: Proxima Centauri b with a JWST-like Observatory}
@@ -267,17 +267,20 @@ Table \ref{tab:mirecle-parameters} shows the simulation parameters used in this 
 
 \variable{output/mirecle.txt}
 
-\begin{figure}
-    \includegraphics[width=0.5\textwidth]{figures/mirecle.pdf}
-    \caption{Same as Figure \ref{fig:jwst}, but for observing two orbits of Proxima Centauri b with MIRECLE.}
-    \label{fig:mirecle}
-    \script{mirecle_plot.py}
-\end{figure}
+% \begin{figure}
+%     \includegraphics[width=0.5\textwidth]{figures/mirecle.pdf}
+%     \caption{Same as Figure \ref{fig:jwst}, but for observing two orbits of Proxima Centauri b with MIRECLE.}
+%     \label{fig:mirecle}
+%     \script{mirecle_plot.py}
+% \end{figure}
 
 \begin{figure}
-    \includegraphics[width=0.5\textwidth]{figures/mirecle_retrieval_red_chi_square_distance_1.pdf}
-    \includegraphics[width=0.5\textwidth]{figures/mirecle_retrieval_red_chi_square_distance_5.pdf}
-    \includegraphics[width=0.5\textwidth]{figures/mirecle_retrieval_red_chi_square_distance_9.pdf}
+    \includegraphics[width=0.5\textwidth]{figures/proxb_retrieval_red_chi_square_radius_null.pdf}
+    \includegraphics[width=0.5\textwidth]{figures/proxb_retrieval_red_chi_square_radius_half.pdf}
+    \includegraphics[width=0.5\textwidth]{figures/proxb_retrieval_red_chi_square_radius_full.pdf}
+    \caption{\TJ{Add caption}}
+    \label{fig:pcb-jwst}
+    \script{proxb_radius2d_null.py}
 \end{figure}
 
 \section{Discussion}

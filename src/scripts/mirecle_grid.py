@@ -13,7 +13,7 @@ from scipy.interpolate import RegularGridInterpolator
 import paths
 from mirecle_run import get_grid_params, get_temperature_ratio
 
-GRID_DIR = paths.data / 'grid_mirecle'
+GRID_DIR = paths.data / 'grid_pcb'
 
 LOG_EPSILON_GRID = np.linspace(-3, 3, 25)
 TRAT_GRID = [get_temperature_ratio(10**log_epsilon)

@@ -28,11 +28,11 @@ MAX_BASIS = None
 TRUE_TEMPERATURE_RATIO = 0.05
 TRUE_LOG_EPSILON = temp_to_log_epsilon([TRUE_TEMPERATURE_RATIO])
 NOISE_SCALE = 1.0
-CHI2_NOISE_SCALE = np.sqrt(2.192692251216255)
+CHI2_NOISE_SCALE = np.sqrt(1.7275494544839791)
 THERMAL_SCALE = 1.0
 SEED = 33
 FLUX_UNIT = u.Unit('W m-2 um-1')
-CUTOFF_WL = 5*u.um
+CUTOFF_WL = 7*u.um
 CHI2_WL = 10.0*u.um
 BIN_WL = 6
 BIN_TIME = 3
@@ -196,6 +196,6 @@ if __name__ in '__main__':
         ax.clabel(im,im.levels,inline=True,fontsize=10,fmt=fmt)
         # ax.text(0.5,0.7,'$\\mathrm{Thick\\; H_2\\; Envelope}$',transform=ax.transAxes,fontsize=10,color='w',ha='center',va='center')
         ax.scatter(TRUE_TEMPERATURE_RATIO,pl_true_radius.to_value(u.R_earth),marker='*',c='w',s=200,edgecolor='k')
-        ax.set_title('Proxima Centauri b', fontsize=16, fontweight='bold')
+        # ax.set_title('Proxima Centauri b', fontsize=16, fontweight='bold')
         fig.savefig(
             paths.figures / f'{PREFIX}_retrieval_red_chi_square_radius_full.pdf')
