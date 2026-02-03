@@ -172,7 +172,7 @@ For each case, we first generate a full combined-light dataset with both stellar
 
 Finally, we generate a full grid of planetary models for different heat-redistribution scenarios.  By comparing the residual pattern to those expected from each model in the full model grid, we compute $\chi^2_\mathrm{red}$. The basis-vector reconstruction procedure introduces additional noise, which is mostly mitigated by binning in time and wavelength after the reconstruction; additionally, we inflate the error bars so that the minimum $\chi^2_\mathrm{red}=1$.
 
-\subsection{Example 1: A Transiting Warm Giant Planet with JWST/NIR}
+\subsection{Example 1: A Transiting Warm Giant Planet in the NIR}
 
 Giant exoplanets around M-stars (GEMS) are the optimal candidates for demonstrating VPIE observations because the combination of a large planet and small star maximizes the planet/star flux ratio. The discovery of GEMS has been catalyzed by the combination of TESS and ground-based RV studies of nearby M-dwarfs, and there are now more than \AMM{XX} planets more massive than Saturn known around M-stars with $T_\mathrm{eff}<3500$K (\AMM{CITE NExSci}). In particular, GEMS with equilibrium temperatures below $\sim$800K would produce minimal thermal flux below 1.5$\mathrm{\mu m}$, and would therefore be amenable to VPIE analysis using observations spanning the 0.6 - 5$\mathrm{\mu m}$ NIR wavelength range covered by several JWST instruments (NIRSpec, NIRCam).
 
@@ -182,7 +182,7 @@ Table \ref{tab:toi519-parameters} gives the VSPEC model parameters used in this 
 
 \variable{output/toi519.txt}
 
-The results of the VPIE analysis are shown in Figures \ref{fig:toi519} and \ref{fig:toi519-chirad}.  Figure \ref{fig:toi519} demonstrates the steps involved in the VPIE method, including the calculation of the basis coefficients in panel (c) and the final residual image in panel (d). Figure \ref{fig:toi519-chirad} shows the VPIE method's ability to distinguish between different atmospheric scenarios with high certainty.
+The results of the VPIE analysis are shown in Figures \ref{fig:toi519} and \ref{fig:toi519-chirad}.  Figure \ref{fig:toi519} demonstrates the steps involved in the VPIE method, including the calculation of the basis coefficients in panel (c) and the final residual image in panel (d). Figure \ref{fig:toi519-chirad} shows the VPIE method's ability to distinguish between different atmospheric scenarios with high certainty. \TJ{describe results and interpretation of results}
 
 \begin{figure*}
     \gridline{
@@ -233,10 +233,10 @@ The results of the VPIE analysis are shown in Figures \ref{fig:toi519} and \ref{
 %     \script{toi519_retrieve.py}
 % \end{figure}
 
-\subsection{Example 2: A Non-Transiting hot Sub-Neptune with JWST/NIR}'
+\subsection{Example 2: A Non-Transiting hot Sub-Neptune in the NIR}'
 Though transiting planets can serve as a key benchmark test for the VPIE method, the primary application of the method would be for constraining the thermal emission from non-transiting planets, especially around the closest M-stars.  With this in mind, for our second simulated target we selected a known non-transiting planet that would be both hot enough to measure at wavelengths less than 5$\mu$m and close enough to provide a strong signal; the hot sub-Neptune GJ 876 d meets both of these criteria. 
 
-GJ 876 d is the inner-most planet of a multi-planet system around one of the closest M-type stars to our Sun. There are currently four known planets in the system, and planet ``d'' having the lowest measured minimum mass (6.8 M$_Earth$) and shortest period (1.9 days); the next shortest-period planet (``b'') has a period of 30 days.  The star has an effective temperature of 3294K (M2.5V - M4V).  Our \texttt{VSPEC} model for GJ 876 d uses the full set of parameters given in Table \ref{tab:gj876-parameters}, taken from XXX.
+GJ 876 d is the inner-most planet of a multi-planet system around one of the closest M-type stars to our Sun. There are currently four known planets in the system, with planet ``d'' having the lowest measured minimum mass (6.8 M$_{Earth}$) and shortest period (1.9 days); the next shortest-period planet (``b'') has a period of 30 days.  The star has an effective temperature of 3294K (M2.5V - M4V).  Our \texttt{VSPEC} model for GJ 876 d uses the full set of parameters given in Table \ref{tab:gj876-parameters}, taken from XXX.
 
 Figure \ref{fig:gj876} shows the planetary spectra and stellar variability used in this example, and the bottom panel shows the VPIE residual signal ($\bm{\epsilon} + \bm{\delta}$, see Section \ref{sec:residuals}).
 
@@ -258,11 +258,15 @@ Figure \ref{fig:gj876} shows the planetary spectra and stellar variability used 
     \script{gj876_radius2d.py}
 \end{figure}
 
-\subsection{Example 3: Proxima Centauri b with a JWST-like Observatory}
+\subsection{Example 3: A Non-Transiting Temperate Super-Earth in the MIR}
 
-In our second demonstration of VPIE's effectiveness, we simulate an observation of the nearest exoplanet, Proxima Centauri b, using the Mid-IR Exoplanet CLimate Explorer \citep[MIRECLE][]{mandell2022} mission concept, which is designed to characterize the thermal emission of potentially-habitable rocky exoplanets. 
+In our third example, we simulate an observation of the nearest exoplanet, Proxima Centauri b (PCb), using non-synchronous multi-band photometry with the MIRI instrument on JWST. With an effective temperature of XXXK and an orbital period of 11.2 days, PCb poses a completely different challenge than the short-period hot planets that we have examined previously.  In particular, because of the low temperature, almost all of PCb's thermal flux is emitted at wavelengths longer than 5$\mu$m, with the ratio of planet-to-star emission reaching $\sim50$ parts per million or more at 20$\mu$m.  Additionally, with such a long orbital period, the temporal binning of the data can be much coarser, which may relieve the requirement for absolute simultaneity of observations across wavelength -- making it theoretically accessible using one or more modes of the MIRI instrument on JWST
 
-Proxima Cen b was first discovered using RV measurements
+Proxima Cen b was first discovered in 2016 using RV measurements \citep{anglada-escude2016}, and has now been shown to be part of a multi-planet system with at least 3 planets \citep{damasso2020,suarez-mascareno2025}.  \TJ{add extra information about pcb data used in simulations}.
+
+Unfortunately, there are no modes on MIRI that fully cover the MIR wavelength range (5 - 25$\mu$m) simultaneously; we therefore...
+
+
 Table \ref{tab:mirecle-parameters} shows the simulation parameters used in this example. Figure \ref{fig:mirecle} summarizes the simulation
 
 \variable{output/mirecle.txt}
@@ -284,8 +288,21 @@ Table \ref{tab:mirecle-parameters} shows the simulation parameters used in this 
 \end{figure}
 
 \section{Discussion}
+The examples provided above, while not exhaustive in any way, show that under reasonable observing conditions the VPIE method should be able to constrain the presence of an atmosphere on non-transiting planets around the nearest stars.
+
+However, there are a number of observational challenges and methodological improvements that must be addressed before we can fully evaluate the effectiveness of VPIE for any particular observing scenario and exoplanetary target.  Below we explore these questions and provide next steps for addressing them.
+\begin{itemize}
+    \item Multiple Thermal Sources in a System: \TJ{add discussion of impact of additional planets, debris disk here; explain how VPIE isolates phase-dependent variations which removes the steady-state signal from debris disks}
+    \item Uncertainties in Orbital Parameters: \TJ{Discuss impact of unknown inclination}
+    \item Impact of Priors on Planetary Properties: \TJ{Discuss the impact of having an optically thick atmosphere that produces a cooler emission signal from higher up, therefore diminishing the efficacy of the method; this is a particular problem with high-altitude aerosols.}
+    \item Instrument Suitability: \TJ{put discussion of saturation, limited wavelength coverage.  This is the place to put some simulations of "optimal" instruments that we would like for MIRECLE.}
+\end{itemize}
+
+Though all of these issues pose challenges to the practical applicability of the method using current observing assets, none of them are inherently insurmountable with either more sophisticated analysis techniques or more suitable instrumentation in the future. We plan to examine the implications and best-practices to address these issues in future work.
 
 \section{Conclusions}
+In this paper we present a new method for characterizing non-transiting planets around the nearest low-mass stars, which we call the Variable Planetary Infrared Excess (VPIE) technique.  \TJ{summary...}
+
 
 \appendix
 
