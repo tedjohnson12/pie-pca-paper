@@ -53,6 +53,7 @@ def remove_epoch(thermal:np.ndarray, index: int):
 
 
 if __name__ in '__main__':
+    logger.info(f'epsilon={10**TRUE_LOG_EPSILON}')
     plt.style.use('bmh')
     interpolator = get_interp()
     """
