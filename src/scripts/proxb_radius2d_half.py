@@ -19,8 +19,8 @@ import VSPEC
 
 import paths
 from common import bin_image
-from mirecle_grid import get_interp, dt_to_eps as temp_to_log_epsilon
-from mirecle_run import get_model, PLANET as PLANET_PARAMS
+from proxb_grid import get_interp, dt_to_eps as temp_to_log_epsilon
+from proxb_run import get_model, PLANET as PLANET_PARAMS
 
 PREFIX = 'proxb'
 IC = 'BIC'
@@ -195,7 +195,7 @@ if __name__ in '__main__':
         # manual = [(0.8,1),(0.3,2.2),(0.2,3)]
         ax.clabel(im,im.levels,inline=True,fontsize=10,fmt=fmt)
         # ax.text(0.5,0.7,'$\\mathrm{Thick\\; H_2\\; Envelope}$',transform=ax.transAxes,fontsize=10,color='w',ha='center',va='center')
-        ax.scatter(TRUE_TEMPERATURE_RATIO,pl_true_radius.to_value(u.R_earth),marker='*',c='w',s=200,edgecolor='k')
+        ax.scatter(TRUE_TEMPERATURE_RATIO,pl_true_radius.to_value(u.R_earth),marker='*',c='#c50d15',s=200,edgecolor='w')
         # ax.set_title('Proxima Centauri b', fontsize=16, fontweight='bold')
         fig.savefig(
             paths.figures / f'{PREFIX}_retrieval_red_chi_square_radius_half.pdf')

@@ -12,7 +12,6 @@ import numpy as np
 from astropy import units as u
 from loguru import logger
 from tqdm.auto import tqdm
-from scipy.optimize import minimize_scalar
 
 from vpie import vpie
 import VSPEC
@@ -114,9 +113,9 @@ if __name__ in '__main__':
     fnames = ['full','half','null']
     set_title = [False,False,True]
     noise_scale = np.sqrt([
-        9.057415892892736,
-        8.864560156279671,
-        8.907168581348389
+        7.502801873427491,
+        7.234735378107635,
+        8.829494322348582
     ])
 
     def is_one(x):
@@ -202,7 +201,7 @@ if __name__ in '__main__':
             manual = [(0.8,1),(0.3,2.2),(0.2,3)]
             ax.clabel(im,im.levels,inline=True,fontsize=10,fmt=fmt,manual=manual)
             ax.text(0.5,0.7,'$\\mathrm{Thick\\; H_2\\; Envelope}$',transform=ax.transAxes,fontsize=10,color='w',ha='center',va='center')
-            ax.scatter(temp_ratio,pl_true_radius.to_value(u.R_earth),marker='*',c='w',s=200,edgecolor='k')
+            ax.scatter(temp_ratio,pl_true_radius.to_value(u.R_earth),marker='*',c='#c50d15',s=200,edgecolor='w')
 
             if _title:
                 ax.set_title('GJ 876 d', fontsize=16, fontweight='bold')

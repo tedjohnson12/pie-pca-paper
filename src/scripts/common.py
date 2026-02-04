@@ -47,3 +47,13 @@ def bin_image(im: np.ndarray, nwl:int, ntime: int, power: int):
             val = add(*sub_arr)
             out_arr[i,j] = val
     return out_arr
+
+def find_eclipse(a: np.ndarray):
+    next = np.concatenate([a[1:], a[-1:]])
+    diff = next-a
+    return np.argmin(diff)+1, np.argmax(diff)
+
+def remove_epoch(thermal:np.ndarray, i_start: int, i_end: int):
+    if thermal.ndim == 1:
+        return np.concatenate([thermal[:i_start], thermal[i_end+1:]], axis=0)
+    return np.concatenate([thermal[:i_start,:], thermal[i_end+1:,:]], axis=0)

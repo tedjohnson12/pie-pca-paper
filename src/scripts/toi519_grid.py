@@ -55,7 +55,6 @@ def get_interp() -> RegularGridInterpolator:
     for log_epsilon in LOG_EPSILON_GRID:
         _path = fpath(log_epsilon)
         thermal = asdf.open(_path)['thermal'][:, :]
-        print(thermal)
         vals.append(thermal)
     return RegularGridInterpolator([LOG_EPSILON_GRID,], np.array(vals))
 

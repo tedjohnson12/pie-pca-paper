@@ -9,9 +9,9 @@ import paths
 import VSPEC
 import vpie
 
-from mirecle_run import get_model
+from proxb_run import get_model
 
-OUTFILE = paths.figures / 'mirecle.pdf'
+OUTFILE = paths.figures / 'proxb.pdf'
 NOISE_SCALE = 1.0
 SEED = 10
 QUARTER_PERIOD = 8

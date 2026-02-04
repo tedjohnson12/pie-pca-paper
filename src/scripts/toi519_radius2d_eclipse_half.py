@@ -19,7 +19,7 @@ import paths
 from common import bin_image
 from toi519_grid import get_interp, dt_to_eps as temp_to_log_epsilon
 from toi519_run import get_model, PLANET as PLANET_PARAMS
-from toi519_radius2d import FIGSIZE
+from toi519_radius2d_null import FIGSIZE
 
 PREFIX = 'toi519'
 IC = 'BIC'
@@ -144,7 +144,7 @@ if __name__ in '__main__':
         )
         ax.clabel(im, im.levels, inline=True, fontsize=10, fmt=fmt)
         ax.text(0.05,0.05,'d) Eclipse considered',transform=ax.transAxes,fontsize=10,color='w',ha='left',va='center',fontweight='bold')
-        ax.scatter(TRUE_TEMPERATURE_RATIO,pl_true_radius.to_value(u.R_jup),marker='*',c='w',s=200,edgecolor='k')
+        ax.scatter(TRUE_TEMPERATURE_RATIO,pl_true_radius.to_value(u.R_jup),marker='*',c='#c50d15',s=200,edgecolor='w')
         fig.tight_layout()
         fig.savefig(
             paths.figures / f'{PREFIX}_retrieval_red_chi_square_radius_eclipse_half.pdf')

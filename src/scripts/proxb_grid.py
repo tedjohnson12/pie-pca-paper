@@ -11,7 +11,7 @@ import libpypsg as psg
 from scipy.interpolate import RegularGridInterpolator
 
 import paths
-from mirecle_run import get_grid_params, get_temperature_ratio
+from proxb_run import get_grid_params, get_temperature_ratio
 
 GRID_DIR = paths.data / 'grid_pcb'
 

@@ -18,10 +18,10 @@ import VSPEC
 
 import paths
 from common import bin_image
-from mirecle_grid import get_interp, dt_to_eps as temp_to_log_epsilon
-from mirecle_run import get_model, PLANET as PLANET_PARAMS
+from scripts.proxb_grid import get_interp, dt_to_eps as temp_to_log_epsilon
+from proxb_run import get_model, PLANET as PLANET_PARAMS
 
-PREFIX = 'mirecle'
+PREFIX = 'proxb'
 IC = 'AIC'
 MAX_BASIS = 4
 TRUE_TEMPERATURE_RATIO = 1.0

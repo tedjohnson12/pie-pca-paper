@@ -101,13 +101,6 @@ VPIE relies on a scenario where a planetary system is observed in combined light
     \item The long wavelength (LW) region; here, the flux from the planet rises above the photon noise, and so in theory it has a detectable contribution to the total flux.
 \end{enumerate}
 
-% \begin{figure}
-%     \includegraphics[width=\linewidth]{figures/fig_3d1.pdf}
-%     \caption{Spectral time-series comprising a VPIE observation. Variability from the planet can be clearly seen in the MIR portion of the spectrum. The stellar spectrum also varies with time, though this is more difficult to see by eye. The planetary spectrum in this simulation has been multiplied by $10^4$ for visibility.}
-%     \label{fig:3d1}
-%     \script{fig_3d1.py}
-% \end{figure}
-
 The goal of VPIE is to utilize a linear combination of a small set of individual spectra to produce a "model" of the stellar contribution at each time step, thereby normalizing each spectrum and leaving only the time-varying planet signal in the residual data. A planetary phase curve model can then be fit to these residuals to infer information about the planet, such as its day-night temperature difference, spectral absorbers, etc. In the subsequent sub-sections, we outline the rationale and mathematical formulation for our normalization scheme.
 
 \subsection{Spectral Normalization}\label{sec:change-basis}
@@ -170,9 +163,20 @@ For each target, we model the stellar and planetary time series based on observe
 
 For each case, we first generate a full combined-light dataset with both stellar and planetary flux using the Variable Star PhasE Curve code \citep[\texttt{VSPEC}][]{johnson2025}, which uses the Planetary Spectrum Generator's Global Emission Spectra application \citep[PSG/GlobES][]{villanueva2018,kofman2024} to create combined light spectral timeseries including the photon-noise contribution under specified observatory characteristics. We then analyze the combined-light phase curve, using VPIE to isolate the planet's own variability, producing the long-wavelength residuals ($\bm{\epsilon}+\bm{\delta}$ (see equation (\ref{eq:def-residuals})). 
 
-Finally, we generate a full grid of planetary models for different heat-redistribution scenarios.  By comparing the residual pattern to those expected from each model in the full model grid, we compute $\chi^2_\mathrm{red}$. The basis-vector reconstruction procedure introduces additional noise, which is mostly mitigated by binning in time and wavelength after the reconstruction; additionally, we inflate the error bars so that the minimum $\chi^2_\mathrm{red}=1$.
+Finally, we generate a full grid of planetary models for different heat-redistribution scenarios.  By comparing the residual pattern to those expected from each model in the full model grid, we compute $\chi^2_\mathrm{red}$ as shown in Figure \ref{fig:chi2demo}. The basis-vector reconstruction procedure introduces additional noise, which is mostly mitigated by binning in time and wavelength after the reconstruction; additionally, we inflate the error bars so that the minimum $\chi^2_\mathrm{red}=1$. 
 
-\subsection{Example 1: A Transiting Warm Giant Planet in the NIR}
+\begin{figure}
+    \includegraphics[width=0.5\textwidth]{figures/chi2_test.pdf}
+    \caption{
+        Example residual curves ($\tilde{\bm{f}} - \bm{f}$) at in the LW spectral region for three heat-redistribution scenarios. The mismatch between two models is measured by $\chi^2_\mathrm{red}$, which is computed here between the ``No heat redistribution'' ($T_\mathrm{night}/T_\mathrm{day}\approx 0$) scenario and the other two. It is clear that ``Full heat redistribution'' ($T_\mathrm{night}/T_\mathrm{day}\approx 1$) fits poorly, and, as expected, $\chi^2_\mathrm{red}$ tells us that the two phase curves do not match with a high statistical significance ($\sim 300$). The ``Moderate heat redistiribution'' ($T_\mathrm{night}/T_\mathrm{day}\approx 1/2$) scenario, however, traces the baseline phase curve well, and $\chi^2_\mathrm{red}$ tells us that these two models agree within $3\sigma$.
+        Only the longest wavelength channel is plotted here, but $\chi^2_\mathrm{red}$ is calculated using the whole $4-5\;\mathrm{\mu m}$ range. The time axis has been binned into 3-pixel bins compared to the original lightcurve to reduce correlated noise.
+        The data is drawn from the example described in Section \ref{subsec:gj876}.
+    }
+    \label{fig:chi2demo}
+    \script{chi2_test.py}
+\end{figure}
+
+\subsection{Example 1: A Transiting Warm Giant Planet in the NIR}\label{subsec:toi519}
 
 Giant exoplanets around M-stars (GEMS) are the optimal candidates for demonstrating VPIE observations because the combination of a large planet and small star maximizes the planet/star flux ratio. The discovery of GEMS has been catalyzed by the combination of TESS and ground-based RV studies of nearby M-dwarfs, and there are now more than \AMM{XX} planets more massive than Saturn known around M-stars with $T_\mathrm{eff}<3500$K (\AMM{CITE NExSci}). In particular, GEMS with equilibrium temperatures below $\sim$800K would produce minimal thermal flux below 1.5$\mathrm{\mu m}$, and would therefore be amenable to VPIE analysis using observations spanning the 0.6 - 5$\mathrm{\mu m}$ NIR wavelength range covered by several JWST instruments (NIRSpec, NIRCam).
 
@@ -182,7 +186,8 @@ Table \ref{tab:toi519-parameters} gives the VSPEC model parameters used in this 
 
 \variable{output/toi519.txt}
 
-The results of the VPIE analysis are shown in Figures \ref{fig:toi519} and \ref{fig:toi519-chirad}.  Figure \ref{fig:toi519} demonstrates the steps involved in the VPIE method, including the calculation of the basis coefficients in panel (c) and the final residual image in panel (d). Figure \ref{fig:toi519-chirad} shows the VPIE method's ability to distinguish between different atmospheric scenarios with high certainty. \TJ{describe results and interpretation of results}
+Figure \ref{fig:toi519} shows the data input into this example and the results of the VPIE analysis. In particular, panels (c) \& (d) demonstrate the final, measurable product of the VPIE technique: $\tilde{\bm{f}} - \bm{f}$ residuals that become large in the LW region due to variability in the planet's spectrum. The binned data in panel (d), and other data products like it, are used in Figure \ref{fig:toi519-chirad} to assess the detectability of heat redistribution on TOI-519 b with JWST. The results show clearly that VPIE can distinguish between full and moderate heat-redistribution scenarios, even in analyses where the eclipse is removed to simulate a non-transiting planet.
+
 
 \begin{figure*}
     \gridline{
@@ -221,55 +226,38 @@ The results of the VPIE analysis are shown in Figures \ref{fig:toi519} and \ref{
     \script{toi519_radius2d.py}
 \end{figure*}
 
-% \begin{figure}
-%     \begin{center}
-%         {\bf\large TOI-519 b}
-%     \end{center}
-%     \includegraphics[width=0.5\textwidth]{figures/toi519_retrieval_red_chi_square_distance_1.pdf}
-%     \includegraphics[width=0.5\textwidth]{figures/toi519_retrieval_red_chi_square_distance_5.pdf}
-%     \includegraphics[width=0.5\textwidth]{figures/toi519_retrieval_red_chi_square_distance_9.pdf}
-%     \caption{Atmospheric heat-redistribution inference for TOI-519 b as a function of distance from the solar system. In each panel, a single atmospheric scenario (low, moderate, and high heat redistribution) is assessed for VPIE sensitivity. }
-%     \label{fig:toi519-chi2}
-%     \script{toi519_retrieve.py}
-% \end{figure}
-
-\subsection{Example 2: A Non-Transiting hot Sub-Neptune in the NIR}'
+\subsection{Example 2: A Non-Transiting hot Sub-Neptune in the NIR} \label{subsec:gj876}
 Though transiting planets can serve as a key benchmark test for the VPIE method, the primary application of the method would be for constraining the thermal emission from non-transiting planets, especially around the closest M-stars.  With this in mind, for our second simulated target we selected a known non-transiting planet that would be both hot enough to measure at wavelengths less than 5$\mu$m and close enough to provide a strong signal; the hot sub-Neptune GJ 876 d meets both of these criteria. 
 
-GJ 876 d is the inner-most planet of a multi-planet system around one of the closest M-type stars to our Sun. There are currently four known planets in the system, with planet ``d'' having the lowest measured minimum mass (6.8 M$_{Earth}$) and shortest period (1.9 days); the next shortest-period planet (``b'') has a period of 30 days.  The star has an effective temperature of 3294K (M2.5V - M4V).  Our \texttt{VSPEC} model for GJ 876 d uses the full set of parameters given in Table \ref{tab:gj876-parameters}, taken from XXX.
+GJ 876 d is the inner-most planet of a multi-planet system around one of the closest M-type stars to our Sun. There are currently four known planets in the system, with planet ``d'' having the lowest measured minimum mass (6.9 M$_\oplus$) and shortest period (1.9 days); the next shortest-period planet (``b'') has a period of 30 days.  The star has an effective temperature of 3294K (M2.5V - M4V).  Our \texttt{VSPEC} model for GJ 876 d uses the full set of parameters given in Table \ref{tab:gj876-parameters}.
 
-Figure \ref{fig:gj876} shows the planetary spectra and stellar variability used in this example, and the bottom panel shows the VPIE residual signal ($\bm{\epsilon} + \bm{\delta}$, see Section \ref{sec:residuals}).
+The GJ 876 planetary system is unique among non-transiting systems in that the known planets undergo strong gravitational interactions that have been characterized via RV. \citet{nelson2016} used dynamical models of the system to constrain the orbital parameters of each planet. We adopt their coplanar model parameters for planet d, meaning that the mass and inclination of this non-transiting planet are taken to be well-constrained.
 
 \variable{output/gj876.txt}
 
-\begin{figure}
-    \includegraphics[width=0.5\textwidth]{figures/gj876.pdf}
-    \caption{VPIE observation and analysis of hot Sub-Neptune GJ 876 with JWST. {\bf a)} Planetary thermal emission as a function of time and wavelength over the one orbit observed. {\bf b)} Day and night thermal emission spectra of the observed planet. {\bf c)} Normalized stellar white lightcurve. Overplotted are the time-dependent basis coefficients ($a_k$ in equation (\ref{eq:def-frec})). {\bf d)} VPIE residual as a fraction of the stellar spectrum, including realistic noise.}
-    \label{fig:gj876}
-    \script{gj876_plot.py}
-\end{figure}
+In an analysis similar to that done in Section \ref{subsec:toi519}, Figure \ref{fig:gj876-chisq} demonstrates 
 
 \begin{figure}
-    \includegraphics[width=0.45\textwidth]{figures/gj876_retrieval_red_chi_square_radius_null.pdf}
-    \includegraphics[width=0.45\textwidth]{figures/gj876_retrieval_red_chi_square_radius_half.pdf}
-    \includegraphics[width=0.45\textwidth]{figures/gj876_retrieval_red_chi_square_radius_full.pdf}
-    \caption{\TJ{Write Caption}}
+    \includegraphics[width=0.5\textwidth]{figures/gj876_retrieval_red_chi_square_radius_null.pdf}
+    \includegraphics[width=0.5\textwidth]{figures/gj876_retrieval_red_chi_square_radius_half.pdf}
+    \includegraphics[width=0.5\textwidth]{figures/gj876_retrieval_red_chi_square_radius_full.pdf}
+    \caption{$\chi^2_\mathrm{red}$ model--data mismatch for GJ 876 d considering three different scenarios. The star in each panel marks the ``true'' data parameters. The white curves show theoretical radius calculations based on the assumed planet mass and mass-radius curves from Figure 6 of \citet{lissauer2023}.}
     \label{fig:gj876-chisq}
     \script{gj876_radius2d.py}
 \end{figure}
 
 \subsection{Example 3: A Non-Transiting Temperate Super-Earth in the MIR}
 
-In our third example, we simulate an observation of the nearest exoplanet, Proxima Centauri b (PCb), using non-synchronous multi-band photometry with the MIRI instrument on JWST. With an effective temperature of XXXK and an orbital period of 11.2 days, PCb poses a completely different challenge than the short-period hot planets that we have examined previously.  In particular, because of the low temperature, almost all of PCb's thermal flux is emitted at wavelengths longer than 5$\mu$m, with the ratio of planet-to-star emission reaching $\sim50$ parts per million or more at 20$\mu$m.  Additionally, with such a long orbital period, the temporal binning of the data can be much coarser, which may relieve the requirement for absolute simultaneity of observations across wavelength -- making it theoretically accessible using one or more modes of the MIRI instrument on JWST
+In our third example, we simulate an observation of the nearest exoplanet, Proxima Centauri b (PCb), using the low-resolution spectroscopy mode (LRS) on the MIRI instrument on JWST. With an equilibrium temperature of \TJ{XXXK} and an orbital period of 11.2 days, PCb poses a completely different challenge than the short-period hot planets that we have examined previously.  In particular, because of the low temperature, almost all of PCb's thermal flux is emitted at wavelengths longer than 5$\mu$m, with the ratio of planet-to-star emission reaching $\sim50$ parts per million or more at 20$\mu$m.  Additionally, with such a long orbital period, the temporal binning of the data can be much coarser, which may relieve the requirement for absolute simultaneity of observations across wavelength -- making it theoretically accessible using one or more modes of the MIRI instrument on JWST
 
-Proxima Cen b was first discovered in 2016 using RV measurements \citep{anglada-escude2016}, and has now been shown to be part of a multi-planet system with at least 3 planets \citep{damasso2020,suarez-mascareno2025}.  \TJ{add extra information about pcb data used in simulations}.
+Proxima Cen b was first discovered in 2016 using RV measurements \citep{anglada-escude2016}, and has now been shown to be part of a multi-planet system with at least 3 planets \citep{damasso2020,suarezmascareno2025}.  \TJ{add extra information about pcb data used in simulations}.
 
 Unfortunately, there are no modes on MIRI that fully cover the MIR wavelength range (5 - 25$\mu$m) simultaneously; we therefore...
 
 
-Table \ref{tab:mirecle-parameters} shows the simulation parameters used in this example. Figure \ref{fig:mirecle} summarizes the simulation
+Table \ref{tab:pcb-parameters} shows the simulation parameters used in this example.
 
-\variable{output/mirecle.txt}
+\variable{output/proxb.txt}
 
 % \begin{figure}
 %     \includegraphics[width=0.5\textwidth]{figures/mirecle.pdf}
@@ -282,7 +270,7 @@ Table \ref{tab:mirecle-parameters} shows the simulation parameters used in this 
     \includegraphics[width=0.5\textwidth]{figures/proxb_retrieval_red_chi_square_radius_null.pdf}
     \includegraphics[width=0.5\textwidth]{figures/proxb_retrieval_red_chi_square_radius_half.pdf}
     \includegraphics[width=0.5\textwidth]{figures/proxb_retrieval_red_chi_square_radius_full.pdf}
-    \caption{\TJ{Add caption}}
+    \caption{Same as Figure \ref{fig:gj876-chisq}, but for PCb observed with JWST/MIR-LRS. Volatile-rich radii from \citet{lissauer2023} are overestimates due to the low instellation of this planet. }
     \label{fig:pcb-jwst}
     \script{proxb_radius2d_null.py}
 \end{figure}

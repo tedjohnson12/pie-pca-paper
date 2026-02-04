@@ -12,8 +12,9 @@ import VSPEC
 import paths
 from toi519_grid import get_interp, dt_to_eps as temp_to_log_epsilon
 from toi519_run import get_model, PLANET as PLANET_PARAMS
+from common import find_eclipse, remove_epoch
 
-PREFIX = 'gj876'
+PREFIX = 'toi519'
 IC = 'AIC'
 MAX_BASIS = 4
 TRUE_TEMPERATURE_RATIO = 0.1
@@ -236,5 +237,18 @@ if __name__ in '__main__':
                     ax.text(_wl[reg][0],1,s)
                     
                 cbar1 = fig.colorbar(im1, ax=ax, orientation='vertical', shrink=0.8,label=label)
-                
+
+    with figure_context(figsize=(6, 4)) as fig:
+        lc = thermal[:,-1]
+        ax = fig.add_subplot(1, 1, 1)
+        ax.scatter(time, lc, s=30)
+        
+        estart, eend = find_eclipse(lc)
+        therm_m1 = remove_epoch(thermal, estart, eend)
+        lc = therm_m1[:,-1]
+        time = remove_epoch(time, estart, eend)
+        ax.scatter(time, lc, s=20)
+        
+        ax.set_xlabel('Time (days)')
+        ax.set_ylabel('Thermal')
         

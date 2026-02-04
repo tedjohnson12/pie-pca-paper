@@ -11,12 +11,13 @@ from matplotlib.colors import LogNorm
 import numpy as np
 from astropy import units as u
 from loguru import logger
+from tqdm.auto import tqdm
 
 from vpie import vpie
 import VSPEC
 
 import paths
-from common import bin_image, COLWIDTH
+from common import bin_image, COLWIDTH, find_eclipse, remove_epoch
 from toi519_grid import get_interp, dt_to_eps as temp_to_log_epsilon
 from toi519_run import get_model, PLANET as PLANET_PARAMS
 
@@ -25,7 +26,7 @@ IC = 'BIC'
 FIGSIZE = (COLWIDTH, 0.7*COLWIDTH)
 MAX_BASIS = None
 NOISE_SCALE = 1.0
-CHI2_NOISE_SCALE = np.sqrt(2.151143158802746)
+CHI2_NOISE_SCALE = np.sqrt(5.080370139185356)
 THERMAL_SCALE = 1.0
 SEED = 33
 FLUX_UNIT = u.Unit('W m-2 um-1')
@@ -41,15 +42,6 @@ def figure_context(*args, **kwargs):
     yield fig
     plt.close(fig)
 
-def find_eclipse(a: np.ndarray):
-    next = np.concatenate([a[1:], a[-1:]])
-    diff = next-a
-    return np.argmax(diff)
-
-def remove_epoch(thermal:np.ndarray, index: int):
-    return np.concatenate([thermal[:index,:], thermal[index+1:,:]], axis=0)
-
-
 if __name__ in '__main__':
     plt.style.use('bmh')
     interpolator = get_interp()
@@ -62,8 +54,8 @@ if __name__ in '__main__':
     
     test_thermal = THERMAL_SCALE*interpolator([1])[0, :, :].T
     logger.info(f'Thermal has shape {test_thermal.shape}.')
-    eclipse_index = find_eclipse(test_thermal[:, -1])
-    logger.info(f'Eclipse index is {eclipse_index}.')
+    eclipse_start, eclipse_end = find_eclipse(test_thermal[:, -1])
+    logger.info(f'Eclipse index is {eclipse_start} to {eclipse_end}.')
 
     def get_residual_and_noise(chi_noise_scale=1.0):
         # logger.info(
@@ -99,12 +91,12 @@ if __name__ in '__main__':
     dist_residual, dist_noise, _s, _coeffs = get_residual_and_noise(
         chi_noise_scale=CHI2_NOISE_SCALE
     )
-    dist_residual = remove_epoch(dist_residual, eclipse_index)
-    dist_noise = remove_epoch(dist_noise, eclipse_index)
+    dist_residual = remove_epoch(dist_residual,eclipse_start,eclipse_end)
+    dist_noise = remove_epoch(dist_noise, eclipse_start,eclipse_end)
     dist_residual = bin_image(dist_residual,BIN_WL,BIN_TIME,1)
     dist_noise = bin_image(dist_noise,BIN_WL,BIN_TIME,2)
     binned_wl = bin_image(wl.to_value(u.um),BIN_WL,1,1)[0,:]
-    for i, rad in enumerate(radius_arr):
+    for i, rad in tqdm(enumerate(radius_arr),total=radius_arr.size):
         for j, log_eps in enumerate(log_eps_array):
             grid_thermal = rad**2*THERMAL_SCALE * \
                 interpolator([log_eps])[0, :, :].T
@@ -114,10 +106,10 @@ if __name__ in '__main__':
                 _s
             )
             grid_residual = grid_reconstruction - grid_thermal
-            grid_residual = remove_epoch(grid_residual, eclipse_index)
+            grid_residual = remove_epoch(grid_residual, eclipse_start,eclipse_end)
             binned_grid_residual = bin_image(grid_residual, BIN_WL,BIN_TIME, 1)
             difference = binned_grid_residual - dist_residual
-            chi_sq_spec = difference**2/(dist_noise * (CHI2_NOISE_SCALE))**2
+            chi_sq_spec = difference**2/(dist_noise)**2
             long_wl = binned_wl >= CHI2_WL.to_value(u.um)
             chi_sq_spec = chi_sq_spec[:, long_wl]
             chi_sq = np.sum(chi_sq_spec)
@@ -148,7 +140,7 @@ if __name__ in '__main__':
         ax.clabel(im, im.levels, inline=True, fontsize=10, fmt=fmt)
         xlims = ax.get_xlim()
         ax.text(0.05,0.05,'a) Eclipse ignored',transform=ax.transAxes,fontsize=10,color='w',ha='left',va='center',fontweight='bold')
-        ax.scatter(1.0,pl_true_radius.to_value(u.R_jup),marker='*',c='w',s=200,edgecolor='k')
+        ax.scatter(1.0,pl_true_radius.to_value(u.R_jup),marker='*',c='#c50d15',s=200,edgecolor='w')
         ax.set_xlim(*xlims)
         fig.tight_layout()
         fig.savefig(

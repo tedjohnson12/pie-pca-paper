@@ -18,6 +18,12 @@ TABLE_FILE = paths.output / 'gj876.txt'
 TRUE_EPSILON = 0.1
 TRUE_DAY_NIGHT_RATIOS = [0.1,0.5,0.9]
 
+TEFF = 3293
+SPOT_FRAC = 0.2
+TSPOT = 3000
+# (1-SPOT_FRAC)*TPHOT**4 + SPOT_FRAC*TSPOT**4 = TEFF**4
+TPHOT = ((TEFF**4 - SPOT_FRAC*TSPOT**4)/(1-SPOT_FRAC))**0.25
+SHORT_WL_CUTOFF = 0.8*u.um
 
 HEADER = VSPEC.params.Header(
     data_path=Path(__file__).parent / '.vspec' / f'gj876_{TRUE_EPSILON:.2f}',
@@ -35,9 +41,9 @@ HEADER = VSPEC.params.Header(
 
 STAR = VSPEC.params.StarParameters(
     psg_star_template='M',
-    teff=3300 * u.K,
+    teff=TPHOT * u.K,
     radius=0.37 * u.R_sun,
-    period=4 * u.day,
+    period=95 * u.day,
     misalignment=0 * u.deg,
     misalignment_dir=0 * u.deg,
     mass=0.37 * u.Msun,
@@ -48,8 +54,8 @@ STAR = VSPEC.params.StarParameters(
         equillibrium_coverage=0.2,
         area_mean=500*VSPEC.config.MSH,
         area_logsigma=0.2,
-        teff_umbra=3000 * u.K,
-        teff_penumbra=3000 * u.K,
+        teff_umbra=TSPOT * u.K,
+        teff_penumbra=TSPOT * u.K,
         burn_in=0 * u.day,
         growth_rate=0 * u.day**-1,
         decay_rate=0*VSPEC.config.MSH * u.day**-1,
@@ -58,7 +64,7 @@ STAR = VSPEC.params.StarParameters(
     faculae=VSPEC.params.FaculaParameters.none(),
     flares=VSPEC.params.FlareParameters.none(),
     granulation=VSPEC.params.GranulationParameters.none(),
-    grid_params=1000
+    grid_params=3000
 )
 
 PLANET = VSPEC.params.PlanetParameters(
@@ -66,12 +72,12 @@ PLANET = VSPEC.params.PlanetParameters(
     radius=2.5*u.R_earth,
     gravity=VSPEC.params.GravityParameters(
         mode='kg',
-        value=7.5*u.M_earth
+        value=7.49*u.M_earth
     ),
-    semimajor_axis=0.02*u.AU,
-    orbit_period=1.93*u.day,
-    rotation_period=1.93*u.day,
-    eccentricity=0.2,
+    semimajor_axis=0.0218*u.AU,
+    orbit_period=1.938*u.day,
+    rotation_period=1.938*u.day,
+    eccentricity=0.108,
     obliquity=0.0*u.deg,
     obliquity_direction=0.0*u.deg,
     init_substellar_lon=0.0*u.deg,
@@ -79,8 +85,8 @@ PLANET = VSPEC.params.PlanetParameters(
 )
 
 SYSTEM = VSPEC.params.SystemParameters(
-    distance=4.6*u.pc,
-    inclination=53*u.deg,
+    distance=4.672*u.pc,
+    inclination=53.19*u.deg,
     phase_of_periastron=0*u.deg
 )
 
@@ -90,7 +96,7 @@ OBS = VSPEC.params.ObservationParameters(
 )
 
 PSG = VSPEC.params.psgParameters(
-    gcm_binning=6,
+    gcm_binning=200,
     phase_binning=1,
     use_continuum_stellar=True,
     use_molecular_signatures=True,
@@ -189,31 +195,49 @@ def get_model():
 
 def get_teq():
     return STAR.teff * np.sqrt(STAR.radius / PLANET.semimajor_axis/2) * (1-GCM_DICT['gcm']['vspec']['albedo'])
+def foot(t):
+    return rf'$^{t}$'
+
+REF = {
+    'assumed': '\\dagger',
+    'rosenthal2021': 'a',
+    'nelson2016': 'b',
+    'gaiacollaboration2020': 'c'
+    
+}
+def cite(k):
+    if k in ['assumed']:
+        return k
+    else:
+        return f'\\citet{{{k}}}'
+
 
 def write_table():
     tab = {
-        'Stellar Effective Temperature': f'{STAR.teff:latex}',
-        'Stellar Radius': f'{STAR.radius:latex}',
-        'Stellar Rotation Period': f'{STAR.period:latex}',
-        'Spot Temperature': f'{STAR.spots.teff_umbra:latex}',
-        'Spot Coverage': f'{STAR.spots.initial_coverage:.1f}',
-        'Planet Radius': f'{PLANET.radius:latex}',
-        'Planet Mass': f'{PLANET.gravity.value.to(u.M_earth):latex}',
+        'Stellar Effective Temperature': f'{STAR.teff:latex}{foot(REF["rosenthal2021"])}',
+        'Stellar Radius': f'{STAR.radius:latex}{foot(REF["rosenthal2021"])}',
+        'Stellar Rotation Period': f'{STAR.period:latex}{foot(REF["nelson2016"])}',
+        'Spot Temperature': f'{STAR.spots.teff_umbra:latex}{foot(REF["assumed"])}',
+        'Spot Coverage': f'{STAR.spots.initial_coverage:.1f}{foot(REF["assumed"])}',
+        'Photosphere Temperature': f'{STAR.teff.round(0):latex}',
+        'Planet Radius': f'{PLANET.radius:latex}{foot(REF["assumed"])}',
+        'Planet Mass': f'{PLANET.gravity.value.to(u.M_earth):latex}{foot(REF["nelson2016"])}',
         'Planet $T_\\mathrm{eq}$': f'{get_teq().to(u.K).round(0):latex}',
-        'Semimajor Axis': f'{PLANET.semimajor_axis:latex}',
-        'Orbital Period': f'{PLANET.orbit_period:latex}',
-        'Eccentricity': f'{PLANET.eccentricity:.1f}',
+        'Semimajor Axis': f'{PLANET.semimajor_axis:latex}{foot(REF["nelson2016"])}',
+        'Orbital Period': f'{PLANET.orbit_period:latex}{foot(REF["nelson2016"])}',
+        'Eccentricity': f'{PLANET.eccentricity:.1f}{foot(REF["nelson2016"])}',
         'Initial Phase': f'{PLANET.init_phase:latex}',
-        'Distance': f'{SYSTEM.distance:latex}',
-        'Inclination': f'{SYSTEM.inclination:latex}',
+        'Distance': f'{SYSTEM.distance:latex}{foot(REF["gaiacollaboration2020"])}',
+        'Inclination': f'{SYSTEM.inclination:latex}{foot(REF["nelson2016"])}',
         'Observation Length': f'{OBS.observation_time:latex}',
+        'Integration Length': f'{INST.detector.integration_time:latex}',
         'Time Bin Size': f'{OBS.integration_time:latex}',
         'Short Wavelength': f'{INST.bandpass.wl_blue:latex}',
         'Long Wavelength': f'{INST.bandpass.wl_red:latex}',
+        'PIE Cutoff': f'{SHORT_WL_CUTOFF:latex}',
         'Resolving Power': f'{INST.bandpass.resolving_power:.0f}',
-        'Mean Molecular Weight': f'{GCM_DICT["gcm"]["mean_molec_weight"]:.0f}',
-        'Albedo': f'{GCM_DICT["gcm"]["vspec"]["albedo"]:.1f}',
-        '$T_\\text{night}/T_\\text{day}$': ', '.join([f'{x:.1f}' for x in TRUE_DAY_NIGHT_RATIOS]),
+        'Mean Molecular Weight': f'{GCM_DICT["gcm"]["mean_molec_weight"]:.0f}{foot(REF["assumed"])}',
+        'Albedo': f'{GCM_DICT["gcm"]["vspec"]["albedo"]:.1f}{foot(REF["assumed"])}',
     }
     lines = [
         '\\begin{table}',
@@ -227,7 +251,8 @@ def write_table():
         lines.append(f'{k} & {v} \\\\')
     lines.append('\\hline')
     lines.append('\\end{tabular}')
-    lines.append('\\caption{GJ 876 d Simulation Parameters}')
+    refsline = '; '.join(f"{foot(b)}{cite(a)}" for a,b in REF.items())
+    lines.append(f'\\caption{{GJ 876 d Simulation Parameters. {refsline}}}')
     lines.append('\\label{tab:gj876-parameters}')
     lines.append('\\end{table}')
     

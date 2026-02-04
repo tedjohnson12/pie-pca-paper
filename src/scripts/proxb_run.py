@@ -14,13 +14,20 @@ import libpypsg as psg
 import paths
 
 
-TABLE_FILE = paths.output / 'mirecle.txt'
+TABLE_FILE = paths.output / 'proxb.txt'
 TRUE_EPSILON = 0.1
 TRUE_DAY_NIGHT_RATIOS = [0.1, 0.5, 0.9]
 
+TEFF = 2900
+SPOT_FRAC = 0.2
+TSPOT = 2600
+# (1-SPOT_FRAC)*TPHOT**4 + SPOT_FRAC*TSPOT**4 = TEFF**4
+TPHOT = ((TEFF**4 - SPOT_FRAC*TSPOT**4)/(1-SPOT_FRAC))**0.25
+SHORT_WL_CUTOFF = 0.8*u.um
+
 
 HEADER = VSPEC.params.Header(
-    data_path=Path(__file__).parent / '.vspec' / f'mirecle_{TRUE_EPSILON:.2f}',
+    data_path=Path(__file__).parent / '.vspec' / f'proxb_{TRUE_EPSILON:.2f}',
     seed=11,
     spec_grid=VSPEC.params.VSPECGridParameters(
         max_teff=3100 * u.K,
@@ -29,12 +36,12 @@ HEADER = VSPEC.params.Header(
         impl_interp='scipy',
         fail_on_missing=False
     ),
-    desc='Proxb with MIRECLE',
+    desc='Proxb with JWST',
 )
 
 STAR = VSPEC.params.StarParameters(
     psg_star_template='M',
-    teff=3000 * u.K,
+    teff=TPHOT * u.K,
     radius=0.141 * u.R_sun,
     period=90 * u.day,
     misalignment=0 * u.deg,
@@ -43,12 +50,12 @@ STAR = VSPEC.params.StarParameters(
     ld=VSPEC.params.LimbDarkeningParameters.proxima(),
     spots=VSPEC.params.SpotParameters(
         distribution='iso',
-        initial_coverage=0.2,
-        equillibrium_coverage=0.2,
+        initial_coverage=SPOT_FRAC,
+        equillibrium_coverage=SPOT_FRAC,
         area_mean=500*VSPEC.config.MSH,
         area_logsigma=0.2,
-        teff_umbra=2700 * u.K,
-        teff_penumbra=2700 * u.K,
+        teff_umbra=TSPOT * u.K,
+        teff_penumbra=TSPOT * u.K,
         burn_in=0 * u.day,
         growth_rate=0 * u.day**-1,
         decay_rate=0*VSPEC.config.MSH * u.day**-1,
@@ -67,8 +74,8 @@ PLANET = VSPEC.params.PlanetParameters(
         mode='kg',
         value=1.0*u.M_earth
     ),
-    semimajor_axis=0.05*u.AU,
-    orbit_period=11.19*u.day,
+    semimajor_axis=0.04856*u.AU,
+    orbit_period=11.1868*u.day,
     rotation_period=11.19*u.day,
     eccentricity=0.0,
     obliquity=0.0*u.deg,
@@ -78,7 +85,7 @@ PLANET = VSPEC.params.PlanetParameters(
 )
 
 SYSTEM = VSPEC.params.SystemParameters(
-    distance=1.295*u.pc,
+    distance=1.302*u.pc,
     inclination=80*u.deg,
     phase_of_periastron=0*u.deg
 )
@@ -191,30 +198,50 @@ def get_grid_params(epsilon: float):
 def get_model():
     return VSPEC.ObservationModel(VSPEC_PARAMS)
 
+def get_teq():
+    return STAR.teff * np.sqrt(STAR.radius / PLANET.semimajor_axis/2) * (1-GCM_DICT['gcm']['vspec']['albedo'])
+def foot(t):
+    return rf'$^{t}$'
+
+REF = {
+    'assumed': '\\dagger',
+    'faria2022': 'a',
+    'gaiacollaboration2020': 'b'
+    
+}
+def cite(k):
+    if k in ['assumed']:
+        return k
+    else:
+        return f'\\citet{{{k}}}'
+
 
 def write_table():
     tab = {
-        'Stellar Effective Temperature': f'{STAR.teff:latex}',
-        'Stellar Radius': f'{STAR.radius:latex}',
-        'Stellar Rotation Period': f'{STAR.period:latex}',
-        'Spot Temperature': f'{STAR.spots.teff_umbra:latex}',
-        'Spot Coverage': f'{STAR.spots.initial_coverage:.1f}',
-        'Planet Radius': f'{PLANET.radius:latex}',
-        'Planet Mass': f'{PLANET.gravity.value.to(u.M_earth):latex}',
-        'Semimajor Axis': f'{PLANET.semimajor_axis:latex}',
-        'Orbital Period': f'{PLANET.orbit_period:latex}',
-        'Eccentricity': f'{PLANET.eccentricity:.1f}',
-        'Initial Phase': f'{PLANET.init_phase:latex}',
-        'Distance': f'{SYSTEM.distance:latex}',
-        'Inclination': f'{SYSTEM.inclination:latex}',
+        'Stellar Effective Temperature': f'{STAR.teff:latex}{foot(REF["faria2022"])}',
+        'Stellar Radius': f'{STAR.radius:latex}{foot(REF["faria2022"])}',
+        'Stellar Rotation Period': f'{STAR.period:latex}{foot(REF["faria2022"])}',
+        'Spot Temperature': f'{STAR.spots.teff_umbra:latex}{foot(REF["assumed"])}',
+        'Spot Coverage': f'{SPOT_FRAC:.1f}{foot(REF["assumed"])}',
+        'Photosphere Temperature': f'{STAR.teff.round(0):latex}',
+        'Planet Radius': f'{PLANET.radius.round(2):latex}{foot(REF["assumed"])}',
+        'Planet Mass': f'{PLANET.gravity.value.to(u.M_earth).round(0):latex}{foot(REF["assumed"])}',
+        'Planet $T_\\mathrm{eq}$': f'{get_teq().to(u.K).round(0):latex}',
+        'Semimajor Axis': f'{PLANET.semimajor_axis:latex}{foot(REF["faria2022"])}',
+        'Orbital Period': f'{PLANET.orbit_period.round(3):latex}{foot(REF["faria2022"])}',
+        'Eccentricity': f'{PLANET.eccentricity:.1f}{foot(REF["faria2022"])}',
+        'Initial Phase': f'{PLANET.init_phase:latex}{foot(REF["assumed"])}',
+        'Distance': f'{SYSTEM.distance:latex}{foot(REF["gaiacollaboration2020"])}',
+        'Inclination': f'{SYSTEM.inclination:latex}{foot(REF["assumed"])}',
         'Observation Length': f'{OBS.observation_time:latex}',
+        'Integration Length': f'{INST.detector.integration_time:latex}',
         'Time Bin Size': f'{OBS.integration_time:latex}',
         'Short Wavelength': f'{INST.bandpass.wl_blue:latex}',
         'Long Wavelength': f'{INST.bandpass.wl_red:latex}',
+        'PIE Cutoff': f'{SHORT_WL_CUTOFF:latex}',
         'Resolving Power': f'{INST.bandpass.resolving_power:.0f}',
-        'Mean Molecular Weight': f'{GCM_DICT["gcm"]["mean_molec_weight"]:.0f}',
-        'Albedo': f'{GCM_DICT["gcm"]["vspec"]["albedo"]:.1f}',
-        '$T_\\text{night}/T_\\text{day}$': ', '.join([f'{x:.1f}' for x in TRUE_DAY_NIGHT_RATIOS]),
+        'Mean Molecular Weight': f'{GCM_DICT["gcm"]["mean_molec_weight"]:.0f}{foot(REF["assumed"])}',
+        'Albedo': f'{GCM_DICT["gcm"]["vspec"]["albedo"]:.1f}{foot(REF["assumed"])}',
     }
     lines = [
         '\\begin{table}',
@@ -228,8 +255,9 @@ def write_table():
         lines.append(f'{k} & {v} \\\\')
     lines.append('\\hline')
     lines.append('\\end{tabular}')
-    lines.append('\\caption{JWST Simulation Parameters}')
-    lines.append('\\label{tab:mirecle-parameters}')
+    refsline = '; '.join(f"{foot(b)}{cite(a)}" for a,b in REF.items())
+    lines.append(f'\\caption{{PCb Simulation Parameters. {refsline}}}')
+    lines.append('\\label{tab:pcb-parameters}')
     lines.append('\\end{table}')
 
     with open(TABLE_FILE, 'w', encoding='utf-8') as f:
