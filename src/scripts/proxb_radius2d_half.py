@@ -176,12 +176,13 @@ if __name__ in '__main__':
         )
         ax.clabel(im, im.levels, inline=True, fontsize=10, fmt=fmt)
         levels=[1,1.5,2.8]
-        labels = [ # See Lissauer+2023 Figure 6
+        levels=[0.75,1,1.3,2.6]
+        labels = [ # See Zeng+2019
                    # Also note that Lopez & Fortney (2014) show that insolation is not important in determining the radius
-            # '$100\\%\\;\\mathrm{Fe}$',
+            '$100\\%\\;\\mathrm{Fe}$',
             'Earth-like',
             '50% rock & 50% H$_2$O',
-            'Earth core + 0.1% H$_2$',
+            '+2% H$_2$',
             # '$\\mathrm{Thick\\; H_2\\; Envelope}$'
         ]
         im=ax.contour(

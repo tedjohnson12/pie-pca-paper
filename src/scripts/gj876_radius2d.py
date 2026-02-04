@@ -183,11 +183,11 @@ if __name__ in '__main__':
                 linestyles='dashed'
             )
             ax.clabel(im, im.levels, inline=True, fontsize=10, fmt=fmt)
-            levels=[1.5,2.3,3]
+            levels=[1.4,2.2,3.3]
             labels = [ # See Lissauer+2023 Figure 6
                 '$100\\%\\;\\mathrm{Fe}$',
-                '$50\\%\\;\\mathrm{H_2O}+50\\%\\;\\mathrm{rock}$\n$\\mathrm{or}\\; \\mathrm{rock} + 0.5\\%\\;\\mathrm{H_2}$',
-                '$\\mathrm{Rock}+2\\%\\;\\mathrm{H_2}$'
+                '$50\\%\\;\\mathrm{H_2O}+50\\%\\;\\mathrm{rock}$',
+                '$+2\\%\\;\\mathrm{H_2}$'
                 # '$\\mathrm{Thick\\; H_2\\; Envelope}$'
             ]
             im=ax.contour(
