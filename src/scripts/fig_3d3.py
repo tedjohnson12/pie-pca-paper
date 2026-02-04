@@ -21,7 +21,7 @@ cmap = cm_teal_cream_orange
 BASE_CFG = paths.static / 'base.cfg'
 OUTPATH = paths.figures / 'fig_3d3.pdf'
 
-PL_MULTIPLIER = 5e3
+PL_MULTIPLIER = 1e4
 FONTSIZE = 14
 LG_FONTSIZE = 12
 WL_SHORT = 1.5*u.um
