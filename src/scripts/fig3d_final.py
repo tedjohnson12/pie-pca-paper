@@ -30,6 +30,7 @@ FONTSIZE = 14
 LG_FONTSIZE = 12
 WL_SHORT = 1.5*u.um
 FIGSIZE = (COLWIDTH,COLWIDTH)
+RATIOS = [20,1]
 
 TEFF_PHOT = np.array([3000])
 TEFF_SPOT = np.array([2600])
@@ -53,7 +54,7 @@ if __name__ in "__main__":
         fail_on_missing=True
     )
     with figure_context(figsize=FIGSIZE) as fig:
-        gs = fig.add_gridspec(2, 1, height_ratios=[1, 0.1], hspace=0.1)
+        gs = fig.add_gridspec(2, 1, height_ratios=RATIOS, hspace=0.1)
         ax: Axes3D = fig.add_subplot(gs[0, 0], projection='3d')
         cbar_ax = fig.add_subplot(gs[1, 0])
         fdat_big_planet = []
@@ -126,10 +127,11 @@ if __name__ in "__main__":
     f_rec_real = vpie.get_reconstruction(fdat_real, c, s)
     print(s)
 
-    with figure_context(figsize=FIGSIZE) as fig:
-        gs = fig.add_gridspec(2, 1, height_ratios=[1, 0.1], hspace=0.1)
+    with figure_context(figsize=(FIGSIZE[0], 0.9*FIGSIZE[1])) as fig:
+        gs = fig.add_gridspec(1, 1)
         ax: Axes3D = fig.add_subplot(gs[0, 0], projection='3d')
         # cbar_ax = fig.add_subplot(gs[1, 0])
+        # cbar_ax.set_visible(False)
         for i, phi in enumerate(phase):
             color = cmap(phi/2/np.pi)
             if i in s:
@@ -152,10 +154,12 @@ if __name__ in "__main__":
         ax.set_xlim(xlims)
         ax.set_ylim(ylims)
         ax.set_zlim(zlims)
+        cbar = fig.colorbar(im, cax=cbar_ax, orientation='horizontal',shrink=0.8, pad=0.05)
+        cbar.set_label('variation (\\%)', fontsize=LG_FONTSIZE)
         fig.savefig(paths.figures / f'{PREFIX}_b.pdf')
 
     with figure_context(figsize=FIGSIZE) as fig:
-        gs = fig.add_gridspec(2, 1, height_ratios=[1, 0.1], hspace=0.1)
+        gs = fig.add_gridspec(2, 1, height_ratios=RATIOS, hspace=0.1)
         ax: Axes3D = fig.add_subplot(gs[0, 0], projection='3d')
         cbar_ax = fig.add_subplot(gs[1, 0])
         for i, phi in enumerate(phase):
@@ -194,5 +198,4 @@ if __name__ in "__main__":
         cbar = fig.colorbar(im, cax=cbar_ax, orientation='horizontal',shrink=0.8, pad=0.05)
         cbar.set_label('residual (ppm)', fontsize=LG_FONTSIZE)
         # End bottom part
-
         fig.savefig(paths.figures / f'{PREFIX}_c.pdf')

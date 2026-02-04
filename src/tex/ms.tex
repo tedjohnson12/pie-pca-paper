@@ -115,26 +115,29 @@ There are many sources of stellar variability that ultimately arise from both th
 
 It is not the goal of VPIE to learn about the physical processes governing stellar variability, so the characteristics of the individual stellar spectra themselves are unimportant. Instead, we choose individual epochs from the observation to act as {\em basis spectra}. The basis is chosen using the methods described in Appendix \ref{ap:choose-basis}, which ultimately test multiple combinations of basis spectra to minimize the Bayes Information Criterion \citep[BIC,][]{schwarz1978} or Akaike Information Criterion \citep[AIC,][]{akaike1974}, both of which are metrics that balance model error with complexity.
 
-Once a set of basis spectra have been chosen (which can be written $\{\bm{f}^{(1)},\,\bm{f}^{(2)},\,\dots,\,\bm{f}^{(q)}\}$), we {\em reconstruct} the set of observed spectra using a linear combination of the bases. This is done via weighted least-squares fitting of the SW region of each spectrum. Each spectrum in the time-series can now be represented by a few coefficients which describe how to construct it from the basis spectra. Recall that there is no planetary information in the SW spectrum, so by choosing the basis and performing this fitting using only SW data, we have a model for the stellar variability which is agnostic to the planet. Ultimately, as shown in Figure \ref{fig:3d2}, we reconstruct the whole dataset (SW and LW) using the coefficients from the least-squares procedure. The result is a model observation ($\tilde{\bm{f}}$) that fits very well at short (star-only) wavelengths, but significantly differs from the original data at long wavelengths where the planet has appreciable flux.
+Once a set of basis spectra have been chosen (which can be written $\{\bm{f}^{(1)},\,\bm{f}^{(2)},\,\dots,\,\bm{f}^{(q)}\}$), we {\em reconstruct} the set of observed spectra using a linear combination of the bases. This is done via weighted least-squares fitting of the SW region of each spectrum. Each spectrum in the time-series can now be represented by a few coefficients which describe how to construct it from the basis spectra. Recall that there is no planetary information in the SW spectrum, so by choosing the basis and performing this fitting using only SW data, we have a model for the stellar variability which is agnostic to the planet. Ultimately, as shown in Figure \ref{fig:3d}, we reconstruct the whole dataset (SW and LW) using the coefficients from the least-squares procedure. The result is a model observation ($\tilde{\bm{f}}$) that fits very well at short (star-only) wavelengths, but significantly differs from the original data at long wavelengths where the planet has appreciable flux.
 
 \begin{figure}
-    \includegraphics[width=3in]{figures/fig_3d2.pdf}
-    \caption{Basis spectra reconstruction. {\bf Top:} Spectral time-series comprising a VPIE observation. The planetary spectrum has been multiplied by $5\times10^3$ for visibility. Variability from the planet can be clearly seen in the LW portion of the spectrum. The SW stellar spectrum also varies with time; the image on the $x$-$y$ plane shows variations from the mean spectrum. {\bf Middle:} The best basis for the dataset shown in top panel found by minimizing the BIC. {\bf Bottom:} Reconstruction of the dataset shown in top panel using only the basis spectra. Note that the SW portion looks identical to the original dataset, but the LW portion is significantly different. This is because the fitting procedure was not given any information about the time-series behavior of the planet.}
-    \label{fig:3d2}
-    \script{fig_3d2.py}
+    \centering
+    \includegraphics[width=0.35\textwidth]{figures/fig3d_a.pdf}
+    \includegraphics[width=0.35\textwidth]{figures/fig3d_b.pdf}
+    \includegraphics[width=0.35\textwidth]{figures/fig3d_c.pdf}
+    \caption{Basis spectra reconstruction. {\bf Top:} Spectral time-series comprising a VPIE observation. The planetary spectrum has been multiplied by $5\times10^3$ for visibility. Variability from the planet can be clearly seen in the LW portion of the spectrum. The SW stellar spectrum also varies with time; the image on the $x$-$y$ plane shows variations from the mean spectrum. {\bf Middle:} The best basis for the dataset shown in top panel found by minimizing the BIC. {\bf Bottom:} Reconstruction of the dataset shown in top panel using only the basis spectra (dashed lines), plotted with the original data (solid lines). Note that solid and dashed lines converge in the SW portion of the spectrum, but at LW the spectra are significantly different; this is because the fitting procedure was not given any information about the time-series behavior of the planet. In planet's imprint on the residuals is shown in the $x$-$y$ plane.}
+    \label{fig:3d}
+    \script{fig3d_final.py}
 \end{figure}
 
 \subsection{Computing Residuals}
 \label{sec:residuals}
 
-\begin{figure}
-    \includegraphics[width=3in]{figures/fig_3d3.pdf}
-    \caption{Post-reconstruction residuals. Shown are the original data from the top panel Figure \ref{fig:3d2} (solid lines) with the reconstructed spectra from the bottom panel of Figure \ref{fig:3d2} (dashed lines). The image in the $x$-$y$ plane shows the fractional residuals $(\bm{f} - \tilde{\bm{f}})/\bm{f}$. Note that the residuals are effectively zero at short wavelengths, but become significant at long wavelengths due to variability of the planet.}
-    \label{fig:3d3}
-    \script{fig_3d3.py}
-\end{figure}
+% \begin{figure}
+%     \includegraphics[width=3in]{figures/fig_3d3.pdf}
+%     \caption{Post-reconstruction residuals. Shown are the original data from the top panel Figure \ref{fig:3d2} (solid lines) with the reconstructed spectra from the bottom panel of Figure \ref{fig:3d2} (dashed lines). The image in the $x$-$y$ plane shows the fractional residuals $(\bm{f} - \tilde{\bm{f}})/\bm{f}$. Note that the residuals are effectively zero at short wavelengths, but become significant at long wavelengths due to variability of the planet.}
+%     \label{fig:3d3}
+%     \script{fig_3d3.py}
+% \end{figure}
 
-After using least-squares to fit the basis spectra to our observation, we subtract the reconstruction from the original data to compute residuals ($\bm{f} - \tilde{\bm{f}}$), as shown in Figure \ref{fig:3d3}. Because we did not include any LW data in our least-squares fit, the reconstructed model is unaware of the planetary variations that occur at these wavelengths. Therefore, the LW residuals encode any planetary variability that is not correlated with stellar variability at short wavelengths. The residuals are equal to the sum of an error vector ($\bm{\epsilon}$) and a planetary variability vector ($\bm{\delta}$), written
+After using least-squares to fit the basis spectra to our observation, we subtract the reconstruction from the original data to compute residuals ($\bm{f} - \tilde{\bm{f}}$), as shown in the bottom panel in Figure \ref{fig:3d}. Because we did not include any LW data in our least-squares fit, the reconstructed model is unaware of the planetary variations that occur at these wavelengths. Therefore, the LW residuals encode any planetary variability that is not correlated with stellar variability at short wavelengths. The residuals are equal to the sum of an error vector ($\bm{\epsilon}$) and a planetary variability vector ($\bm{\delta}$), written
 \begin{equation}\label{eq:def-residuals}
     \bm{f}_i - \tilde{\bm{f}}_i = \bm{\epsilon}_i + \bm{\delta}_i\, ,
 \end{equation}
