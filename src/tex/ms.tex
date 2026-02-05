@@ -307,17 +307,19 @@ Dusty debris disks, on the other hand, produce thermal emission which does not v
 %\subsection{Uncertainties in Orbital Parameters}
 
 \subsection{Impact of Additional Complexity in Planetary and Stellar Properties}
-Each of the examples provided above simulated simplified planetary systems. Future work should consider more complex models for both stellar and planetary phase curves.
+Each of the examples provided above simulated simplified planetary systems. Future work should consider more complex models for both stellar and planetary phase curves. For example, the above planetary models assume a cloud-free atmosphere with no spectral features, a zero albedo, parameterized heat transport, and orbit with a fixed inclination. Together, these assumptions lead to a thermal emission signature that depends only on the equilibrium temperature, day/night temperature ratio, and planetary radius. A realistic atmosphere may be optically thick due to clouds, hazes, or even high concentrations of gas, leading to cooler emission for higher up that diminishes the efficacy of thermal emission measurements. Spatial distributions of clouds complicate the simple $T_\mathrm{night}/T_\mathrm{day}$ parameterization employed above; \citet{hammond2025}, for example, found that some nearby rocky planets emit more on their night-sides due to windows through an otherwise thick cloud layer.
 
-The above planetary models assume a cloud-free atmosphere with no spectral features, allowi
+Additionally, we have made fairly simple assumptions about the host star. In each example, we assumed a star with a single photosphere temperature and a single spot temperature. While the fraction of the surface covered by spots was allowed to change as the star rotated, spots on a real star change temperature as they evolve and are not homogeneous \citep[e.g. sunspots, see][]{solanki2003}.
 
-\TJ{Discuss the impact of having an optically thick atmosphere that produces a cooler emission signal from higher up, therefore diminishing the efficacy of the method; this is a particular problem with high-altitude aerosols. Talk about stellar properties too.}
+The solution to the planetary complexity problem is both simple and expensive: to infer more realistic planets we need to compute the residual mismatch against more realistic (and expensive) planetary models. To infer more planetary properties (i.e. albedo or inclination) we need to generate higher-dimensional model grids. Both of these endeavors are feasible, but are not necessary for the proof-of-concept simulations we have provided.
 
-\TJ{Discuss impact of unknown inclination.}
-
-\TJ{The method also naturally accounts for unresolved background stars or binary companions; any additional source with a temperature similar to or greater than the host will simply require additional basis vectors to facilitate its removal.}
+Stellar complexity, on the other hand, directly drives the number of basis vectors needed to adequately describe an observation. Additional basis vectors -- so long as the number is much less than the number of epochs observed -- are not a problem. The addition of each basis removes a small amount of information about the planet. Stellar complexity becomes a problem when the required number of basis vectors becomes very high. For example, the intrinsic spectra of stellar flares change rapidly over a flare's lifetime; each observed epoch of a flaring star may contain a flare contribution with a unique spectrum, in which case the number of basis vectors would equal the number of epochs. One potential strategy to mitigate the effects of flares is to simply ignore epochs with known flare activity.
 
 \subsection{Instrument Suitability}\label{subsec:inst}
+In the above examples we have assumed idealized analogs to JWST instruments. In this section we discuss limitations that would make these observations challenging in practice. A requirement of VPIE (and PIE in general) is that SW and LW spectra are observed simultaneously. Most instruments modes that observe a wide-enough wavelength range also quickly saturate. GJ 876, for example, is much too close to be observed with JWST/NIRSpec PRISM at $<4.7\;\mathrm{pc}$.
+
+Even when brightness
+
 \TJ{put discussion of saturation, limited wavelength coverage.  This is the place to put some simulations of "optimal" instruments that we would like for MIRECLE.}
     Unfortunately, there are no modes on MIRI that fully cover the MIR wavelength range (5 - 28$\mu$m) simultaneously. The LRS mode fully covers 5 - 11$\mu$m but does not extend farther, while the MRS (moderate-resolution spectroscopy) mode covers the full 5 - 28$\mu$m but does so with four non-contiguous wavelength channels; additionally, the integral field units (IFUs) utilized by the MRS mode make it challenging for high-precision 
 
