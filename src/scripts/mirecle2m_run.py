@@ -14,7 +14,7 @@ import libpypsg as psg
 import paths
 
 
-TABLE_FILE = paths.output / 'proxb.txt'
+TABLE_FILE = paths.output / 'mirecle2m.txt'
 TRUE_EPSILON = 0.1
 TRUE_DAY_NIGHT_RATIOS = [0.1, 0.5, 0.9]
 
@@ -23,10 +23,7 @@ SPOT_FRAC = 0.2
 TSPOT = 2600
 # (1-SPOT_FRAC)*TPHOT**4 + SPOT_FRAC*TSPOT**4 = TEFF**4
 TPHOT = ((TEFF**4 - SPOT_FRAC*TSPOT**4)/(1-SPOT_FRAC))**0.25
-SHORT_WL_CUTOFF = 7*u.um
-CHI2_WL = 10.0*u.um
-BIN_WL = 6
-BIN_TIME = 3
+SHORT_WL_CUTOFF = 5*u.um
 
 
 HEADER = VSPEC.params.Header(
@@ -108,32 +105,32 @@ PSG = VSPEC.params.psgParameters(
     continuum=['Rayleigh', 'CIA_all', 'Refraction']
 )
 
-INST = VSPEC.params.InstrumentParameters.miri_lrs()
-# INST = VSPEC.params.InstrumentParameters(
-#     telescope=VSPEC.params.SingleDishParameters(
-#         aperture=2*u.m,
-#         zodi=1.0
-#     ),
-#     bandpass=VSPEC.params.BandpassParameters(
-#         wl_blue=1*u.um,
-#         wl_red=18*u.um,
-#         resolving_power=50,
-#         wavelength_unit=u.micron,
-#         flux_unit=u.Unit('W m-2 um-1')
-#     ),
-#     detector=VSPEC.params.DetectorParameters(
-#         beam_width=0.5*u.arcsec,
-#         integration_time=10*u.s,
-#         ccd=VSPEC.params.ccdParameters(
-#             pixel_sampling=1,
-#             read_noise=16.8*u.electron,
-#             dark_current=100*u.electron/u.s,
-#             throughput=0.7,
-#             emissivity=0.1,
-#             temperature=35*u.K
-#         )
-#     )
-# )
+# INST = VSPEC.params.InstrumentParameters.miri_lrs()
+INST = VSPEC.params.InstrumentParameters(
+    telescope=VSPEC.params.SingleDishParameters(
+        aperture=2*u.m,
+        zodi=1.0
+    ),
+    bandpass=VSPEC.params.BandpassParameters(
+        wl_blue=1*u.um,
+        wl_red=18*u.um,
+        resolving_power=50,
+        wavelength_unit=u.micron,
+        flux_unit=u.Unit('W m-2 um-1')
+    ),
+    detector=VSPEC.params.DetectorParameters(
+        beam_width=2.25*u.arcsec,
+        integration_time=10*u.s,
+        ccd=VSPEC.params.ccdParameters(
+            pixel_sampling=1,
+            read_noise=16.8*u.electron,
+            dark_current=100*u.electron/u.s,
+            throughput=0.7,
+            emissivity=0.1,
+            temperature=35*u.K
+        )
+    )
+)
 GCM_DICT = {
     'star': {
         'teff': STAR.teff,
@@ -279,7 +276,7 @@ def get_temperature_ratio(epsilon: float):
 
 
 if __name__ == '__main__':
-    write_table()
+    # write_table()
     psg.docker.set_url_and_run()
     model = get_model()
     model.build_planet()

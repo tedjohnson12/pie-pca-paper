@@ -6,6 +6,7 @@ import numpy as np
 
 
 COLWIDTH = 8.5/2
+FIGSIZE = (COLWIDTH, 0.7*COLWIDTH)
 
 
 @contextlib.contextmanager

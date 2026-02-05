@@ -17,7 +17,7 @@ from vpie import vpie
 import VSPEC
 
 import paths
-from common import bin_image
+from common import bin_image, COLWIDTH, figure_context
 from gj876_grid import get_interp, dt_to_eps as temp_to_log_epsilon
 from gj876_run import get_model, PLANET as PLANET_PARAMS
 
@@ -35,13 +35,7 @@ CHI2_WL = 4.0*u.um
 BIN_WL = 6
 BIN_TIME = 3
 
-
-@contextlib.contextmanager
-def figure_context(*args, **kwargs):
-    fig: plt.Figure = plt.figure(*args, **kwargs)
-    yield fig
-    plt.close(fig)
-
+FIGSIZE = (COLWIDTH, 0.7*COLWIDTH)
 
 if __name__ in '__main__':
     plt.style.use('bmh')
@@ -152,14 +146,8 @@ if __name__ in '__main__':
                 red_chi_sq = chi_sq / (chi_sq_spec.size+2)
                 red_chi_sq_array[i, j] = red_chi_sq
         logger.info(f'The lowest value for red chi2 is {np.min(red_chi_sq_array)}')
-        with figure_context(figsize=(6, 4.5)) as fig:
+        with figure_context(figsize=FIGSIZE) as fig:
             ax: plt.Axes = fig.subplots(1, 1)
-            # ax0.plot(temp_array, best_radius_array.mean(axis=0), c='k')
-            # ax0.set_ylabel('$d/\\mathrm{[pc]}$')
-            # ax0.set_ylim(0, 3.1)
-            # ax0.set_yticks([0, 1, 2, 3])
-            # ax0.set_facecolor('w')
-            # ax0.axhline(115, c='r', ls='--', zorder=-100)
             im = ax.pcolormesh(
                 temp_array, (radius_arr * pl_true_radius).to_value(u.R_earth), (red_chi_sq_array),
                 rasterized=True,
@@ -168,11 +156,7 @@ if __name__ in '__main__':
             )
             ax.set_ylabel('$R_\\mathrm{p}/R_\\oplus$')
             ax.set_xlabel('$T_{\\rm night} / T_{\\rm day}$')
-            # ax.set_yscale('log')
             ax.grid(False)
-            # yticks = [10, 20, 30, 40, 60, 100, 140]
-            # ax.set_yticks(yticks)
-            # ax_yticklabels(yticks)
             fig.colorbar(im, label='$\\chi^2_{\\rm red}$')
             levels = [1, 4, 9, 16, 25]
             def fmt(x): return f'$\\chi^2_{{\\rm red}} = {x:.0f}$'
@@ -205,5 +189,6 @@ if __name__ in '__main__':
 
             if _title:
                 ax.set_title('GJ 876 d', fontsize=16, fontweight='bold')
+            fig.tight_layout()
             fig.savefig(
                 paths.figures / f'{PREFIX}_retrieval_red_chi_square_radius_{fname}.pdf')

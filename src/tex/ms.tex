@@ -268,7 +268,7 @@ These results demonstrate that for GJ876 d, VPIE with JWST would easily be able 
     \script{gj876_radius2d.py}
 \end{figure}
 
-\subsection{Example 3: A Non-Transiting Temperate Super-Earth in the MIR}
+\subsection{Example 3: A Non-Transiting Temperate Super-Earth in the MIR}\label{subsec:pcb}
 
 In our third example, we simulate an observation of the nearest exoplanet, Proxima Centauri b (PCb), using the MIRI instrument on JWST. With an equilibrium temperature of 243K and an orbital period of 11.2 days, PCb poses a completely different challenge than the short-period hot planets that we have examined previously.  In particular, because of the low temperature, almost all of PCb's thermal flux is emitted at wavelengths longer than 5$\mu$m, with the ratio of planet-to-star emission only reaching $\sim50$ parts per million or more between 10 and 20$\mu$m and rising at longer wavelengths.  Additionally, with such a long orbital period, the temporal binning of the data could be much coarser, which may relieve the requirement for absolute simultaneity of observations across wavelength. 
 
@@ -318,10 +318,28 @@ Stellar complexity, on the other hand, directly drives the number of basis vecto
 \subsection{Instrument Suitability}\label{subsec:inst}
 In the above examples we have assumed idealized analogs to JWST instruments. In this section we discuss limitations that would make these observations challenging in practice. A requirement of VPIE (and PIE in general) is that SW and LW spectra are observed simultaneously. Most instruments modes that observe a wide-enough wavelength range also quickly saturate. GJ 876, for example, is much too close to be observed with JWST/NIRSpec PRISM at $<4.7\;\mathrm{pc}$.
 
-Even when brightness
+Even when brightness limits are ignored, limited spectral coverage at thermal wavelengths relevant to cooler, potentially-habitable planets can make characterization of these targets difficult. In Section \ref{subsec:pcb}, we showed that the atmosphere of a rocky PCb would be poorly constrained with JWST/MIRI LRS; Planet/star contrast would much more favorable with an instrument that captures longer wavelengths. Unfortunately, there are no modes on MIRI that fully cover the MIR wavelength range (5 - 28$\mu$m) simultaneously. The LRS mode fully covers 5 - 11$\mu$m but does not extend farther, while the MRS (moderate-resolution spectroscopy) mode covers the full 5 - 28$\mu$m but does so with four non-contiguous wavelength channels; additionally, the integral field units (IFUs) utilized by the MRS mode make it challenging for high-precision time series observations.
 
-\TJ{put discussion of saturation, limited wavelength coverage.  This is the place to put some simulations of "optimal" instruments that we would like for MIRECLE.}
-    Unfortunately, there are no modes on MIRI that fully cover the MIR wavelength range (5 - 28$\mu$m) simultaneously. The LRS mode fully covers 5 - 11$\mu$m but does not extend farther, while the MRS (moderate-resolution spectroscopy) mode covers the full 5 - 28$\mu$m but does so with four non-contiguous wavelength channels; additionally, the integral field units (IFUs) utilized by the MRS mode make it challenging for high-precision 
+These challenges could be mitigated through an instrument which is specifically designed for PIE time-series observations. \citet{mandell2022} proposed an observatory which would be optimized for such measurements. A low-resolution, high-precision spectrometer with saturation limits designed for the nearest M-stars would open dozens of nearby rocky planets for atmospheric characterization.
+
+\begin{figure}
+    \gridline{
+        \includegraphics[width=0.5\textwidth]{figures/mirecle2d_200cm__null.pdf}
+        \includegraphics[width=0.5\textwidth]{figures/mirecle2d_650cm__null.pdf}
+    }
+    \gridline{
+        \includegraphics[width=0.5\textwidth]{figures/mirecle2d_200cm__half.pdf}
+        \includegraphics[width=0.5\textwidth]{figures/mirecle2d_650cm__half.pdf}
+    }
+    \gridline{
+        \includegraphics[width=0.5\textwidth]{figures/mirecle2d_200cm__full.pdf}
+        \includegraphics[width=0.5\textwidth]{figures/mirecle2d_650cm__full.pdf}
+    }
+    \caption{\TJ{add caption}}
+    \label{fig:mirecle}
+    \script{mirecle2d_grid.py}
+\end{figure}
+    
 
 
 \TJ{Move this up to generic discussion?}

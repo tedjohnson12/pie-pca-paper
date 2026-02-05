@@ -12,15 +12,21 @@ import numpy as np
 from astropy import units as u
 from loguru import logger
 from tqdm.auto import tqdm
-from scipy.optimize import minimize_scalar
 
 from vpie import vpie
 import VSPEC
 
 import paths
-from common import bin_image
+from common import bin_image, FIGSIZE, figure_context
 from proxb_grid import get_interp, dt_to_eps as temp_to_log_epsilon
-from proxb_run import get_model, PLANET as PLANET_PARAMS
+from proxb_run import (
+    get_model,
+    PLANET as PLANET_PARAMS,
+    SHORT_WL_CUTOFF as CUTOFF_WL,
+    CHI2_WL,
+    BIN_WL,
+    BIN_TIME,
+)
 
 PREFIX = 'proxb'
 IC = 'BIC'
@@ -32,17 +38,6 @@ CHI2_NOISE_SCALE = np.sqrt(1.7275494544839791)
 THERMAL_SCALE = 1.0
 SEED = 33
 FLUX_UNIT = u.Unit('W m-2 um-1')
-CUTOFF_WL = 7*u.um
-CHI2_WL = 10.0*u.um
-BIN_WL = 6
-BIN_TIME = 3
-
-
-@contextlib.contextmanager
-def figure_context(*args, **kwargs):
-    fig: plt.Figure = plt.figure(*args, **kwargs)
-    yield fig
-    plt.close(fig)
 
 
 if __name__ in '__main__':
@@ -144,7 +139,7 @@ if __name__ in '__main__':
             red_chi_sq = chi_sq / (chi_sq_spec.size+2)
             red_chi_sq_array[i, j] = red_chi_sq
     logger.info(f'The lowest value for red chi2 is {np.min(red_chi_sq_array)}')
-    with figure_context(figsize=(6, 4.5)) as fig:
+    with figure_context(figsize=FIGSIZE) as fig:
         ax: plt.Axes = fig.subplots(1, 1)
         # ax0.plot(temp_array, best_radius_array.mean(axis=0), c='k')
         # ax0.set_ylabel('$d/\\mathrm{[pc]}$')
@@ -197,5 +192,6 @@ if __name__ in '__main__':
         # ax.text(0.5,0.7,'$\\mathrm{Thick\\; H_2\\; Envelope}$',transform=ax.transAxes,fontsize=10,color='w',ha='center',va='center')
         ax.scatter(TRUE_TEMPERATURE_RATIO,pl_true_radius.to_value(u.R_earth),marker='*',c='#c50d15',s=200,edgecolor='w')
         # ax.set_title('Proxima Centauri b', fontsize=16, fontweight='bold')
+        fig.tight_layout()
         fig.savefig(
             paths.figures / f'{PREFIX}_retrieval_red_chi_square_radius_full.pdf')
