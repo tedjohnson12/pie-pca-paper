@@ -28,7 +28,7 @@ TRUE_TEMPERATURE_RATIO = 0.5
 TRUE_LOG_EPSILON = temp_to_log_epsilon([TRUE_TEMPERATURE_RATIO])
 MAX_BASIS = None
 NOISE_SCALE = 1.0
-CHI2_NOISE_SCALE = np.sqrt(15.232119978306232)
+CHI2_NOISE_SCALE = np.sqrt(11.695001707659017*1.0641359591613742)
 THERMAL_SCALE = 1.0
 SEED = 33
 FLUX_UNIT = u.Unit('W m-2 um-1')
@@ -84,11 +84,11 @@ if __name__ in '__main__':
         _residual = _f_rec - remove_epoch(_total_observed,eclipse_start,eclipse_end)
         return _residual, remove_epoch(_uncertainty,eclipse_start,eclipse_end), _s, _coeffs
 
-    temp_array = np.linspace(0.05, 0.99, 60)
+    temp_array = np.linspace(0.05, 0.99, 150)
     log_eps_array = (temp_to_log_epsilon(temp_array))
     
     pl_true_radius = PLANET_PARAMS.radius.to(u.R_jup)
-    radius_arr = np.linspace(0.1, 2,40)
+    radius_arr = np.linspace(0.1, 2,80)
     red_chi_sq_array = np.zeros((radius_arr.size, log_eps_array.size))
     data_residual, data_noise, _s, _coeffs = get_residual_and_noise(
         chi_noise_scale=CHI2_NOISE_SCALE

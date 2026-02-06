@@ -221,7 +221,7 @@ def cite(k):
 
 def write_table():
     tab = {
-        'Stellar Effective Temperature': f'{STAR.teff:latex}{foot(REF["faria2022"])}',
+        'Stellar Effective Temperature': f'{TEFF} K{foot(REF["faria2022"])}',
         'Stellar Radius': f'{STAR.radius:latex}{foot(REF["faria2022"])}',
         'Stellar Rotation Period': f'{STAR.period:latex}{foot(REF["faria2022"])}',
         'Spot Temperature': f'{STAR.spots.teff_umbra:latex}{foot(REF["assumed"])}',

@@ -48,6 +48,7 @@ def run(log_epsilon: float):
     _path.parent.mkdir(parents=True, exist_ok=True)
     with open(_path, 'wb') as f:
         af.write_to(f)
+    del af, tree, thermal, data, model, params
 
 
 def get_interp() -> RegularGridInterpolator:

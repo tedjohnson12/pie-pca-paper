@@ -25,7 +25,7 @@ PREFIX = 'toi519'
 IC = 'BIC'
 MAX_BASIS = None
 NOISE_SCALE = 1.0
-CHI2_NOISE_SCALE = np.sqrt(4.879016284333331)
+CHI2_NOISE_SCALE = np.sqrt(11.52613667628762)
 THERMAL_SCALE = 1.0
 SEED = 33
 FLUX_UNIT = u.Unit('W m-2 um-1')
@@ -87,11 +87,11 @@ if __name__ in '__main__':
         _residual = _f_rec - _total_observed
         return _residual, _uncertainty, _s, _coeffs
 
-    temp_array = np.linspace(0.05, 0.99, 60)
+    temp_array = np.linspace(0.05, 0.99, 150)
     log_eps_array = (temp_to_log_epsilon(temp_array))
     
     pl_true_radius = PLANET_PARAMS.radius.to(u.R_jup)
-    radius_arr = np.linspace(0.1, 2,40)
+    radius_arr = np.linspace(0.1, 2,80)
     red_chi_sq_array = np.zeros((radius_arr.size, log_eps_array.size))
     dist_residual, dist_noise, _s, _coeffs = get_residual_and_noise(
         chi_noise_scale=CHI2_NOISE_SCALE

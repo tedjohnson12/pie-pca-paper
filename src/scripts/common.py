@@ -49,6 +49,22 @@ def bin_image(im: np.ndarray, nwl:int, ntime: int, power: int):
             out_arr[i,j] = val
     return out_arr
 
+def fold_image(im: np.ndarray, stride: int, power: int):
+    im = np.atleast_2d(im)
+    original_size_time, original_size_wl = im.shape
+    size_stack = (original_size_time // stride) - 1
+    if original_size_time % stride != 0:
+        size_stack += 1
+    out_arr = np.zeros((stride, original_size_wl, size_stack)) * np.nan
+    for i in range(size_stack):
+        for j in range(stride):
+            for k in range(original_size_wl):
+                val = im[i*stride+j,k]
+                out_arr[j,k,i] = val
+    denom = np.sum(~np.isnan(out_arr), axis=2)
+    summed = np.nansum(out_arr**power, axis=2)**(1/power)/denom
+    return summed
+
 def find_eclipse(a: np.ndarray):
     next = np.concatenate([a[1:], a[-1:]])
     diff = next-a
