@@ -273,8 +273,8 @@ def get_temperature_ratio(epsilon: float):
     
 if __name__ == '__main__':
     write_table()
-    psg.docker.set_url_and_run()
-    model = get_model()
-    model.build_planet()
-    model.build_spectra()
+    # psg.docker.set_url_and_run()
+    # model = get_model()
+    # model.build_planet()
+    # model.build_spectra()
     
