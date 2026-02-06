@@ -263,7 +263,7 @@ These results demonstrate that for GJ876 d, VPIE with JWST would easily be able 
     \includegraphics[width=0.5\textwidth]{figures/gj876_retrieval_red_chi_square_radius_null.pdf}
     \includegraphics[width=0.5\textwidth]{figures/gj876_retrieval_red_chi_square_radius_half.pdf}
     \includegraphics[width=0.5\textwidth]{figures/gj876_retrieval_red_chi_square_radius_full.pdf}
-    \caption{$\chi^2_\mathrm{red}$ model--data mismatch for GJ 876 d considering three different scenarios. The star in each panel marks the ``true'' data parameters. The white curves show theoretical radius calculations based on the assumed planet mass and mass-radius curves from Figure 2 in \citet{zeng2019}. As the planet's true night-day temperature ratio decreases, we are able to detect the phase curve and rule out a larger swath of radius-redistribution parameter space.}
+    \caption{$\chi^2_\mathrm{red}$ model--data mismatch for GJ 876 d considering three different scenarios. The star in each panel marks the ``true'' data parameters. The white curves show theoretical radius calculations based on the assumed planet mass and mass-radius curves from Figure 2 in \citet{zeng2019} for a 100\% Fe planet, a planet that is 50\% rock and 50\% water, and a planet that is equal parts rock and water with the addition of an \ce{H2} envelope that is 2\% of the total mass. As the planet's true night-day temperature ratio decreases, we are able to detect the phase curve and rule out a larger swath of radius-redistribution parameter space.}
     \label{fig:gj876-chisq}
     \script{gj876_radius2d.py}
 \end{figure}
@@ -320,24 +320,32 @@ Even when brightness limits are ignored, limited spectral coverage at thermal wa
 
 Of course, these challenges could be mitigated through the deployment of a NEW instrument which is specifically designed for PIE time-series observations. Unfortunately upgrading the instrumentation on JWST does not appear to be a feasible option, but several concept for future missions could incorporate such an instrument.  \citet{mandell2022} proposed the Explorer-class mission concept called MIRECLE (M-star Infrared Exoplanet Climate Explorer) which would be optimized for such measurements, and future Probe- and flagship-class missions such as PRIMA and the Far-IR Surveyor. A low-resolution, high-precision spectrometer with saturation limits designed for the nearest M-stars would open dozens of nearby rocky planets for atmospheric characterization.
 
-\begin{figure}
+To investigate the effects of optimized instrument properties, we have simulated observations of PCb with three versions of a future observatory in Figure \ref{fig:mirecle}. The first emulates a low-cost Small Explorer mission with a 0.5 m aperture mirror. After observing 16 orbits of PCb over approximately six months, however, this small-mirror telescope has difficulty constraining PCb's atmosphere in any way; the raw data exhibits a high amount of scatter, which introduces correlated noise to the residual and masks the planet's signal. Essentially, the error term ($\bm{\epsilon}$) in equation \ref{eq:def-residuals} dominates over the signal term ($\bm{\delta}$). This is not the case for the 2 m aperture telescope, despite only observing for one orbit. The larger mirror is capable of constraining the atmospheric heat redistribution at a $>3\;\sigma$ level for rocky, Earth-like planets and even small metal-dominated planets.
+
+Our last set of simulations emulate a future flagship infrared mission. We use the mirror of JWST along with the instrument parameters described for MIRECLE. By comparing to the simulation of a JWST/MIRI-LRS observation of PCb in Figure \ref{fig:pcb-jwst}, we see how critical observing over a wide wavelength range is to VPIE; MIRI-LRS's 5 -- 11~\um{} converage allows the instrument to place up to $4\;\sigma$ constraints on Earth-like models -- with MIRECLE's 1 -- 18~\um{} it is $>10\;\sigma$.
+
+\begin{figure*}
     \gridline{
-        \includegraphics[width=0.5\textwidth]{figures/mirecle2d_200cm__null.pdf}
-        \includegraphics[width=0.5\textwidth]{figures/mirecle2d_650cm__null.pdf}
+        \includegraphics[width=0.3\textwidth]{figures/mirecle2d_50cm__null.pdf}
+        \includegraphics[width=0.3\textwidth]{figures/mirecle2d_200cm__null.pdf}
+        \includegraphics[width=0.3\textwidth]{figures/mirecle2d_564cm__null.pdf}
     }
     \gridline{
-        \includegraphics[width=0.5\textwidth]{figures/mirecle2d_200cm__half.pdf}
-        \includegraphics[width=0.5\textwidth]{figures/mirecle2d_650cm__half.pdf}
+        \includegraphics[width=0.3\textwidth]{figures/mirecle2d_50cm__half.pdf}
+        \includegraphics[width=0.3\textwidth]{figures/mirecle2d_200cm__half.pdf}
+        \includegraphics[width=0.3\textwidth]{figures/mirecle2d_564cm__half.pdf}
     }
     \gridline{
-        \includegraphics[width=0.5\textwidth]{figures/mirecle2d_200cm__full.pdf}
-        \includegraphics[width=0.5\textwidth]{figures/mirecle2d_650cm__full.pdf}
+        \includegraphics[width=0.3\textwidth]{figures/mirecle2d_50cm__full.pdf}
+        \includegraphics[width=0.3\textwidth]{figures/mirecle2d_200cm__full.pdf}
+        \includegraphics[width=0.3\textwidth]{figures/mirecle2d_564cm__full.pdf}
     }
-    \caption{\TJ{add caption}}
+    \caption{Proxima Centauri b atmosphere detectability for a MIRECLE-like mission with three different apertures. The left panels simulate an observation with a 0.5 m telescope taken over 16 orbits of PCb ($\sim$ 6 months). This observation length was chosen so that the photon noise would be comparable to that of a 2 m telescope observing for a single orbit, shown in the center column. The 16-orbit observation was phase-folded prior to analysis. The right column panels simulate a MIRECLE-like mission with the same aperture as JWST. Enhanced detectability of phase-variations in this atmosphere compared to Figure \ref{fig:pcb-jwst} are due to the expanded wavelength range of the MIRECLE concept. The lengthened observation did little to improve detectability with the 0.5 m telescope; strong correlated noise caused by increased scatter made the planet's signal difficult to measure.
+    }
     \label{fig:mirecle}
-    \script{mirecle2d_grid.py}
-\end{figure}
-    
+    \script{mirecle2m_radius2d.py}
+\end{figure*}
+
 
 
 Though all of these issues pose challenges to the practical applicability of the method using current observing assets, none of them are inherently insurmountable with either more sophisticated analysis techniques or more suitable instrumentation in the future. We plan to examine the implications and best-practices to address these issues in future work.
