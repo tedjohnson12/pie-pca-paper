@@ -378,14 +378,14 @@ In this section we mathematically define many of the processes that Section \ref
 \subsection{Matrix description of an observation}
 \label{ap:mat-desc-obs}
 
-Here we define a reduced VPIE dataset in matrix form. After a spectral phase curve has been put through standard data-reduction procedures, we are left with two matricies: $\mathbf{F}$ -- the flux from the system, and $\mathbf{\Sigma}$ -- uncertainties which we assume are dominated by photon noise. Both are $m\times n$ matricies, where $m$ is the number of epochs and $n$ is the number of wavelength channels. If $n'$ is the number of NIR wavelength channels, then we can define the NIR data to be the $m\times n'$ matrix $\mathbf{F}_\text{NIR}$. We will also use the subscripts $*$ and $\text{p}$ to represent flux from the star and planet, respectively. By definition of the two wavelength regimes, we can say that
+Here we define a reduced VPIE dataset in matrix form. After a spectral phase curve has been put through standard data-reduction procedures, we are left with two matricies: $\mathbf{F}$ -- the flux from the system, and $\mathbf{\Sigma}$ -- uncertainties which we assume are dominated by photon noise. Both are $m\times n$ matricies, where $m$ is the number of epochs and $n$ is the number of wavelength channels. If $n'$ is the number of SW wavelength channels, then we can define the SW data to be the $m\times n'$ matrix $\mathbf{F}_\text{SW}$. We will also use the subscripts $*$ and $\text{p}$ to represent flux from the star and planet, respectively. By definition of the two wavelength regimes, we can say that
 \begin{equation}
     \label{eq:fnir}
-    \mathbf{F}_\text{NIR} = \mathbf{F}_{\text{NIR},*}\, ,
+    \mathbf{F}_\text{SW} = \mathbf{F}_{\text{SW},*}\, ,
 \end{equation}
 and
 \begin{equation}
-    \mathbf{F}_\text{MIR} = \mathbf{F}_{\text{MIR},*} + \mathbf{F}_{\text{MIR},\text{p}}\, .
+    \mathbf{F}_\text{LW} = \mathbf{F}_{\text{LW},*} + \mathbf{F}_{\text{LW},\text{p}}\, .
 \end{equation}
 
 We also define a model of the observation, $\tilde{\mathbf{F}}$, which is found by minimizing the squares of an error matrix defined
@@ -396,17 +396,17 @@ We also define a model of the observation, $\tilde{\mathbf{F}}$, which is found 
 
 By equation (\ref{eq:fnir}), at short wavelengths this means
 \begin{equation}
-    \mathbf{F}_\text{NIR} - \tilde{\mathbf{F}}_\text{NIR} = \mathbf{E}_\text{NIR}\, .
+    \mathbf{F}_\text{SW} - \tilde{\mathbf{F}}_\text{SW} = \mathbf{E}_\text{SW}\, .
     \label{eq:nir-error}
 \end{equation}
 
-\subsection{The meaning of MIR residuals}\label{ap:residuals}
+\subsection{The meaning of LW residuals}\label{ap:residuals}
 The long-wavelength counterpart of equation (\ref{eq:nir-error}) is
 \begin{equation}
-    \mathbf{F}_\text{MIR} - \tilde{\mathbf{F}}_\text{MIR} = \mathbf{E}_\text{MIR} + \mathbf{\Delta}\, ,
+    \mathbf{F}_\text{LW} - \tilde{\mathbf{F}}_\text{LW} = \mathbf{E}_\text{LW} + \mathbf{\Delta}\, ,
     \label{eq:mir-error}
 \end{equation}
-where $\mathbf{\Delta}$ is the part of the residual attributed not to noise, but to planetary flux. It is important to note that the $\mathbf{E}_\text{NIR}$ minimization procedure described in Section \ref{ap:compute-A} also minimizes $\mathbf{E}_\text{MIR}$, but has no effect on $\mathbf{\Delta}$. Section \ref{ap:compute-model} describes a method to compute $\tilde{\mathbf{F}}$ from $\mathbf{F}$, and so the residual $\mathbf{E} + \mathbf{\Delta}$ is a measurable quantity.
+where $\mathbf{\Delta}$ is the part of the residual attributed not to noise, but to planetary flux. It is important to note that the $\mathbf{E}_\text{SW}$ minimization procedure described in Section \ref{ap:compute-A} also minimizes $\mathbf{E}_\text{LW}$, but has no effect on $\mathbf{\Delta}$. Section \ref{ap:compute-model} describes a method to compute $\tilde{\mathbf{F}}$ from $\mathbf{F}$, and so the residual $\mathbf{E} + \mathbf{\Delta}$ is a measurable quantity.
 
 We later discuss $\tilde{\mathbf{F}}$ as the product of a coefficient matrix $\mathbf{A}$ and a basis matrix $\mathbf{B}$ (see equation (\ref{eq:f-eq-ab})). Since $\mathbf{B}$ is composed of spectra, we can write it as a sum of stellar and planetary components:
 \begin{equation}
@@ -448,7 +448,7 @@ We can also define a coefficient matrix, $\mathbf{A}$, which has shape $m\times 
 
 \subsubsection{Computing the coefficient matrix}
 \label{ap:compute-A}
-Consider the following row vectors: $\bm{f}$ (a row of $\mathbf{F}$), $\bm{\sigma}$ (a row of $\mathbf{\Sigma}$), $\bm{\epsilon}$ (a row of $\mathbf{E}$), and $\bm{a}$ (a row of $\mathbf{A}$). If these are all the $i$th row of their respective matrix, then they correspond to the same epoch. The procedure here is simple: given $\mathbf{B}$, $\bm{f}$, and $\bm{\sigma}$, perform weighted least squares to compute $\bm{a}$ which minimizes the squares of $\bm{\epsilon}$. We have dropped the NIR subscript in this subsection, but it is important that only NIR spectra are used.
+Consider the following row vectors: $\bm{f}$ (a row of $\mathbf{F}$), $\bm{\sigma}$ (a row of $\mathbf{\Sigma}$), $\bm{\epsilon}$ (a row of $\mathbf{E}$), and $\bm{a}$ (a row of $\mathbf{A}$). If these are all the $i$th row of their respective matrix, then they correspond to the same epoch. The procedure here is simple: given $\mathbf{B}$, $\bm{f}$, and $\bm{\sigma}$, perform weighted least squares to compute $\bm{a}$ which minimizes the squares of $\bm{\epsilon}$. We have dropped the SW subscript in this subsection, but it is important that only SW spectra are used.
 
 First, we define a diagonal weight matrix, $\mathbf{W}$, where the diagonal elements are the inverse of the variance, i.e. $W_{jk} = \delta_{jk}/(\sigma_j\sigma_k)$, where $\delta_{jk}$ is the Kronecker delta. Now, $\bm{a}$ is the vector that produces the least-squares solution to the equation
 \begin{equation}

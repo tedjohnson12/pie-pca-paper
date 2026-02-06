@@ -225,7 +225,7 @@ def write_table():
         'Stellar Radius': f'{STAR.radius:latex}{foot(REF["faria2022"])}',
         'Stellar Rotation Period': f'{STAR.period:latex}{foot(REF["faria2022"])}',
         'Spot Temperature': f'{STAR.spots.teff_umbra:latex}{foot(REF["assumed"])}',
-        'Spot Coverage': f'{SPOT_FRAC:.1f}{foot(REF["assumed"])}',
+        'Spot Coverage Fraction': f'{SPOT_FRAC:.1f}{foot(REF["assumed"])}',
         'Photosphere Temperature': f'{STAR.teff.round(0):latex}',
         'Planet Radius': f'{PLANET.radius.round(2):latex}{foot(REF["assumed"])}',
         'Planet Mass': f'{PLANET.gravity.value.to(u.M_earth).round(0):latex}{foot(REF["assumed"])}',

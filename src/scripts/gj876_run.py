@@ -218,7 +218,7 @@ def write_table():
         'Stellar Radius': f'{STAR.radius:latex}{foot(REF["rosenthal2021"])}',
         'Stellar Rotation Period': f'{STAR.period:latex}{foot(REF["nelson2016"])}',
         'Spot Temperature': f'{STAR.spots.teff_umbra:latex}{foot(REF["assumed"])}',
-        'Spot Coverage': f'{STAR.spots.initial_coverage:.1f}{foot(REF["assumed"])}',
+        'Spot Coverage Fraction': f'{STAR.spots.initial_coverage:.1f}{foot(REF["assumed"])}',
         'Photosphere Temperature': f'{STAR.teff.round(0):latex}',
         'Planet Radius': f'{PLANET.radius:latex}{foot(REF["assumed"])}',
         'Planet Mass': f'{PLANET.gravity.value.to(u.M_earth):latex}{foot(REF["nelson2016"])}',

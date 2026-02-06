@@ -27,7 +27,7 @@ SHORT_WL_CUTOFF = 5*u.um
 
 
 HEADER = VSPEC.params.Header(
-    data_path=Path(__file__).parent / '.vspec' / f'proxb_{TRUE_EPSILON:.2f}',
+    data_path=Path(__file__).parent / '.vspec' / f'mirecle2m_{TRUE_EPSILON:.2f}',
     seed=11,
     spec_grid=VSPEC.params.VSPECGridParameters(
         max_teff=3100 * u.K,

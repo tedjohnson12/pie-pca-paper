@@ -28,7 +28,7 @@ MAX_BASIS = None
 TRUE_TEMPERATURE_RATIO = 0.99
 TRUE_LOG_EPSILON = temp_to_log_epsilon([TRUE_TEMPERATURE_RATIO])
 NOISE_SCALE = 1.0
-CHI2_NOISE_SCALE = np.sqrt(1.9940792854803417)
+CHI2_NOISE_SCALE = np.sqrt(2.195149565953142)
 THERMAL_SCALE = 1.0
 SEED = 33
 FLUX_UNIT = u.Unit('W m-2 um-1')
@@ -158,7 +158,7 @@ if __name__ in '__main__':
         # ax.set_yticks(yticks)
         # ax_yticklabels(yticks)
         fig.colorbar(im, label='$\\chi^2_{\\rm red}$')
-        levels = [1, 4, 9, 16, 25]
+        levels = [1, 4, 9, 16, 25,100,225,400]
         def fmt(x): return f'$\\chi^2_{{\\rm red}} = {x:.0f}$'
         im = ax.contour(
             temp_array, (radius_arr * pl_true_radius).to_value(u.R_earth), red_chi_sq_array,
@@ -185,10 +185,11 @@ if __name__ in '__main__':
         )
         fmt = lambda x: dict(zip(levels, labels))[x]
         # manual = [(0.8,1),(0.3,2.2),(0.2,3)]
-        ax.clabel(im,im.levels,inline=True,fontsize=10,fmt=fmt)
+        ax.clabel(im,im.levels,inline=True,fontsize=10,fmt=fmt,zorder=100)
         # ax.text(0.5,0.7,'$\\mathrm{Thick\\; H_2\\; Envelope}$',transform=ax.transAxes,fontsize=10,color='w',ha='center',va='center')
         ax.scatter(TRUE_TEMPERATURE_RATIO,pl_true_radius.to_value(u.R_earth),marker='*',c='#c50d15',s=200,edgecolor='w')
-        ax.set_title('Proxima Centauri b', fontsize=16, fontweight='bold')
+        # ax.set_title('Proxima Centauri b', fontsize=16, fontweight='bold')
+        ax.text(0.5,1.05,'Proxima Centauri b',transform=ax.transAxes,fontsize=16,fontweight='bold',ha='center',va='center',color='k')
         fig.tight_layout()
         fig.savefig(
             paths.figures / f'{PREFIX}_retrieval_red_chi_square_radius_null.pdf')

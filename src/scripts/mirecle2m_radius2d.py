@@ -44,6 +44,7 @@ INTERPOLATORS = [get_interp_50cm, get_interp_200cm, get_interp_564cm]
 MODEL_GETTERS = [get_model_50cm, get_model_200cm, get_model_564cm]
 PLANET_PARAMS = [PLANET_PARAMS_50CM, PLANET_PARAMS_200CM, PLANET_PARAMS_564CM]
 SHOULD_FOLD = [True, False, False]
+TITLES = ['0.5 m mirror', '2 m mirror', 'JWST-like mirror']
 FOLD = 67
 
 TEMPERATURE_RATIOS = [0.05,0.5,0.99]
@@ -109,8 +110,8 @@ if __name__ in '__main__':
     log_eps_array = (temp_to_log_epsilon(temp_array))
     
     
-    for aperture, noise_scales, interpolator_initializer, get_model, planet_params, use_cache_arr, should_fold in zip(
-        APERTURES, CHI2_NOISE_SCALE, INTERPOLATORS, MODEL_GETTERS, PLANET_PARAMS, USE_CACHE, SHOULD_FOLD
+    for aperture, noise_scales, interpolator_initializer, get_model, planet_params, use_cache_arr, should_fold, title in zip(
+        APERTURES, CHI2_NOISE_SCALE, INTERPOLATORS, MODEL_GETTERS, PLANET_PARAMS, USE_CACHE, SHOULD_FOLD, TITLES
     ):
         interpolator = interpolator_initializer()
         pl_true_radius = planet_params.radius.to(u.R_earth)
@@ -119,7 +120,7 @@ if __name__ in '__main__':
             if should_use_cache:
                 with asdf.open(CACHE_FILE,mode='r') as f:
                     key = f'{aperture}_{label}'
-                    red_chi_sq_array = f.tree[key]
+                    red_chi_sq_array = f.tree[key][:,:]
             else: 
                 red_chi_sq_array = np.zeros((radius_arr.size, log_eps_array.size))
                 epsilon = 10**temp_to_log_epsilon([temperature_ratio])[0]
@@ -209,6 +210,9 @@ if __name__ in '__main__':
                 ax.clabel(im,im.levels,inline=True,fontsize=10,fmt=fmt)
                 # ax.text(0.5,0.7,'$\\mathrm{Thick\\; H_2\\; Envelope}$',transform=ax.transAxes,fontsize=10,color='w',ha='center',va='center')
                 ax.scatter(temperature_ratio,pl_true_radius.to_value(u.R_earth),marker='*',c='#c50d15',s=200,edgecolor='w')
+                if label == 'null':
+                    ax.text(0.5,1.05,title,transform=ax.transAxes,fontsize=16,color='k',ha='center',va='center',fontweight='bold')
                 fig.tight_layout()
                 fig.savefig(
-                    paths.figures / f'{PREFIX}_{aperture}cm__{label}.pdf')
+                    paths.figures / f'{PREFIX}_{aperture}cm__{label}.pdf',
+                    bbox_inches='tight',)

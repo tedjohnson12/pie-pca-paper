@@ -222,7 +222,7 @@ def write_table():
         'Stellar Radius': f'{round(STAR.radius,2):latex}{foot(REF["kagetani2023"])}',
         'Stellar Rotation Period': f'{STAR.period:latex}{foot(REF["assumed"])}',
         'Spot Temperature': f'{STAR.spots.teff_umbra:latex}{foot(REF["assumed"])}',
-        'Spot Coverage': f'{SPOT_FRAC:.1f}{foot(REF["assumed"])}',
+        'Spot Coverage Fraction': f'{SPOT_FRAC:.1f}{foot(REF["assumed"])}',
         'Photosphere Temperature': f'{STAR.teff.round(0):latex}',
         'Planet Radius': f'{PLANET.radius.round(2):latex}{foot(REF["kagetani2023"])}',
         'Planet Mass': f'{PLANET.gravity.value.to(u.M_earth).round(0):latex}{foot(REF["kagetani2023"])}',
