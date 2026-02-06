@@ -7,6 +7,9 @@
 report.html
 arxiv.tar.gz
 arxiv.tar
+aasjournal/*
+aasjournal.tar.gz
+aasjournal.tar
 
 # Figure output
 src/tex/figures/*
