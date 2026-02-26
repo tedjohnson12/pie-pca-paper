@@ -1,0 +1,48 @@
+\documentclass{letter}
+\usepackage{xcolor}
+\usepackage{geometry}
+\geometry{margin=1in}
+\usepackage{amsmath}
+\usepackage{bm}
+\usepackage{url}
+\usepackage{hyperref}
+
+\fboxrule=3pt
+\fboxsep=4pt
+
+
+\newenvironment{response}[1]{
+    \fcolorbox{blue}{white}{
+    \begin{minipage}{0.46\textwidth}
+        #1
+    \end{minipage}
+    }\hfill
+    \begin{minipage}{0.46\textwidth}
+    }
+    {\end{minipage}}
+
+
+\begin{document}
+
+\begin{letter}{}
+    \opening{Dear ...,}
+
+    Please find our revised manuscript alongside the below response to the reviewer's report. Changes have been highlighted in \textcolor{blue}{\bf blue}.
+
+    In addition to responding to the reviewer's report, the authors have made the following additional changes:
+    
+    \begin{enumerate}
+        \item 
+    \end{enumerate}
+    
+    
+    \begin{response}{Reviewer's Comment}
+        Authors' Response
+    \end{response}
+    
+
+    
+
+\end{letter}
+
+\end{document}
