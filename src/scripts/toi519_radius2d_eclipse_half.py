@@ -27,7 +27,7 @@ TRUE_TEMPERATURE_RATIO = 0.5
 TRUE_LOG_EPSILON = temp_to_log_epsilon([TRUE_TEMPERATURE_RATIO])
 MAX_BASIS = None
 NOISE_SCALE = 1.0
-CHI2_NOISE_SCALE = np.sqrt(13.115796790216327)
+CHI2_NOISE_SCALE = np.sqrt(15.714352885406209)
 THERMAL_SCALE = 1.0
 SEED = 33
 FLUX_UNIT = u.Unit('W m-2 um-1')
@@ -144,7 +144,7 @@ if __name__ in '__main__':
             linestyles='dashed'
         )
         ax.clabel(im, im.levels, inline=True, fontsize=10, fmt=fmt)
-        ax.text(0.05,0.05,'d) Eclipse considered',transform=ax.transAxes,fontsize=10,color='w',ha='left',va='center',fontweight='bold')
+        ax.text(0.05,0.05,'b) Eclipse considered',transform=ax.transAxes,fontsize=10,color='w',ha='left',va='center',fontweight='bold')
         ax.scatter(TRUE_TEMPERATURE_RATIO,pl_true_radius.to_value(u.R_jup),marker='*',c='#c50d15',s=200,edgecolor='w')
         fig.tight_layout()
         fig.savefig(

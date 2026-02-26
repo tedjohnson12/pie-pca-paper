@@ -25,7 +25,7 @@ PREFIX = 'toi519'
 IC = 'BIC'
 MAX_BASIS = None
 NOISE_SCALE = 1.0
-CHI2_NOISE_SCALE = np.sqrt(11.52613667628762)
+CHI2_NOISE_SCALE = np.sqrt(14.565729144317702)
 THERMAL_SCALE = 1.0
 SEED = 33
 FLUX_UNIT = u.Unit('W m-2 um-1')
@@ -144,7 +144,7 @@ if __name__ in '__main__':
         )
         ax.clabel(im, im.levels, inline=True, fontsize=10, fmt=fmt)
         xlims = ax.get_xlim()
-        ax.text(0.05,0.05,'c) Eclipse considered',transform=ax.transAxes,fontsize=10,color='w',ha='left',va='center',fontweight='bold')
+        ax.text(0.05,0.05,'a) Eclipse considered',transform=ax.transAxes,fontsize=10,color='w',ha='left',va='center',fontweight='bold')
         ax.scatter(TRUE_TEMPERATURE_RATIO,pl_true_radius.to_value(u.R_jup),marker='*',c='#c50d15',s=200,edgecolor='w')
         ax.set_xlim(*xlims)
         fig.tight_layout()

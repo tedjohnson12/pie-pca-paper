@@ -140,7 +140,7 @@ if __name__ in '__main__':
             linestyles='dashed'
         )
         ax.clabel(im, im.levels, inline=True, fontsize=10, fmt=fmt)
-        ax.text(0.05,0.05,'b) Eclipse ignored',transform=ax.transAxes,fontsize=10,color='w',ha='left',va='center',fontweight='bold')
+        ax.text(0.05,0.05,'d) Eclipse ignored',transform=ax.transAxes,fontsize=10,color='w',ha='left',va='center',fontweight='bold')
         ax.scatter(TRUE_TEMPERATURE_RATIO,pl_true_radius.to_value(u.R_jup),marker='*',c='#c50d15',s=200,edgecolor='w')
         fig.tight_layout()
         fig.savefig(

@@ -139,7 +139,7 @@ if __name__ in '__main__':
         )
         ax.clabel(im, im.levels, inline=True, fontsize=10, fmt=fmt)
         xlims = ax.get_xlim()
-        ax.text(0.05,0.05,'a) Eclipse ignored',transform=ax.transAxes,fontsize=10,color='w',ha='left',va='center',fontweight='bold')
+        ax.text(0.05,0.05,'c) Eclipse ignored',transform=ax.transAxes,fontsize=10,color='w',ha='left',va='center',fontweight='bold')
         ax.scatter(1.0,pl_true_radius.to_value(u.R_jup),marker='*',c='#c50d15',s=200,edgecolor='w')
         ax.set_xlim(*xlims)
         fig.tight_layout()
