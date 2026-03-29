@@ -56,12 +56,9 @@ USE_CACHE = (
 )
 CHI2_NOISE_SCALE = (
         np.sqrt([
-        # 82.8597124847814,
-        # 13.080702255890222,
-        # 82.23186373659043
-        10.638529588086413,
-        3.2247468815225324,
-        10.605978290205305
+        1.9279108160200082,
+        1.659492327867226,
+        2.1373288264703416
     ]),
         np.sqrt([
         2.9344707963359737,
@@ -91,6 +88,9 @@ def get_residual_and_noise(chi_noise_scale, epsilon, interpolator, get_model,sho
         _total_observed = fold_image(_total_observed, FOLD,1)
         _scatter_mag = fold_image(_scatter_mag, FOLD,2)
         _uncertainty = fold_image(_uncertainty, FOLD,2)
+        _total_observed = bin_image(_total_observed,1,4,1)
+        _scatter_mag = bin_image(_scatter_mag,1,4,1)
+        _uncertainty = bin_image(_uncertainty,1,4,1)
     _cutoff_index = np.argwhere(_wl > CUTOFF_WL)[0][0]
     _s, _coeffs, _f_rec = vpie.get_vpie(
         _total_observed,
@@ -128,11 +128,14 @@ if __name__ in '__main__':
                     epsilon=epsilon,
                     chi_noise_scale=noise_scale,
                     interpolator=interpolator,
-                    get_model=get_model
+                    get_model=get_model,
+                    should_fold=should_fold
                 )
                 # if should_fold:
                 #     data_residual = fold_image(data_residual,FOLD,1)
                 #     data_noise = fold_image(data_noise,FOLD,2)
+                #     data_residual = bin_image(data_residual,1,4,1)
+                #     data_noise = bin_image(data_noise,1,4,2)
                 data_residual = bin_image(data_residual,BIN_WL,BIN_TIME,1)
                 data_noise = bin_image(data_noise,BIN_WL,BIN_TIME,2)
                 binned_wl = bin_image(_wl.to_value(u.um),BIN_WL,1,1)[0,:]
@@ -140,6 +143,9 @@ if __name__ in '__main__':
                     for j, log_eps in enumerate(log_eps_array):
                         grid_thermal = rad**2*THERMAL_SCALE * \
                             interpolator([log_eps])[0, :, :].T
+                        if should_fold:
+                            grid_thermal = fold_image(grid_thermal, FOLD,1)
+                            grid_thermal = bin_image(grid_thermal,1,4,1)
                         grid_reconstruction = vpie.get_reconstruction(
                             grid_thermal,
                             _coeffs,
