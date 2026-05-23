@@ -6,6 +6,7 @@
 \usepackage{bm}
 \usepackage{url}
 \usepackage{hyperref}
+\usepackage{listings}
 
 \fboxrule=3pt
 \fboxsep=4pt
@@ -42,12 +43,167 @@
         \item Added more background about characterizing exoplanets with thermal emission. Lines XX--YY.
     \end{enumerate}
     
-    
+    {\bf Reviewer's report}\\
     \begin{response}{Reviewer's Comment}
         Authors' Response
     \end{response}
-    
+    \begin{response}{
+                A) While the details of VPIE are novel, detection variable planetary excess infrared emission has somewhat of a longer history and reference to previous work using planetary infrared excess to characterize exoplanet atmospheres could future highlight how VPIE stands out in this broader context. Here is a selection of references that would be useful. First detection of thermal phase variation of a non-transiting planet $\upsilon$ Andromedae b with Spitzer (Harrington et al. 2006, Crossfield et al. 2010) Mid-IR excess with Spitzer (Meyer et al. 2008). Early work on predicting spectroscopic signals from non-transiting terrestrial planets (Selsis et al. 2011) and on the distinguishability of atmosphere-bearing vs airless rocky planets (Maurin et al. 2011). More recent work on the detectability of planetary infrared excess with JWST around white dwarfs, including varying excess, in Limbach et al. 2022 and the discovery of planetary candidates from thermal excess emission in the mid-infrared (Limbach et al. 2024, 2025)
+    }
+    \begin{itemize}
+        \item 
+    \end{itemize}
+    \end{response}
+    \begin{response}{
+        B) It is great that the authors considered 3 scenarios for each target, but I am concerned that the phase variation amplitudes of these non-transiting planets are overstated. For transparency and reproducibility, could the author state how the different T\_day and T\_night relate to T\_eq?
+    }
+        
+    \end{response}
+    \begin{response}{
+        C) For non-transiting planets (inc$>$90), the observed ``dayside flux'' is geometrically suppressed as F\_day is proportional to the sin(i) while the observed ``nightside flux'' is geometrically increased - leading to smaller phase amplitude than for their inc=90 counter parts. Since the author did not consider the effect of inclination on their analysis, it would be adequate to either 1) show that in the maximal inclination (such that the planet does not transit) case, the effect of inclination on F\_day and F\_night are negligible for each target or 2) provide further discussion as to how the orbital inclination might affect the observed phase variation. A citation to Cowan et al. 2013 and Selsis et al. 2011 would be appropriate.}
 
+    \end{response}
+    \begin{response}{
+        D) Since the reduced chi-squared is the metric represented in all the important figures of the manuscript, please describe how you are computing the reduced chi-squared (i.e. number of degrees of freedom and how the deviation is calculated) for reproducibility.
+    }
+        
+    \end{response}
+    \begin{response}{
+        E) In Figure 3, the residuals for the full heat redistribution are negative, which to me suggest that the model observations are over-predicting the stellar emission at long-wavelength. Can the authors provide further explanation as to why that might be? Would this lead to uncertainties on the absolute planetary flux measurement?
+    }
+        
+    \end{response}
+    \begin{response}{
+        Line 155: please cite Coulombe et al. 2024 who simultaneously fit for stellar variability (granulation and oscillation), reflected light and thermal emission variations.
+    }
+        
+    \end{response}
+    \begin{response}{
+        Line 163: while it is not the goal of VPIE to understand the details of stellar variability, my understanding is that VPIE would also uncover spectroscopic variability signals, so the output could still be analyzed to understand stellar variability.
+    }
+        
+    \end{response}
+    \begin{response}{
+        Line 187: ``$\tilde{f}$ is a model observation''. Please clarify that this is an ``empirical model'' described by eq. 2 and not a theoretical model
+    }
+        
+    \end{response}
+    \begin{response}{
+        Line 278: before mentioning the different scenarios applied to each target, it would be useful to mention the targets that will be simulated as well.
+    }
+        
+    \end{response}
+    \begin{response}{
+        Line 284: to be consistent with the citations for the moderately-efficient case, Nguyen et al. 2020 and Hammond et al. 2025 for "highly inefficient/airless cases" and Hammond et al. 2017 for efficient heat transport.
+    }
+        
+    \end{response}
+    \begin{response}{
+        Line 308: please report ranges of radius and heat redistribution values considered.
+    }
+        
+    \end{response}
+    \begin{response}{
+        Line 329: minimal -> negligible
+    }
+        
+    \end{response}
+    \begin{response}{
+        Line 355: Teq=758K diff
+    }
+        
+    \end{response}
+    \begin{response}{
+        Line 405 (but also more generally throughout the manuscript): Low-radius models -> small radii
+    }
+        
+    \end{response}
+    \begin{response}{
+        Line 405: ..... Cannot be ruled out as the amplitude of the phase curve scales with the planet's radius and the heat recirculation efficiency
+    }
+        
+    \end{response}
+    \begin{response}{
+        Line 492: low radius -> small radius , high-heat -> efficient heat
+    }
+        
+    \end{response}
+    \begin{response}{
+        Line 498: an observation of -> observations of
+    }
+        
+    \end{response}
+    \begin{response}{
+        Line 500: MIRI -> MIRI/LRS
+    }
+        
+    \end{response}
+    \begin{response}{
+        Line 521: across wavelength if the calibrated absolute flux is accurate enough.
+    }
+        
+    \end{response}
+    \begin{response}{
+        Line 540: unbroken -> continuous
+    }
+        
+    \end{response}
+    \begin{response}{
+        Line 611: please add a reference to this claim
+    }
+        
+    \end{response}
+    \begin{response}{
+        Line 626: constant disk -> uniform disk
+    }
+        
+    \end{response}
+    \begin{response}{
+        Line 641: could also mention tidal heating/interior heating 
+    }
+        
+    \end{response}
+    \begin{response}{
+        Line 666: mismatch -> deviation
+    }
+        
+    \end{response}
+    \begin{response}{
+        Line 688: flares could be a particular challenge for VPIE as Vasilyev et al. 2025 showed that the surfaces spectrum of the star could change after a flare
+    }
+        
+    \end{response}
+    
+    {\bf Data Editors' report}
+
+    \begin{response}{
+        A. We recommend that manuscripts that use showyourwork include a specific ``open science'' section that describes the underlying philosophy of showyourwork and how to use the associated icons with each figure.\\
+        We further ask that all the data and code associated with each figure be placed in a Zenodo repository and linked via its DOI. This in addition to (not a replacement of) the GitHub links.\\
+        One reason for this is that the GitHub links can be fragile and thus it is important to capture the full contents of the github repo via a DOI to a repository for future readers. Some of this is discussed in this showyourwork issue:\\
+        \url{https://github.com/showyourwork/showyourwork/pull/256}\\
+        See for example Starkman et al. (2025):\\
+        \url{https://iopscience.iop.org/article/10.3847/1538-4357/ad94f2\#apjad94f2s8}
+    }
+        
+    \end{response}
+    \begin{response}{
+        In addition to Christiansen et al. (2025), (It is NASA Exoplanet not NExSci Exoplanet), it appropriate to directly cite the exact NEA table you used:\\
+        \url{https://exoplanetarchive.ipac.caltech.edu/docs/doi.html}\\
+        If you used the Planetary Systems Table, then you'd cite it with bibtex like:\\
+        \texttt{
+            @misc\{https://doi.org/10.26133/nea12,\\
+            doi = \{10.26133/NEA12\},\\
+            url = \{https://catcopy.ipac.caltech.edu\\/dois/doi.php?id=10.26133/NEA12\},\\
+            author = \{\{NASA Exoplanet Science Institute\}\},\\
+            title = \{Planetary Systems Table\},\\
+            version = \{Last Accessed: 2026-02-06\},\\
+            publisher = \{IPAC\},\\
+            year = \{2020\}
+            \}
+        }
+    }
+        
+    \end{response}
     
 
 \end{letter}
