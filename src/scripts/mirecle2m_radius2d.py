@@ -160,7 +160,7 @@ if __name__ in '__main__':
                         long_wl = binned_wl >= CHI2_WL.to_value(u.um)
                         chi_sq_spec = chi_sq_spec[:, long_wl]
                         chi_sq = np.sum(chi_sq_spec)
-                        red_chi_sq = chi_sq / (chi_sq_spec.size+2)
+                        red_chi_sq = chi_sq / (chi_sq_spec.size-2)
                         red_chi_sq_array[i, j] = red_chi_sq
                 if CACHE_FILE.exists():
                     af = asdf.open(CACHE_FILE,mode='rw')
