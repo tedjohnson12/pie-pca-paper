@@ -25,6 +25,9 @@ from mirecle2m_run import get_model as get_model_200cm, PLANET as PLANET_PARAMS_
 from mirecle50cm_run import get_model as get_model_50cm, PLANET as PLANET_PARAMS_50CM
 from mirecle564cm_run import get_model as get_model_564cm, PLANET as PLANET_PARAMS_564CM
 
+from proxb_run import RADIUS_SCALE_MIN, RADIUS_SCALE_MAX, TEMP_RATIO_MIN, TEMP_RATIO_MAX
+
+
 PREFIX = 'mirecle2d'
 IC = 'BIC'
 MAX_BASIS = None
@@ -106,7 +109,7 @@ def get_residual_and_noise(chi_noise_scale, epsilon, interpolator, get_model,sho
 if __name__ in '__main__':
     plt.style.use('bmh')
 
-    temp_array = np.linspace(0.05, 0.99, 150)
+    temp_array = np.linspace(TEMP_RATIO_MIN, TEMP_RATIO_MAX, 150)
     log_eps_array = (temp_to_log_epsilon(temp_array))
     
     
@@ -116,7 +119,7 @@ if __name__ in '__main__':
         interpolator = interpolator_initializer()
         pl_true_radius = planet_params.radius.to(u.R_earth)
         for temperature_ratio, label, noise_scale, should_use_cache in zip(TEMPERATURE_RATIOS, LABELS, noise_scales, use_cache_arr):
-            radius_arr = np.linspace(0.05, 3.2,80)
+            radius_arr = np.linspace(RADIUS_SCALE_MIN, RADIUS_SCALE_MAX,80)
             if should_use_cache:
                 with asdf.open(CACHE_FILE,mode='r') as f:
                     key = f'{aperture}_{label}'

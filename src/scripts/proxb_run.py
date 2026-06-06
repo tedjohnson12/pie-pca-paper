@@ -28,6 +28,11 @@ CHI2_WL = 10.0*u.um
 BIN_WL = 6
 BIN_TIME = 3
 
+RADIUS_SCALE_MIN = 0.05
+RADIUS_SCALE_MAX = 3.2
+TEMP_RATIO_MIN = 0.05
+TEMP_RATIO_MAX = 0.99
+
 
 HEADER = VSPEC.params.Header(
     data_path=Path(__file__).parent / '.vspec' / f'proxb_{TRUE_EPSILON:.2f}',
@@ -257,6 +262,11 @@ def write_table():
     for k, v in tab.items():
         lines.append(f'{k} & {v} \\\\')
     lines.append('\\hline')
+    lines.append('\\multicolumn{2}{c}{Inference Grid} \\\\')
+    lines.append('\\hline')
+    lines.append(f'Radius & ${RADIUS_SCALE_MIN*PLANET.radius.to_value(u.R_earth):.1f}--{RADIUS_SCALE_MAX*PLANET.radius.to_value(u.R_earth):.1f}\\,R_\\oplus$ \\\\')
+    lines.append(f'$T_\\mathrm{{night}}/T_\\mathrm{{day}}$ & ${TEMP_RATIO_MIN:.2f}--{TEMP_RATIO_MAX:.2f}$ \\\\')
+    lines.append('\\hline')
     lines.append('\\end{tabular}')
     refsline = '; '.join(f"{foot(b)}{cite(a)}" for a,b in REF.items())
     lines.append(f'\\caption{{PCb Simulation Parameters. {refsline}}}')
@@ -280,7 +290,7 @@ def get_temperature_ratio(epsilon: float):
 
 if __name__ == '__main__':
     write_table()
-    psg.docker.set_url_and_run()
-    model = get_model()
-    model.build_planet()
-    model.build_spectra()
+    # psg.docker.set_url_and_run()
+    # model = get_model()
+    # model.build_planet()
+    # model.build_spectra()

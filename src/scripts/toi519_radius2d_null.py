@@ -19,7 +19,7 @@ import VSPEC
 import paths
 from common import bin_image, COLWIDTH, find_eclipse, remove_epoch
 from toi519_grid import get_interp, dt_to_eps as temp_to_log_epsilon
-from toi519_run import get_model, PLANET as PLANET_PARAMS
+from toi519_run import get_model, PLANET as PLANET_PARAMS, RADIUS_SCALE_MIN, RADIUS_SCALE_MAX
 
 PREFIX = 'toi519'
 IC = 'BIC'
@@ -86,7 +86,7 @@ if __name__ in '__main__':
     log_eps_array = (temp_to_log_epsilon(temp_array))
     
     pl_true_radius = PLANET_PARAMS.radius.to(u.R_jup)
-    radius_arr = np.linspace(0.1, 2,80)
+    radius_arr = np.linspace(RADIUS_SCALE_MIN, RADIUS_SCALE_MAX,80)
     red_chi_sq_array = np.zeros((radius_arr.size, log_eps_array.size))
     dist_residual, dist_noise, _s, _coeffs = get_residual_and_noise(
         chi_noise_scale=CHI2_NOISE_SCALE

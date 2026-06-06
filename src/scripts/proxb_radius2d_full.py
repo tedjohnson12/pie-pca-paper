@@ -26,6 +26,7 @@ from proxb_run import (
     CHI2_WL,
     BIN_WL,
     BIN_TIME,
+    RADIUS_SCALE_MIN, RADIUS_SCALE_MAX, TEMP_RATIO_MIN, TEMP_RATIO_MAX
 )
 
 PREFIX = 'proxb'
@@ -102,7 +103,7 @@ if __name__ in '__main__':
         _residual = _f_rec - _total_observed
         return _residual, _uncertainty, _s, _coeffs
 
-    temp_array = np.linspace(0.05, 0.99, 150)
+    temp_array = np.linspace(TEMP_RATIO_MIN, TEMP_RATIO_MAX, 150)
     log_eps_array = (temp_to_log_epsilon(temp_array))
 
 
@@ -110,7 +111,7 @@ if __name__ in '__main__':
         tol = 1e-3
         return (x < 1+tol) and (x > 1-tol)
     pl_true_radius = PLANET_PARAMS.radius.to(u.R_earth)
-    radius_arr = np.linspace(0.05, 3.2,80)
+    radius_arr = np.linspace(RADIUS_SCALE_MIN, RADIUS_SCALE_MAX,80)
     red_chi_sq_array = np.zeros((radius_arr.size, log_eps_array.size))
     chi_sq_eq_nine_array = np.zeros((radius_arr.size, log_eps_array.size))
     dist_residual, dist_noise, _s, _coeffs = get_residual_and_noise(

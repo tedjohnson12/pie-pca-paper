@@ -25,6 +25,11 @@ TSPOT = 2700
 TPHOT = ((TEFF**4 - SPOT_FRAC*TSPOT**4)/(1-SPOT_FRAC))**0.25
 SHORT_WL_CUTOFF = 0.8*u.um
 
+RADIUS_SCALE_MIN = 0.1
+RADIUS_SCALE_MAX = 2.0
+TEMP_RATIO_MIN = 0.05
+TEMP_RATIO_MAX = 0.99
+
 
 
 HEADER = VSPEC.params.Header(
@@ -253,6 +258,11 @@ def write_table():
     ]
     for k, v in tab.items():
         lines.append(f'{k} & {v} \\\\')
+    lines.append('\\hline')
+    lines.append('\\multicolumn{2}{c}{Inference Grid} \\\\')
+    lines.append('\\hline')
+    lines.append(f'Radius & ${RADIUS_SCALE_MIN*PLANET.radius.to_value(u.R_jup):.1f}--{RADIUS_SCALE_MAX*PLANET.radius.to_value(u.R_jup):.1f}\\,R_\\mathrm{{J}}$ \\\\')
+    lines.append(f'$T_\\mathrm{{night}}/T_\\mathrm{{day}}$ & ${TEMP_RATIO_MIN:.2f}--{TEMP_RATIO_MAX:.2f}$ \\\\')
     lines.append('\\hline')
     lines.append('\\end{tabular}')
     refsline = '; '.join(f"{foot(b)}{cite(a)}" for a,b in REF.items())

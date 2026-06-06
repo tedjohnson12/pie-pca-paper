@@ -212,8 +212,8 @@ For each target, we model the stellar and planetary time series based on observe
 For each case, we first generate a full combined-light dataset with both stellar and planetary flux using the Variable Star PhasE Curve code \citep[\texttt{VSPEC}][]{johnson2025}, which uses the Planetary Spectrum Generator's Global Emission Spectra application \citep[PSG/GlobES][]{villanueva2018,kofman2024} to create combined light spectral timeseries including the photon-noise contribution under specified observatory characteristics. \update{\texttt{VSPEC} generates simplified 3D atmosphere models based on instellation and a dimensionless ``thermal inertia'' parameter, \citep[$\epsilon$, see][]{cowan2011}. Herein we translate $\epsilon$ into a more-intuitive night/day temperature ratio ($T_\mathrm{night}/T_\mathrm{day}$), where $T_\mathrm{night}$ and $T_\mathrm{day}$ are the minimum and maximum equitorial temperatures, respectively.}
 
 \update{
-We then analyze the combined-light phase curve, using VPIE to isolate the planet's variability ($\bm{\epsilon}+\bm{\delta}$ (see eq. \ref{eq:def-residuals}).
-Finally, we generate a full grid of planetary forward models for different radius and heat-redistribution scenarios, compute $\bm{\delta}(\theta)$ for each model, and evaluate it's goodness-of fit to the data.
+We then analyze the combined-light phase curve, using VPIE to isolate the planet's variability ($\bm{\epsilon}+\bm{\delta}$, see eq. \ref{eq:def-residuals}).}
+Finally, we generate a full grid of planetary forward models with radius and heat-redistribution scenarios, \update{compute $\bm{\delta}(\theta)$ for each model, and evaluate it's goodness-of fit to the data.
 }
 
 
