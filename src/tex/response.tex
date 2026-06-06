@@ -82,30 +82,26 @@
         This comment helped us realize that Figure 3 was not telling the story we were aiming for in an effective way. We have replaced it with a similar figure which is designed to be a visual intermediate step between the equations in Section 2 and the 2D residual patterns shown in Figure 4. This figure is an improvement because
         \begin{enumerate}
             \item It is now clear which curves on the plot are appropriate comparisons.
-            \item The star has a more interesting variability signal (not just a linear slope). We did this by reducing its rotation period
+            \item The star has a more interesting variability signal (not just a linear slope). We did this by reducing its rotation period.
             \item It is more clear that negative values are part of the signal, rather than a failure of the model.
         \end{enumerate}
-        The last point is very important because, in order to understand the inference done in subsequent sections, the reader must see that we fit a model to the measured phase curve ($\bm{f}_\mathrm{p}$) because there is no eclipse to use as an uncontaminated stellar spectrum. Instead, we fit a model to the quantity
+        The last point is very important because, in order to understand the inference done in subsequent sections, the reader must see that we cannot fit a model to the measured phase curve ($\bm{f}_\mathrm{p}$) because there is no eclipse to use as an uncontaminated stellar spectrum. Instead, we fit a model to the quantity
         \begin{align*}
             \bm{f}_\mathrm{p}(\theta) - \sum_{k=0}^q a_k \bm{f}_\mathrm{p}^{(k)}(\theta)\, ,
         \end{align*}
-        because it can be measured directly.
+        because it can be measured directly. The figure has been updated to make this more clear. We also added text in the figure caption which notes the fact that most of the values are negative and points out that this process is expected to produce negative and positive residuals in general.
 
         In addition to updating the figure and caption, we added text (lines \tentative{362--377}) which gives additional details about Figure 3.
-
-        TODO: State clearly why the values are negative. Mention that the zeros in this figure are the basis indicies.
     \end{response}
     \begin{response}{
         Line 155: please cite Coulombe et al. 2024 who simultaneously fit for stellar variability (granulation and oscillation), reflected light and thermal emission variations.
     }
         Thank you for this suggestion. The citation has been added.
-        
-        TODO: Confirm that they meant Coulombe et al. 2025.
     \end{response}
     \begin{response}{
         Line 163: while it is not the goal of VPIE to understand the details of stellar variability, my understanding is that VPIE would also uncover spectroscopic variability signals, so the output could still be analyzed to understand stellar variability.
     }
-        It is true thatan observation which utilizes the VPIE method will uncover stellar variability, if present. However, that variability should be easy to measure without using VPIE since the star is the dominant source of flux in the system. Discussion about the potential stellar physics that could be done as part of a VPIE observation would be better suited for an article that discusses a specific instrument or observatory that is optimized for VPIE.
+        It is true that an observation which utilizes the VPIE method will uncover stellar variability, if present. However, that variability should be easy to measure without using VPIE since the star is the dominant source of flux in the system. Discussion about the potential stellar physics that could be done as part of a VPIE observation would be better suited for an article that discusses a specific instrument or observatory that is optimized for VPIE.
     \end{response}
     \begin{response}{
         Line 187: ``$\tilde{f}$ is a model observation''. Please clarify that this is an ``empirical model'' described by eq. 2 and not a theoretical model
