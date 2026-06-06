@@ -83,7 +83,7 @@ if __name__ in '__main__':
     
     residual_baseline, uncertainty_baseline, s, coeffs,stellar, thermal = get_residual_and_noise(
             CHI2_NOISE_SCALE, 0.05)
-    _, _, _, _, _, thermal_wrong = get_residual_and_noise(CHI2_NOISE_SCALE, 6)
+    _, _, _, _, _, thermal_wrong = get_residual_and_noise(CHI2_NOISE_SCALE, 1)
     f_rec_no_planet = vpie.get_reconstruction(stellar, coeffs, s)
     residual_no_planet = stellar - f_rec_no_planet
     # binned_residual_baseline = bin_image(residual_baseline,BIN_WL,BIN_TIME,1)
@@ -100,8 +100,7 @@ if __name__ in '__main__':
     fig = plt.figure(figsize=FIGSIZE,layout='constrained')
     ax = fig.add_subplot(1, 1, 1)
     # ax.plot(time.to_value(u.day),f_rec_no_planet[:,INDEX_TO_PLOT]-np.min(f_rec_no_planet[:,INDEX_TO_PLOT]),c='C4',ls='--',label='Star-only variations')
-    ax.plot(time.to_value(u.day),thermal[:,INDEX_TO_PLOT],c='C1',ls='--',label='')
-    ax.plot(time.to_value(u.day),thermal_wrong[:,INDEX_TO_PLOT],c='C2',ls='--',label='Thermal Emission Phase Curve \u2013 Incorrect Model')
+    # ax.plot(time.to_value(u.day),thermal_wrong[:,INDEX_TO_PLOT],c='C2',ls='--',label='Thermal Emission Phase Curve \u2013 Incorrect Model')
     ax.plot(time.to_value(u.day),residual_baseline[:,INDEX_TO_PLOT],c='C0',ls='-',label='Data $\\boldsymbol{\\epsilon} + \\boldsymbol{\\delta} \\approx \\boldsymbol{\\delta}$')
     ax.fill_between(
         time.to_value(u.day),
@@ -119,20 +118,31 @@ if __name__ in '__main__':
         alpha=0.2,
         label='$\\pm 2\\sigma$'
     )
+    ax.plot(time.to_value(u.day),thermal[:,INDEX_TO_PLOT],c='C1',ls='--',label='$\\boldsymbol{f}(\\theta_1)$, $\\theta_1 = \\{\\mathrm{inefficient,}\\,2.5\\,R_\\oplus\\}$')
+    for i, k in enumerate(sorted(list(s))):
+        a = coeffs[:,i]
+        print(k)
+        f_k = thermal[k,INDEX_TO_PLOT]
+        akfk = a*f_k
+        k_set = r",\,".join([str(k) for k in sorted(list(s))])
+        label = f'$ -a_k \\,\\boldsymbol{{f}}_k(\\theta_1) $ for $k \\in \\{{{k_set}\\}}$' if i==0 else None
+        ax.plot(time.to_value(u.day),-akfk,c='C1',ls=':',label=label)
+
     model_residual = thermal - vpie.get_reconstruction(thermal, coeffs, s)
     chi2 = (residual_baseline[:,INDEX_TO_PLOT] - model_residual[:,INDEX_TO_PLOT])**2 / uncertainty_baseline[:,INDEX_TO_PLOT]**2
     red_chi2 = np.sum(chi2)/(len(chi2) - 2)
-    label='$\\boldsymbol{\\delta}(\\theta)$, $\\theta = \\{\\mathrm{inefficient,}\\,2.5\\,R_\\oplus\\}$\n'+f'$\\chi^2_\\mathrm{{red}} = {red_chi2:.1f}$'
+    label='$\\boldsymbol{\\delta}(\\theta_1) = \\boldsymbol{f}(\\theta_1) - \\sum a_k \\,\\boldsymbol{{f}}_k(\\theta_1) $ \t'+f'$\\chi^2_\\mathrm{{red}} = {red_chi2:.1f}$'
     ax.plot(time.to_value(u.day),model_residual[:,INDEX_TO_PLOT],c='C1',label=label)
     model_residual_wrong = thermal_wrong - vpie.get_reconstruction(thermal_wrong, coeffs, s)
     chi2 = (residual_baseline[:,INDEX_TO_PLOT] - model_residual_wrong[:,INDEX_TO_PLOT])**2 / uncertainty_baseline[:,INDEX_TO_PLOT]**2
     red_chi2 = np.sum(chi2)/(len(chi2) - 2)
-    label='$\\boldsymbol{\\delta}(\\theta)$, $\\theta = \\{\\mathrm{mod.\\;efficient,}\\,2.5\\,R_\\oplus\\}$\n'+f'$\\chi^2_\\mathrm{{red}} = {red_chi2:.1f}$'
+    label='$\\boldsymbol{\\delta}(\\theta_2)$, $\\theta_2 = \\{\\mathrm{mod.\\;efficient,}\\,2.5\\,R_\\oplus\\}$\t'+f'$\\chi^2_\\mathrm{{red}} = {red_chi2:.1f}$'
     ax.plot(time.to_value(u.day),model_residual_wrong[:,INDEX_TO_PLOT],c='C2',label=label)
-    model_residual = thermal*2 - vpie.get_reconstruction(thermal*2, coeffs, s)
+    scale = (3/2.5)**2
+    model_residual = thermal*scale - vpie.get_reconstruction(thermal*scale, coeffs, s)
     chi2 = (residual_baseline[:,INDEX_TO_PLOT] - model_residual[:,INDEX_TO_PLOT])**2 / uncertainty_baseline[:,INDEX_TO_PLOT]**2
     red_chi2 = np.sum(chi2)/(len(chi2) - 2)
-    label='$\\boldsymbol{\\delta}(\\theta)$, $\\theta = \\{\\mathrm{inefficient,}\\,5.0\\,R_\\oplus\\}$\n'+f'$\\chi^2_\\mathrm{{red}} = {red_chi2:.1f}$'
+    label='$\\boldsymbol{\\delta}(\\theta_3)$, $\\theta_3 = \\{\\mathrm{inefficient,}\\,3.0\\,R_\\oplus\\}$\t'+f'$\\chi^2_\\mathrm{{red}} = {red_chi2:.1f}$'
     ax.plot(time.to_value(u.day),model_residual[:,INDEX_TO_PLOT],c='C3',label=label)
 
     
