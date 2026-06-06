@@ -214,6 +214,33 @@ REF = {
     'gaiacollaboration2020': 'b'
     
 }
+
+TAB = {
+    'Stellar Effective Temperature': f'{(TEFF*u.K):latex}{foot(REF["kagetani2023"])}',
+    'Stellar Radius': f'{round(STAR.radius,2):latex}{foot(REF["kagetani2023"])}',
+    'Stellar Rotation Period': f'{STAR.period:latex}{foot(REF["assumed"])}',
+    'Spot Temperature': f'{STAR.spots.teff_umbra:latex}{foot(REF["assumed"])}',
+    'Spot Coverage Fraction': f'{SPOT_FRAC:.1f}{foot(REF["assumed"])}',
+    'Photosphere Temperature': f'{STAR.teff.round(0):latex}',
+    'Planet Radius': f'{PLANET.radius.round(2):latex}{foot(REF["kagetani2023"])}',
+    'Planet Mass': f'{PLANET.gravity.value.to(u.M_earth).round(0):latex}{foot(REF["kagetani2023"])}',
+    'Planet $T_\\mathrm{eq}$': f'{get_teq().to(u.K).round(0):latex}',
+    'Semimajor Axis': f'{PLANET.semimajor_axis:latex}{foot(REF["kagetani2023"])}',
+    'Orbital Period': f'{PLANET.orbit_period.round(3):latex}{foot(REF["kagetani2023"])}',
+    'Eccentricity': f'{PLANET.eccentricity:.1f}{foot(REF["assumed"])}',
+    'Initial Phase': f'{PLANET.init_phase:latex}{foot(REF["assumed"])}',
+    'Distance': f'{SYSTEM.distance:latex}{foot(REF["gaiacollaboration2020"])}',
+    'Inclination': f'{SYSTEM.inclination:latex}{foot(REF["kagetani2023"])}',
+    'Observation Length': f'{OBS.observation_time:latex}',
+    'Integration Length': f'{INST.detector.integration_time:latex}',
+    'Time Bin Size': f'{OBS.integration_time:latex}',
+    'Short Wavelength': f'{INST.bandpass.wl_blue:latex}',
+    'Long Wavelength': f'{INST.bandpass.wl_red:latex}',
+    'PIE Cutoff': f'{SHORT_WL_CUTOFF:latex}',
+    'Resolving Power': f'{INST.bandpass.resolving_power:.0f}',
+    'Mean Molecular Weight': f'{GCM_DICT["gcm"]["mean_molec_weight"]:.0f}{foot(REF["assumed"])}',
+    'Albedo': f'{GCM_DICT["gcm"]["vspec"]["albedo"]:.1f}{foot(REF["assumed"])}',
+}
 def cite(k):
     if k in ['assumed']:
         return k
@@ -222,32 +249,7 @@ def cite(k):
 
 
 def write_table():
-    tab = {
-        'Stellar Effective Temperature': f'{(TEFF*u.K):latex}{foot(REF["kagetani2023"])}',
-        'Stellar Radius': f'{round(STAR.radius,2):latex}{foot(REF["kagetani2023"])}',
-        'Stellar Rotation Period': f'{STAR.period:latex}{foot(REF["assumed"])}',
-        'Spot Temperature': f'{STAR.spots.teff_umbra:latex}{foot(REF["assumed"])}',
-        'Spot Coverage Fraction': f'{SPOT_FRAC:.1f}{foot(REF["assumed"])}',
-        'Photosphere Temperature': f'{STAR.teff.round(0):latex}',
-        'Planet Radius': f'{PLANET.radius.round(2):latex}{foot(REF["kagetani2023"])}',
-        'Planet Mass': f'{PLANET.gravity.value.to(u.M_earth).round(0):latex}{foot(REF["kagetani2023"])}',
-        'Planet $T_\\mathrm{eq}$': f'{get_teq().to(u.K).round(0):latex}',
-        'Semimajor Axis': f'{PLANET.semimajor_axis:latex}{foot(REF["kagetani2023"])}',
-        'Orbital Period': f'{PLANET.orbit_period.round(3):latex}{foot(REF["kagetani2023"])}',
-        'Eccentricity': f'{PLANET.eccentricity:.1f}{foot(REF["assumed"])}',
-        'Initial Phase': f'{PLANET.init_phase:latex}{foot(REF["assumed"])}',
-        'Distance': f'{SYSTEM.distance:latex}{foot(REF["gaiacollaboration2020"])}',
-        'Inclination': f'{SYSTEM.inclination:latex}{foot(REF["kagetani2023"])}',
-        'Observation Length': f'{OBS.observation_time:latex}',
-        'Integration Length': f'{INST.detector.integration_time:latex}',
-        'Time Bin Size': f'{OBS.integration_time:latex}',
-        'Short Wavelength': f'{INST.bandpass.wl_blue:latex}',
-        'Long Wavelength': f'{INST.bandpass.wl_red:latex}',
-        'PIE Cutoff': f'{SHORT_WL_CUTOFF:latex}',
-        'Resolving Power': f'{INST.bandpass.resolving_power:.0f}',
-        'Mean Molecular Weight': f'{GCM_DICT["gcm"]["mean_molec_weight"]:.0f}{foot(REF["assumed"])}',
-        'Albedo': f'{GCM_DICT["gcm"]["vspec"]["albedo"]:.1f}{foot(REF["assumed"])}',
-    }
+    
     lines = [
         '\\begin{table}',
         '\\centering',
@@ -256,7 +258,7 @@ def write_table():
         'Quantity & Value \\\\',
         '\\hline',
     ]
-    for k, v in tab.items():
+    for k, v in TAB.items():
         lines.append(f'{k} & {v} \\\\')
     lines.append('\\hline')
     lines.append('\\multicolumn{2}{c}{Inference Grid} \\\\')
