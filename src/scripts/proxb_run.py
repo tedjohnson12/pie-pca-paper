@@ -213,7 +213,7 @@ def foot(t):
 
 REF = {
     'assumed': '\\dagger',
-    'faria2022': 'a',
+    'faria2022': 'e',
     'gaiacollaboration2020': 'b'
     
 }

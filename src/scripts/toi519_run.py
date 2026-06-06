@@ -10,18 +10,14 @@ import VSPEC
 import VSPEC.config
 import VSPEC.gcm
 import libpypsg as psg
-
 import paths
 
-
 TABLE_FILE = paths.output / 'toi519.txt'
-TRUE_EPSILON = 1.3547855
-TRUE_DAY_NIGHT_RATIOS = [0.5, 0.9]
+FIDUCIAL_EPSILON = 1.3547855
 
 TEFF = 3354
 SPOT_FRAC = 0.1
 TSPOT = 2700
-# (1-SPOT_FRAC)*TPHOT**4 + SPOT_FRAC*TSPOT**4 = TEFF**4
 TPHOT = ((TEFF**4 - SPOT_FRAC*TSPOT**4)/(1-SPOT_FRAC))**0.25
 SHORT_WL_CUTOFF = 0.8*u.um
 
@@ -30,10 +26,13 @@ RADIUS_SCALE_MAX = 2.0
 TEMP_RATIO_MIN = 0.05
 TEMP_RATIO_MAX = 0.99
 
+RERUN_PLANET = False
+RERUN_SPECTRA = False
 
 
 HEADER = VSPEC.params.Header(
-    data_path=Path(__file__).parent / '.vspec' / f'toi519_{TRUE_EPSILON:.2f}',
+    data_path=Path(__file__).parent / '.vspec' /
+    f'toi519_{FIDUCIAL_EPSILON:.2f}',
     seed=519,
     spec_grid=VSPEC.params.VSPECGridParameters(
         max_teff=3400 * u.K,
@@ -42,7 +41,7 @@ HEADER = VSPEC.params.Header(
         impl_interp='scipy',
         fail_on_missing=False
     ),
-    # log_level='info',
+    log_level='info',
     desc='TOI 519 b with JWST',
 )
 
@@ -148,7 +147,7 @@ GCM_DICT = {
             'nlayer': 30,
             'nlon': 90,
             'nlat': 45,
-            'epsilon': TRUE_EPSILON,
+            'epsilon': FIDUCIAL_EPSILON,
             'psurf': 2*u.bar,
             'ptop': 1e-5*u.bar,
             'wind': {'U': 0*u.m/u.s, 'V': 0*u.m/u.s},
@@ -180,6 +179,9 @@ VSPEC_PARAMS = VSPEC.params.InternalParameters(
 
 
 def get_grid_params(epsilon: float):
+    """
+    Get VSPEC parameters with given epsilon
+    """
     _gcm = GCM_DICT.copy()
     _gcm['gcm']['vspec']['epsilon'] = epsilon
     _header = deepcopy(HEADER)
@@ -199,20 +201,32 @@ def get_grid_params(epsilon: float):
 
 
 def get_model():
+    """
+    Return the fiducial model
+    """
     return VSPEC.ObservationModel(VSPEC_PARAMS)
 
 
-def get_teq():
-    return TEFF*u.K * np.sqrt(STAR.radius / PLANET.semimajor_axis/2) * (1-GCM_DICT['gcm']['vspec']['albedo'])
+def get_teq() -> u.Quantity:
+    """
+    Compute the equilibrium temperature
+    """
+    return TEFF*u.K * np.sqrt(STAR.radius / PLANET.semimajor_axis/2) \
+        * (1-GCM_DICT['gcm']['vspec']['albedo'])
+
 
 def foot(t):
+    """
+    LaTeX superscript
+    """
     return rf'$^{t}$'
+
 
 REF = {
     'assumed': '\\dagger',
     'kagetani2023': 'a',
     'gaiacollaboration2020': 'b'
-    
+
 }
 
 TAB = {
@@ -223,7 +237,8 @@ TAB = {
     'Spot Coverage Fraction': f'{SPOT_FRAC:.1f}{foot(REF["assumed"])}',
     'Photosphere Temperature': f'{STAR.teff.round(0):latex}',
     'Planet Radius': f'{PLANET.radius.round(2):latex}{foot(REF["kagetani2023"])}',
-    'Planet Mass': f'{PLANET.gravity.value.to(u.M_earth).round(0):latex}{foot(REF["kagetani2023"])}',
+    'Planet Mass': \
+        f'{PLANET.gravity.value.to(u.M_earth).round(0):latex}{foot(REF["kagetani2023"])}',
     'Planet $T_\\mathrm{eq}$': f'{get_teq().to(u.K).round(0):latex}',
     'Semimajor Axis': f'{PLANET.semimajor_axis:latex}{foot(REF["kagetani2023"])}',
     'Orbital Period': f'{PLANET.orbit_period.round(3):latex}{foot(REF["kagetani2023"])}',
@@ -236,47 +251,16 @@ TAB = {
     'Time Bin Size': f'{OBS.integration_time:latex}',
     'Short Wavelength': f'{INST.bandpass.wl_blue:latex}',
     'Long Wavelength': f'{INST.bandpass.wl_red:latex}',
-    'PIE Cutoff': f'{SHORT_WL_CUTOFF:latex}',
     'Resolving Power': f'{INST.bandpass.resolving_power:.0f}',
     'Mean Molecular Weight': f'{GCM_DICT["gcm"]["mean_molec_weight"]:.0f}{foot(REF["assumed"])}',
     'Albedo': f'{GCM_DICT["gcm"]["vspec"]["albedo"]:.1f}{foot(REF["assumed"])}',
 }
-def cite(k):
-    if k in ['assumed']:
-        return k
-    else:
-        return f'\\citet{{{k}}}'
-
-
-def write_table():
-    
-    lines = [
-        '\\begin{table}',
-        '\\centering',
-        '\\begin{tabular}{cc}',
-        '\\hline',
-        'Quantity & Value \\\\',
-        '\\hline',
-    ]
-    for k, v in TAB.items():
-        lines.append(f'{k} & {v} \\\\')
-    lines.append('\\hline')
-    lines.append('\\multicolumn{2}{c}{Inference Grid} \\\\')
-    lines.append('\\hline')
-    lines.append(f'Radius & ${RADIUS_SCALE_MIN*PLANET.radius.to_value(u.R_jup):.1f}--{RADIUS_SCALE_MAX*PLANET.radius.to_value(u.R_jup):.1f}\\,R_\\mathrm{{J}}$ \\\\')
-    lines.append(f'$T_\\mathrm{{night}}/T_\\mathrm{{day}}$ & ${TEMP_RATIO_MIN:.2f}--{TEMP_RATIO_MAX:.2f}$ \\\\')
-    lines.append('\\hline')
-    lines.append('\\end{tabular}')
-    refsline = '; '.join(f"{foot(b)}{cite(a)}" for a,b in REF.items())
-    lines.append(f'\\caption{{TOI-519 b Simulation Parameters. {refsline}}}')
-    lines.append('\\label{tab:toi519-parameters}')
-    lines.append('\\end{table}')
-
-    with open(TABLE_FILE, 'w', encoding='utf-8') as f:
-        f.write('\n'.join(lines))
 
 
 def get_temperature_ratio(epsilon: float):
+    """
+    Compute the night/day temperature ratio
+    """
     if epsilon < 1:
         mode = 'ivp_reflect'
     elif epsilon < 10:
@@ -288,8 +272,9 @@ def get_temperature_ratio(epsilon: float):
 
 
 if __name__ == '__main__':
-    write_table()
-    # psg.docker.set_url_and_run()
-    # model = get_model()
-    # model.build_planet()
-    # model.build_spectra()
+    model = get_model()
+    if not (model.directories['psg_thermal'] / 'phase00000.fits').exists() or RERUN_PLANET:
+        psg.docker.set_url_and_run()
+        model.build_planet()
+    if not (model.directories['all_model'] / 'phase00000.fits').exists() or RERUN_SPECTRA:
+        model.build_spectra()

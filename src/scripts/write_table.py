@@ -50,7 +50,16 @@ def write_table():
     lines.append('\\hline')
 
     lines.append('\\end{tabular}')
-    lines.append('\\caption{Simulation Parameters}')
+    refs = {}
+    for _ref in [toi519.REF, gj876.REF, proxb.REF]:
+        for k, v in _ref.items():
+            if k in refs:
+                pass
+            else:
+                refs[k] = v
+    refsline = '; '.join(f"{toi519.foot(b)}{toi519.cite(a)}" for a,b in refs.items())
+
+    lines.append(f'\\caption{{Simulation Parameters. {refsline}}} ')
     lines.append('\\label{tab:parameters}')
     lines.append('\\end{table*}')
 

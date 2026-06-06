@@ -74,3 +74,14 @@ def remove_epoch(thermal:np.ndarray, i_start: int, i_end: int):
     if thermal.ndim == 1:
         return np.concatenate([thermal[:i_start], thermal[i_end+1:]], axis=0)
     return np.concatenate([thermal[:i_start,:], thermal[i_end+1:,:]], axis=0)
+
+
+def cite(k: str):
+    """
+    Table citation for ref id `k`. E.g., `'moran2023'`-> `\\citet{moran2023}`
+    """
+    
+    if k in ['assumed']:
+        return k
+    else:
+        return f'\\citet{{{k}}}'
