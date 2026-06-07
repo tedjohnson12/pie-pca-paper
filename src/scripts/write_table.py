@@ -9,10 +9,15 @@ import toi519_run as toi519
 import gj876_run as gj876
 import proxb_run as proxb
 import paths
+import common
 
 TABLE_FILE = paths.output / 'tab.txt'
 
+
 def write_table():
+    """
+    Write a table that includes parameters from all examples.
+    """
     lines = [
         '\\begin{table*}',
         '\\centering',
@@ -31,22 +36,27 @@ def write_table():
             assert k in proxb.TAB
         except AssertionError:
             logger.warning(f'{k} not in all tables')
-        lines.append(f'{k} & {toi519.TAB.get(k,"")} & {gj876.TAB.get(k,"")} & {proxb.TAB.get(k,"")} \\\\')
+        lines.append(
+            f'{k} & {toi519.TAB.get(k,"")} & {gj876.TAB.get(k,"")} & {proxb.TAB.get(k,"")} \\\\')
     lines.append('\\hline')
     lines.append('\\multicolumn{4}{c}{Inference Grid} \\\\')
     lines.append('\\hline')
     _radius_range = [
-        f'${toi519.RADIUS_SCALE_MIN*toi519.PLANET.radius.to_value(u.R_jup):.1f}--{toi519.RADIUS_SCALE_MAX*toi519.PLANET.radius.to_value(u.R_jup):.1f}\\,R_\\mathrm{{J}}$'
-        f'${gj876.RADIUS_SCALE_MIN*gj876.PLANET.radius.to_value(u.R_earth):.1f}--{gj876.RADIUS_SCALE_MAX*gj876.PLANET.radius.to_value(u.R_earth):.1f}\\,R_\\oplus$'
-        f'${proxb.RADIUS_SCALE_MIN*proxb.PLANET.radius.to_value(u.R_earth):.1f}--{proxb.RADIUS_SCALE_MAX*proxb.PLANET.radius.to_value(u.R_earth):.1f}\\,R_\\oplus$'
+        f'${toi519.RADIUS_SCALE_MIN*toi519.PLANET.radius.to_value(u.R_jup):.1f}--'
+        f'{toi519.RADIUS_SCALE_MAX*toi519.PLANET.radius.to_value(u.R_jup):.1f}\\,R_\\mathrm{{J}}$',
+        f'${gj876.RADIUS_SCALE_MIN*gj876.PLANET.radius.to_value(u.R_earth):.1f}-'
+        f'-{gj876.RADIUS_SCALE_MAX*gj876.PLANET.radius.to_value(u.R_earth):.1f}\\,R_\\oplus$',
+        f'${proxb.RADIUS_SCALE_MIN*proxb.PLANET.radius.to_value(u.R_earth):.1f}-'
+        f'-{proxb.RADIUS_SCALE_MAX*proxb.PLANET.radius.to_value(u.R_earth):.1f}\\,R_\\oplus$',
     ]
     _temp_range = [
-        f'${toi519.TEMP_RATIO_MIN:.2f}--{toi519.TEMP_RATIO_MAX:.2f}$'
-        f'${gj876.TEMP_RATIO_MIN:.2f}--{gj876.TEMP_RATIO_MAX:.2f}$'
+        f'${toi519.TEMP_RATIO_MIN:.2f}--{toi519.TEMP_RATIO_MAX:.2f}$',
+        f'${gj876.TEMP_RATIO_MIN:.2f}--{gj876.TEMP_RATIO_MAX:.2f}$',
         f'${proxb.TEMP_RATIO_MIN:.2f}--{proxb.TEMP_RATIO_MAX:.2f}$'
     ]
     lines.append(f'Radius & {" & ".join(_radius_range)} \\\\')
-    lines.append(f'$T_\\mathrm{{night}}/T_\\mathrm{{day}}$ & {" & ".join(_temp_range)} \\\\')
+    lines.append(
+        f'$T_\\mathrm{{night}}/T_\\mathrm{{day}}$ & {" & ".join(_temp_range)} \\\\')
     lines.append('\\hline')
 
     lines.append('\\end{tabular}')
@@ -57,7 +67,8 @@ def write_table():
                 pass
             else:
                 refs[k] = v
-    refsline = '; '.join(f"{toi519.foot(b)}{toi519.cite(a)}" for a,b in refs.items())
+    refsline = '; '.join(
+        f"{toi519.foot(b)}{common.cite(a)}" for a, b in refs.items())
 
     lines.append(f'\\caption{{Simulation Parameters. {refsline}}} ')
     lines.append('\\label{tab:parameters}')
@@ -65,6 +76,7 @@ def write_table():
 
     with open(TABLE_FILE, 'w', encoding='utf-8') as f:
         f.write('\n'.join(lines))
+
 
 if __name__ == '__main__':
     write_table()
