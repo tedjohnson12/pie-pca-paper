@@ -1,10 +1,7 @@
-import contextlib
 from pathlib import Path
 import matplotlib.pyplot as plt
-from matplotlib.colors import LogNorm
 import numpy as np
 from astropy import units as u
-from loguru import logger
 import libpypsg as psg
 
 
@@ -12,10 +9,10 @@ from vpie import vpie
 import VSPEC
 
 import paths
-from common import bin_image, COLWIDTH
+from common import COLWIDTH
 
-from gj876_grid import get_interp, dt_to_eps as temp_to_log_epsilon
-from gj876_run import get_model, PLANET as PLANET_PARAMS
+from gj876_grid import get_interp
+from gj876_run import get_model
 
 PREFIX = 'chi2_test'
 IC = 'BIC'

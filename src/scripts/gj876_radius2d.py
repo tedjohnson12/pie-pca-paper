@@ -5,7 +5,6 @@ Simplified JWST retrieval script
 
 """
 
-import contextlib
 import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm
 import numpy as np
@@ -15,11 +14,16 @@ from tqdm.auto import tqdm
 
 from vpie import vpie
 import VSPEC
+from vpie import bin_image
 
 import paths
-from common import bin_image, COLWIDTH, figure_context
+from common import COLWIDTH, figure_context
 from gj876_grid import get_interp, dt_to_eps as temp_to_log_epsilon
-from gj876_run import get_model, PLANET as PLANET_PARAMS, RADIUS_SCALE_MIN, RADIUS_SCALE_MAX, TEMP_RATIO_MIN, TEMP_RATIO_MAX
+from gj876_run import (
+    get_model, PLANET as PLANET_PARAMS,
+    RADIUS_SCALE_MIN, RADIUS_SCALE_MAX,
+    TEMP_RATIO_MIN, TEMP_RATIO_MAX
+)
 
 PREFIX = 'gj876'
 IC = 'BIC'
@@ -43,41 +47,16 @@ if __name__ in '__main__':
     """
     Takes in [log_epsilon]
     """
-    # thermal = THERMAL_SCALE * \
-    #     interpolator([TRUE_LOG_EPSILON])[0, :, :].T  # m x n
     data = VSPEC.PhaseAnalyzer.from_model(get_model())
     wl = data.wavelength
     time = data.time
-
-    # rng = np.random.default_rng(SEED)
-    # stellar = data.star.T.to_value(FLUX_UNIT)
-    # true_noise = data.noise.T.to_value(FLUX_UNIT)
-    # noise = true_noise * NOISE_SCALE
-    # total_true = stellar + thermal
-    # scatter = rng.normal(loc=0, scale=noise)
-    # total_observed = total_true + scatter
-
-
     cutoff_index = np.argwhere(wl > CUTOFF_WL)[0][0]
-    # logger.info(
-    #     f'For a short-wave cutoff of {CUTOFF_WL}, we choose a cutoff index of {cutoff_index}. Total wl axis size is {wl.size}')
-    # long_cutoff_index = np.argwhere(wl > CHI2_WL)[0][0]
-    # logger.info(
-    #     f'For a long-wave cutoff of {CHI2_WL}, we choose a cutoff index of {long_cutoff_index}. Total wl axis size is {wl.size}')
-    # s, coeffs, f_rec = vpie.get_vpie(
-    #     total_observed,
-    #     noise,
-    #     cutoff_index,
-    #     True,
-    #     IC
-    # )
 
-    # residual = f_rec - total_observed
-
-    def get_residual_and_noise(chi_noise_scale, epsilon):
-        # logger.info(
-        #     f'Running radius={radius:.2f} Rp with noise scale of {chi_noise_scale:.2f}')
-        _thermal = THERMAL_SCALE*interpolator([np.log10(epsilon)])[0, :, :].T
+    def get_residual_and_noise(chi_noise_scale, _epsilon):
+        """
+        Data from simulated observation
+        """
+        _thermal = THERMAL_SCALE*interpolator([np.log10(_epsilon)])[0, :, :].T
         _data = VSPEC.PhaseAnalyzer.from_model(get_model())
         _rng = np.random.default_rng(SEED)
         _stellar = _data.star.T.to_value(FLUX_UNIT)
@@ -100,31 +79,26 @@ if __name__ in '__main__':
         return _residual, _uncertainty, _s, _coeffs
 
     temp_array = np.linspace(TEMP_RATIO_MIN, TEMP_RATIO_MAX, 150)
-    log_eps_array = (temp_to_log_epsilon(temp_array))
+    log_eps_array = temp_to_log_epsilon(temp_array)
 
     temp_ratios = [0.05,0.5,0.99]
-    epsilons = temp_to_log_epsilon(temp_ratios)
+    log_epsilons = temp_to_log_epsilon(temp_ratios)
     fnames = ['full','half','null']
     set_title = [False,False,True]
     noise_scale = np.sqrt([
-        # 7.502801873427491,
-        # 7.234735378107635,
-        # 8.829494322348582
-        14.928289113008598,
-        14.084187136036745,
-        17.92887574341346
+        28.191472784293506,
+        13.546932306242084,
+        17.460894606597723
     ])
 
-    def is_one(x):
-        tol = 1e-3
-        return (x < 1+tol) and (x > 1-tol)
-    for epsilon, fname,_title,_noise_scale,temp_ratio in zip(epsilons, fnames,set_title,noise_scale,temp_ratios):
+    for log_epsilon, fname,_title,_noise_scale,temp_ratio in zip(
+        log_epsilons, fnames,set_title,noise_scale,temp_ratios
+    ):
         pl_true_radius = PLANET_PARAMS.radius.to(u.R_earth)
         radius_arr = np.linspace(RADIUS_SCALE_MIN, RADIUS_SCALE_MAX,80)
         red_chi_sq_array = np.zeros((radius_arr.size, log_eps_array.size))
-        chi_sq_eq_nine_array = np.zeros((radius_arr.size, log_eps_array.size))
         dist_residual, dist_noise, _s, _coeffs = get_residual_and_noise(
-            epsilon=10**epsilon,
+            _epsilon=10**log_epsilon,
             chi_noise_scale=_noise_scale
         )
         dist_residual = bin_image(dist_residual,BIN_WL,BIN_TIME,1)
@@ -142,11 +116,11 @@ if __name__ in '__main__':
                 grid_residual = grid_reconstruction - grid_thermal
                 binned_grid_residual = bin_image(grid_residual, BIN_WL,BIN_TIME, 1)
                 difference = binned_grid_residual - dist_residual
-                chi_sq_spec = difference**2/(dist_noise * (1.0))**2
+                chi_sq_2d = difference**2/dist_noise**2
                 long_wl = binned_wl >= CHI2_WL.to_value(u.um)
-                chi_sq_spec = chi_sq_spec[:, long_wl]
-                chi_sq = np.sum(chi_sq_spec)
-                red_chi_sq = chi_sq / (chi_sq_spec.size-2)
+                chi_sq_2d = chi_sq_2d[:, long_wl]
+                chi_sq = np.sum(chi_sq_2d)
+                red_chi_sq = chi_sq / (chi_sq_2d.size-2)
                 red_chi_sq_array[i, j] = red_chi_sq
         logger.info(f'The lowest value for red chi2 is {np.min(red_chi_sq_array)}')
         with figure_context(figsize=FIGSIZE) as fig:
@@ -162,37 +136,42 @@ if __name__ in '__main__':
             ax.grid(False)
             fig.colorbar(im, label='$\\chi^2_{\\rm red}$')
             levels = [1, 4, 9, 16, 25,100,225,400]
-            def fmt(x): return f'$\\chi^2_{{\\rm red}} = {x:.0f}$'
+            def _fmt(x):
+                return f'$\\chi^2_{{\\rm red}} = {x:.0f}$'
             im = ax.contour(
                 temp_array, (radius_arr * pl_true_radius).to_value(u.R_earth), red_chi_sq_array,
                 levels=levels,
                 colors='k',
                 linestyles='dashed'
             )
-            ax.clabel(im, im.levels, inline=True, fontsize=10, fmt=fmt)
-            levels=[1.4,2.2,3.3]
-            labels = [ # See Lissauer+2023 Figure 6
+            ax.clabel(im, im.levels, inline=True, fontsize=10, fmt=_fmt)
+            levels=[1.3,2.1,3.2]
+            labels = [ # Zeng+2019 Fig 2
                 '$100\\%\\;\\mathrm{Fe}$',
                 '$50\\%\\;\\mathrm{H_2O}+50\\%\\;\\mathrm{rock}$',
                 '$+2\\%\\;\\mathrm{H_2}$'
-                # '$\\mathrm{Thick\\; H_2\\; Envelope}$'
             ]
             im=ax.contour(
-                temp_array,(radius_arr * pl_true_radius).to_value(u.R_earth),np.meshgrid(temp_array,(radius_arr * pl_true_radius).to_value(u.R_earth))[1],
+                temp_array,
+                (radius_arr * pl_true_radius).to_value(u.R_earth),
+                np.meshgrid(temp_array,(radius_arr * pl_true_radius).to_value(u.R_earth))[1],
                 levels=levels,
                 colors='w',
                 linestyles='-',
                 zorder=-99
             )
-            fmt = lambda x: dict(zip(levels, labels))[x]
-            # manual = [(0.8,1),(0.3,2.2),(0.2,3)]
-            ax.clabel(im,im.levels,inline=True,fontsize=10,fmt=fmt,zorder=100)
-            ax.text(0.5,0.7,'$\\mathrm{Thick\\; H_2\\; Envelope}$',transform=ax.transAxes,fontsize=10,color='w',ha='center',va='center')
-            ax.scatter(temp_ratio,pl_true_radius.to_value(u.R_earth),marker='*',c='#c50d15',s=200,edgecolor='w')
+            def _fmt_atm(x):
+                # pylint: disable-next=cell-var-from-loop
+                return dict(zip(levels, labels))[x]
+            ax.clabel(im,im.levels,inline=True,fontsize=10,fmt=_fmt_atm,zorder=100)
+            ax.text(0.5,0.7,'$\\mathrm{Thick\\; H_2\\; Envelope}$',
+                    transform=ax.transAxes,fontsize=10,color='w',ha='center',va='center')
+            ax.scatter(temp_ratio,pl_true_radius.to_value(u.R_earth),
+                       marker='*',c='#c50d15',s=200,edgecolor='w')
 
             if _title:
-                # ax.set_title('GJ 876 d', fontsize=16, fontweight='bold')
-                ax.text(0.5,1.05,'GJ 876 d',transform=ax.transAxes,fontsize=16,color='k',ha='center',va='center',fontweight='bold')
+                ax.text(0.5,1.05,'GJ 876 d',transform=ax.transAxes,
+                        fontsize=16,color='k',ha='center',va='center',fontweight='bold')
             fig.tight_layout()
             fig.savefig(
                 paths.figures / f'{PREFIX}_retrieval_red_chi_square_radius_{fname}.pdf')

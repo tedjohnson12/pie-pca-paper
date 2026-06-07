@@ -12,7 +12,7 @@ import VSPEC
 import paths
 from toi519_grid import get_interp, dt_to_eps as temp_to_log_epsilon
 from toi519_run import get_model, PLANET as PLANET_PARAMS
-from common import find_eclipse, remove_epoch
+from common import find_eclipse, remove_epoch, bin_image_rs as bin_image
 
 PREFIX = 'toi519'
 IC = 'AIC'
@@ -165,24 +165,6 @@ if __name__ in '__main__':
                     ax.text(wl[reg][0].to_value(WL_UNIT),1,s)
                     
                 cbar1 = fig.colorbar(im1, ax=ax, orientation='vertical', shrink=0.8,label=label)
-        
-    def bin_image(im: np.ndarray, nwl:int, ntime: int, power: int):
-        def add(*args):
-            _sum = args[0] * 0
-            for arg in args:
-                _sum += arg**power
-            return _sum**(1/power) / len(args)
-        im = np.atleast_2d(im)
-        original_size_time, original_size_wl = im.shape
-        new_size_time = int(np.ceil(original_size_time/ntime))
-        new_size_wl = int(np.ceil(original_size_wl/nwl))
-        out_arr = np.zeros((new_size_time, new_size_wl))
-        for i in range(new_size_time):
-            for j in range(new_size_wl):
-                sub_arr = (im[i*ntime:min((i+1)*ntime,original_size_time), j*nwl:min((j+1)*nwl,original_size_wl)]).flatten()
-                val = add(*sub_arr)
-                out_arr[i,j] = val
-        return out_arr
     
     BIN_TIME = 4
     BIN_WL = 6

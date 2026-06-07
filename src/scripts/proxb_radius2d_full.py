@@ -5,7 +5,6 @@ Simplified JWST retrieval script
 
 """
 
-import contextlib
 import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm
 import numpy as np
@@ -15,9 +14,10 @@ from tqdm.auto import tqdm
 
 from vpie import vpie
 import VSPEC
+from vpie import bin_image
 
 import paths
-from common import bin_image, FIGSIZE, figure_context
+from common import FIGSIZE, figure_context
 from proxb_grid import get_interp, dt_to_eps as temp_to_log_epsilon
 from proxb_run import (
     get_model,

@@ -12,12 +12,14 @@ from astropy import units as u
 from loguru import logger
 from tqdm.auto import tqdm
 import asdf
+from time import time
 
 from vpie import vpie
 import VSPEC
+from vpie import bin_image, fold_image as fold_image
 
 import paths
-from common import bin_image, figure_context, COLWIDTH, fold_image
+from common import figure_context, COLWIDTH
 from mirecle2d_grid import get_interp as get_interp_200cm, dt_to_eps as temp_to_log_epsilon
 from mirecle50cm_grid import get_interp as get_interp_50cm
 from mirecle564cm_grid import get_interp as get_interp_564cm
@@ -53,7 +55,7 @@ FOLD = 67
 TEMPERATURE_RATIOS = [0.05,0.5,0.99]
 LABELS = ['full','half','null']
 USE_CACHE = (
-    [True, True, True],
+    [False, True, True],
     [True, True, True],
     [True, True, True]
 )
@@ -116,7 +118,13 @@ if __name__ in '__main__':
     for aperture, noise_scales, interpolator_initializer, get_model, planet_params, use_cache_arr, should_fold, title in zip(
         APERTURES, CHI2_NOISE_SCALE, INTERPOLATORS, MODEL_GETTERS, PLANET_PARAMS, USE_CACHE, SHOULD_FOLD, TITLES
     ):
-        interpolator = interpolator_initializer()
+        if all(use_cache_arr):
+            interpolator = None
+        else:
+            init_start = time()
+            interpolator = interpolator_initializer()
+            init_end = time()
+            logger.info(f'Interpolator took {init_end-init_start:.2f} seconds to load.')
         pl_true_radius = planet_params.radius.to(u.R_earth)
         for temperature_ratio, label, noise_scale, should_use_cache in zip(TEMPERATURE_RATIOS, LABELS, noise_scales, use_cache_arr):
             radius_arr = np.linspace(RADIUS_SCALE_MIN, RADIUS_SCALE_MAX,80)
@@ -127,6 +135,8 @@ if __name__ in '__main__':
             else: 
                 red_chi_sq_array = np.zeros((radius_arr.size, log_eps_array.size))
                 epsilon = 10**temp_to_log_epsilon([temperature_ratio])[0]
+                logger.info('About to get residual and noise.')
+                res_start = time()
                 data_residual, data_noise, _s, _coeffs, _wl = get_residual_and_noise(
                     epsilon=epsilon,
                     chi_noise_scale=noise_scale,
@@ -134,11 +144,9 @@ if __name__ in '__main__':
                     get_model=get_model,
                     should_fold=should_fold
                 )
-                # if should_fold:
-                #     data_residual = fold_image(data_residual,FOLD,1)
-                #     data_noise = fold_image(data_noise,FOLD,2)
-                #     data_residual = bin_image(data_residual,1,4,1)
-                #     data_noise = bin_image(data_noise,1,4,2)
+                res_end = time()
+                logger.info(f'Residual and noise took {res_end-res_start:.2f} seconds.')
+                logger.info('About to bin images.')
                 data_residual = bin_image(data_residual,BIN_WL,BIN_TIME,1)
                 data_noise = bin_image(data_noise,BIN_WL,BIN_TIME,2)
                 binned_wl = bin_image(_wl.to_value(u.um),BIN_WL,1,1)[0,:]
@@ -155,8 +163,6 @@ if __name__ in '__main__':
                             _s
                         )
                         grid_residual = grid_reconstruction - grid_thermal
-                        # if should_fold:
-                        #     grid_residual = fold_image(grid_residual,FOLD,1)
                         binned_grid_residual = bin_image(grid_residual, BIN_WL,BIN_TIME, 1)
                         difference = binned_grid_residual - data_residual
                         chi_sq_spec = difference**2/(data_noise )**2

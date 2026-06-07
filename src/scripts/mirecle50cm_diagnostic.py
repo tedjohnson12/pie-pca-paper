@@ -6,9 +6,11 @@ from loguru import logger
 
 from vpie import vpie
 import VSPEC
+from vpie import bin_image, fold_image as fold_image_rs
 
 from mirecle50cm_grid import get_interp, dt_to_eps as temp_to_log_epsilon
-from mirecle50cm_run import get_model, PLANET as PLANET_PARAMS
+from mirecle50cm_run import get_model
+from common import figure_context, fold_image
 
 PREFIX = 'proxb'
 IC = 'AIC'
@@ -26,15 +28,6 @@ TIME_UNIT = u.day
 WL_UNIT = u.um
 INTERACTIVE = True
 
-
-@contextlib.contextmanager
-def figure_context(*args, **kwargs):
-    fig: plt.Figure = plt.figure(*args, **kwargs)
-    yield fig
-    if INTERACTIVE:
-        plt.show()
-    plt.close(fig)
-
 if __name__ in '__main__':
     plt.style.use('bmh')
     interpolator = get_interp()
@@ -46,6 +39,7 @@ if __name__ in '__main__':
     data = VSPEC.PhaseAnalyzer.from_model(get_model())
     wl = data.wavelength
     time = data.time
+    FOLD = len(time) // 16
     
     rng = np.random.default_rng(SEED)
     stellar = data.star.T.to_value(FLUX_UNIT)
@@ -76,6 +70,56 @@ if __name__ in '__main__':
             ax.axvline(CUTOFF_WL.to_value(WL_UNIT), ls='--', c='k')
             ax.axvline(CHI2_WL.to_value(WL_UNIT), ls='--', c='k')
             cbar1 = fig.colorbar(im1, ax=ax, orientation='vertical', shrink=0.8,label=label)
+        plt.show()
+    with figure_context(figsize=(6, 12)) as fig:
+        ax1 = fig.add_subplot(3, 1, 1)
+        ax2 = fig.add_subplot(3, 1, 2)
+        ax3 = fig.add_subplot(3, 1, 3)
+        axes = [ax1, ax2, ax3]
+        denominators = [
+            1, fold_image(stellar, FOLD,1)/1e6, fold_image(uncertainty, FOLD,2)
+        ]
+        labels = [
+            r'$\mathrm{W m^{-2} \mu m^{-1}}$',
+            'Star contrast (ppm)',
+            'Noise contrast'
+        ]
+        _thermal = fold_image(thermal, FOLD,1)
+        _time = time.to_value(TIME_UNIT)[:FOLD]
+        for ax, denom, label in zip(axes, denominators, labels):
+            im1 = ax.pcolormesh(wl.to_value(WL_UNIT), _time, (_thermal/denom), rasterized=True, cmap='afmhot_r')
+            ax.set_xlabel('Wavelength ($\\rm \\mu m$)')
+            ax.set_ylabel('Time (days)')
+            ax.axvline(CUTOFF_WL.to_value(WL_UNIT), ls='--', c='k')
+            ax.axvline(CHI2_WL.to_value(WL_UNIT), ls='--', c='k')
+            cbar1 = fig.colorbar(im1, ax=ax, orientation='vertical', shrink=0.8,label=label)
+        fig.suptitle('Python folding')
+        plt.show()
+    with figure_context(figsize=(6, 12)) as fig:
+        ax1 = fig.add_subplot(3, 1, 1)
+        ax2 = fig.add_subplot(3, 1, 2)
+        ax3 = fig.add_subplot(3, 1, 3)
+        axes = [ax1, ax2, ax3]
+        denominators = [
+            1, fold_image_rs(stellar, FOLD,1)/1e6, fold_image_rs(uncertainty, FOLD,2)
+        ]
+        labels = [
+            r'$\mathrm{W m^{-2} \mu m^{-1}}$',
+            'Star contrast (ppm)',
+            'Noise contrast'
+        ]
+        _thermal = fold_image_rs(thermal, FOLD,1)
+        _time = time.to_value(TIME_UNIT)[:FOLD]
+        for ax, denom, label in zip(axes, denominators, labels):
+            im1 = ax.pcolormesh(wl.to_value(WL_UNIT), _time, (_thermal/denom), rasterized=True, cmap='afmhot_r')
+            ax.set_xlabel('Wavelength ($\\rm \\mu m$)')
+            ax.set_ylabel('Time (days)')
+            ax.axvline(CUTOFF_WL.to_value(WL_UNIT), ls='--', c='k')
+            ax.axvline(CHI2_WL.to_value(WL_UNIT), ls='--', c='k')
+            cbar1 = fig.colorbar(im1, ax=ax, orientation='vertical', shrink=0.8,label=label)
+        fig.suptitle('rust folding')
+        plt.show()
+        
     
     cutoff_index = np.argwhere(wl > CUTOFF_WL)[0][0]
     long_cutoff_index = np.argwhere(wl > CHI2_WL)[0][0]
@@ -111,6 +155,7 @@ if __name__ in '__main__':
         ax.set_ylabel('Amplitude')
         ax.set_title(f'{PREFIX} {IC}')
         ax.legend()
+        plt.show()
     
 
     residual = f_rec - total_observed
@@ -161,24 +206,7 @@ if __name__ in '__main__':
                     ax.text(wl[reg][0].to_value(WL_UNIT),6,s)
                     
                 cbar1 = fig.colorbar(im1, ax=ax, orientation='vertical', shrink=0.8,label=label)
-        
-    def bin_image(im: np.ndarray, nwl:int, ntime: int, power: int):
-        def add(*args):
-            _sum = args[0] * 0
-            for arg in args:
-                _sum += arg**power
-            return _sum**(1/power) / len(args)
-        im = np.atleast_2d(im)
-        original_size_time, original_size_wl = im.shape
-        new_size_time = int(np.ceil(original_size_time/ntime))
-        new_size_wl = int(np.ceil(original_size_wl/nwl))
-        out_arr = np.zeros((new_size_time, new_size_wl))
-        for i in range(new_size_time):
-            for j in range(new_size_wl):
-                sub_arr = (im[i*ntime:min((i+1)*ntime,original_size_time), j*nwl:min((j+1)*nwl,original_size_wl)]).flatten()
-                val = add(*sub_arr)
-                out_arr[i,j] = val
-        return out_arr
+        plt.show()
 
     def fold_image(im: np.ndarray, stride: int, power: int):
         im = np.atleast_2d(im)
@@ -199,7 +227,7 @@ if __name__ in '__main__':
     BIN_TIME = 3
     BIN_WL = 6
     
-    FOLD = len(time) // 16
+    
     
     with figure_context(figsize=(12, 12)) as fig:
         fig.text(0.5,0.98,f'WL BIN = {BIN_WL}, TIME BIN = {BIN_TIME}')
@@ -253,6 +281,8 @@ if __name__ in '__main__':
                     ax.text(wl[reg][0].to_value(WL_UNIT),6,s)
                     
                 cbar1 = fig.colorbar(im1, ax=ax, orientation='vertical', shrink=0.8,label=label)
+        plt.show()
+        
     
     with figure_context(figsize=(12, 12)) as fig:
         fig.text(0.5,0.98,f'WL BIN = {BIN_WL}, TIME BIN = {BIN_TIME}')
@@ -308,6 +338,8 @@ if __name__ in '__main__':
                     ax.text(_wl[reg][0],6,s)
                     
                 cbar1 = fig.colorbar(im1, ax=ax, orientation='vertical', shrink=0.8,label=label)
+        plt.show()
+        
     
     
     with figure_context(figsize=(6, 4)) as fig:
@@ -341,4 +373,6 @@ if __name__ in '__main__':
                     chi2_arr[k] = chi2_red
                 ax.plot(temp_array,chi2_arr,label=f'({i}, {j})')
         ax.set_yscale('log')
-        ax.legend()        
+        ax.legend()
+        plt.show()
+        

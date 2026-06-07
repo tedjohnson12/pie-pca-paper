@@ -5,20 +5,19 @@ Simplified JWST retrieval script
 
 """
 
-import contextlib
 import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm
 import numpy as np
 from astropy import units as u
 from loguru import logger
 from tqdm.auto import tqdm
-from scipy.optimize import minimize_scalar
 
 from vpie import vpie
 import VSPEC
+from vpie import bin_image
 
 import paths
-from common import bin_image, figure_context, FIGSIZE
+from common import figure_context, FIGSIZE
 from proxb_grid import get_interp, dt_to_eps as temp_to_log_epsilon
 from proxb_run import get_model, PLANET as PLANET_PARAMS, RADIUS_SCALE_MIN, RADIUS_SCALE_MAX, TEMP_RATIO_MIN, TEMP_RATIO_MAX
 

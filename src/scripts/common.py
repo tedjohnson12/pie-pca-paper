@@ -1,9 +1,9 @@
 
 import contextlib
 import matplotlib.pyplot as plt
+from loguru import logger
 
 import numpy as np
-
 
 COLWIDTH = 8.5/2
 FIGSIZE = (COLWIDTH, 0.7*COLWIDTH)
@@ -31,7 +31,7 @@ def bin_image(im: np.ndarray, nwl:int, ntime: int, power: int):
     
     :return: The binned image
     """
-    
+    logger.warning('Python function `bin_image` is deprecated. Use the rust implementation `vpie.bin_image` instead for 15x speed.')
     def add(*args):
         _sum = args[0] * 0
         for arg in args:
@@ -50,6 +50,10 @@ def bin_image(im: np.ndarray, nwl:int, ntime: int, power: int):
     return out_arr
 
 def fold_image(im: np.ndarray, stride: int, power: int):
+    """
+    Fold image in phase
+    """
+    logger.warning('Python function `fold_image` is deprecated. Use the rust implementation `vpie.fold_image` instead for 15x speed.')
     im = np.atleast_2d(im)
     original_size_time, original_size_wl = im.shape
     size_stack = (original_size_time // stride) - 1
