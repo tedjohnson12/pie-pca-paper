@@ -21,7 +21,7 @@ def write_table():
     lines = [
         '\\begin{table*}',
         '\\centering',
-        '\\begin{tabular}{cc}',
+        '\\begin{tabular}{cccc}',
         '\\hline',
         'Quantity & TOI-519 b & GJ 876 d & PCb \\\\',
         '\\hline',

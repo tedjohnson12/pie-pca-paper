@@ -12,9 +12,10 @@ import asdf
 
 from vpie import vpie
 import VSPEC
+from vpie import bin_image
 
 import paths
-from common import bin_image, COLWIDTH, find_eclipse, remove_epoch, figure_context
+from common import COLWIDTH, find_eclipse, remove_epoch, figure_context
 from toi519_grid import get_interp, dt_to_eps as temp_to_log_epsilon
 from toi519_run import (
     get_model, PLANET as PLANET_PARAMS,
@@ -211,5 +212,5 @@ if __name__ in '__main__':
                     fig.tight_layout()
                     fig.savefig(
                         paths.figures / \
-                            f'{PREFIX}_retrieval_red_chi_square_'
+                            f'{PREFIX}_inference_'
                             f'{use_eclipse}_{heat_redistribution}.pdf')

@@ -83,7 +83,7 @@ if __name__ in '__main__':
 
     temp_ratios = [0.05,0.5,0.99]
     log_epsilons = temp_to_log_epsilon(temp_ratios)
-    fnames = ['full','half','null']
+    fnames = ['none','mod','high']
     set_title = [False,False,True]
     noise_scale = np.sqrt([
         28.191472784293506,
@@ -174,4 +174,4 @@ if __name__ in '__main__':
                         fontsize=16,color='k',ha='center',va='center',fontweight='bold')
             fig.tight_layout()
             fig.savefig(
-                paths.figures / f'{PREFIX}_retrieval_red_chi_square_radius_{fname}.pdf')
+                paths.figures / f'{PREFIX}_inference_{fname}.pdf')

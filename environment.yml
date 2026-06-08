@@ -7,9 +7,9 @@ dependencies:
       - pandas
       - requests
       - loguru
-      - libpypsg
+      - git+https://github.com/tedjohnson12/libpypsg.git@main
       - GridPolator
-      - VSPEC
+      - git+https://github.com/VSPEC-Collab/VSPEC.git@release/1.2.0
       - asdf
       - asdf-astropy==0.8.0
       - colorlog

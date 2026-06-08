@@ -53,27 +53,27 @@ TITLES = ['0.5 m mirror', '2 m mirror', 'JWST-like mirror']
 FOLD = 67
 
 TEMPERATURE_RATIOS = [0.05, 0.5, 0.99]
-LABELS = ['full', 'half', 'null']
+LABELS = ['none', 'mod', 'high']
 USE_CACHE = (
-    [False, True, True],
-    [True, True, True],
-    [True, True, True]
+    [False, False, False],
+    [False, False, False],
+    [False, False, False],
 )
 CHI2_NOISE_SCALE = (
     np.sqrt([
-            1.9279108160200082,
-            1.659492327867226,
-            2.1373288264703416
+            1.0655550464948622,
+            1.1343578145456072,
+            1.2580238734025708
             ]),
     np.sqrt([
-            2.9344707963359737,
-            2.9571702536063524,
-            2.946854993074575
+            3.0076883373713144,
+            3.0311426843080365,
+            3.0205032689665336
             ]),
     np.sqrt([
-            3.027211584699654,
-            2.986337237458304,
-            2.947257712176422
+            3.103367850981406,
+            3.061465218274865,
+            3.0214025602814893
             ])
 )
 
@@ -193,7 +193,7 @@ if __name__ in '__main__':
                     af = asdf.AsdfFile({KEY: red_chi_sq_array})
                     af.write_to(CACHE_FILE)
                     af.close()
-                logger.info(f'{aperture:.1f} m, {label} - '
+                logger.info(f'{aperture:.1f} cm, {label} - '
                             f'The lowest value for red chi2 is {np.min(red_chi_sq_array)}')
             with figure_context(figsize=FIGSIZE) as fig:
                 ax: plt.Axes = fig.subplots(1, 1)

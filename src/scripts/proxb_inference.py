@@ -48,9 +48,9 @@ USE_CACHE = [
     False, False, False
 ]
 CHI2_NOISE_SCALE = np.sqrt([
-    1.0,
-    1.0,
-    1.0
+    4.225832464514367,
+    5.076399774891293,
+    5.2804814260398185
 ])
 
 if __name__ in '__main__':
@@ -210,5 +210,5 @@ if __name__ in '__main__':
                 fig.tight_layout()
                 fig.savefig(
                     paths.figures /
-                    f'{PREFIX}_retrieval_red_chi_square_'
+                    f'{PREFIX}_inference_'
                     f'{heat_redistribution}.pdf')
