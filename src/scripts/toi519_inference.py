@@ -20,7 +20,8 @@ from toi519_grid import get_interp, dt_to_eps as temp_to_log_epsilon
 from toi519_run import (
     get_model, PLANET as PLANET_PARAMS,
     RADIUS_SCALE_MIN, RADIUS_SCALE_MAX,
-    TEMP_RATIO_MIN, TEMP_RATIO_MAX
+    TEMP_RATIO_MIN, TEMP_RATIO_MAX,
+    SW_MAX, LW_MIN
 )
 
 
@@ -33,8 +34,6 @@ NOISE_SCALE = 1.0
 THERMAL_SCALE = 1.0
 SEED = 33
 FLUX_UNIT = u.Unit('W m-2 um-1')
-CUTOFF_WL = 0.8*u.um
-CHI2_WL = 4.0*u.um
 BIN_WL = 6
 BIN_TIME = 4
 TEMP_ARRAY = np.linspace(TEMP_RATIO_MIN, TEMP_RATIO_MAX, 150)
@@ -99,7 +98,7 @@ if __name__ in '__main__':
         _scatter = _rng.normal(loc=0, scale=_scatter_mag)
         _uncertainty = _scatter_mag * chi_noise_scale
         _total_observed = _total_true + _scatter
-        _cutoff_index = np.argwhere(wl > CUTOFF_WL)[0][0]
+        _cutoff_index = np.argwhere(wl > SW_MAX)[0][0]
         _s, _coeffs, _f_rec = vpie.get_vpie(
             _total_observed if not remove_eclipse else remove_epoch(
                 _total_observed, eclipse_start, eclipse_end),
@@ -160,7 +159,7 @@ if __name__ in '__main__':
                             grid_residual, BIN_WL, BIN_TIME, 1)
                         difference = binned_grid_residual - data_residual
                         chi_sq_2d = difference**2/(data_noise)**2
-                        long_wl = binned_wl >= CHI2_WL.to_value(u.um)
+                        long_wl = binned_wl >= LW_MIN.to_value(u.um)
                         chi_sq_2d = chi_sq_2d[:, long_wl]
                         chi_sq = np.sum(chi_sq_2d)
                         red_chi_sq = chi_sq / (chi_sq_2d.size-2)

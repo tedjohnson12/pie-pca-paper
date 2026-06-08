@@ -24,7 +24,8 @@ SPOT_FRAC = 0.1
 TSPOT = 2700
 # (1-SPOT_FRAC)*TPHOT**4 + SPOT_FRAC*TSPOT**4 = TEFF**4
 TPHOT = ((TEFF**4 - SPOT_FRAC*TSPOT**4)/(1-SPOT_FRAC))**0.25
-SHORT_WL_CUTOFF = 0.8*u.um
+SW_MAX = 0.8*u.um
+LW_MIN = 4.0*u.um
 
 RADIUS_SCALE_MIN = 0.05
 RADIUS_SCALE_MAX = 3.2
@@ -220,9 +221,9 @@ def get_teq():
 
 REF = {
     'assumed': '\\dagger',
-    'rosenthal2021': 'c',
+    'rosenthal2021': 'b',
     'nelson2016': 'd',
-    'gaiacollaboration2020': 'b'
+    'gaiacollaboration2020': 'e'
 
 }
 TAB = {
@@ -241,15 +242,16 @@ TAB = {
     'Initial Phase': f'{PLANET.init_phase:latex}',
     'Distance': f'{SYSTEM.distance:latex}{foot(REF["gaiacollaboration2020"])}',
     'Inclination': f'{SYSTEM.inclination:latex}{foot(REF["nelson2016"])}',
-    'Observation Length': f'{OBS.observation_time:latex}',
-    'Integration Length': f'{INST.detector.integration_time:latex}',
-    'Time Bin Size': f'{OBS.integration_time:latex}',
+    'Aperature': f'{INST.telescope.aperture.round(1):latex}',
+    'Observation Length': f'{OBS.observation_time.round(1):latex}',
+    'Observation Cadence': f'{OBS.integration_time:latex}',
     'Short Wavelength': f'{INST.bandpass.wl_blue:latex}',
     'Long Wavelength': f'{INST.bandpass.wl_red:latex}',
-    'PIE Cutoff': f'{SHORT_WL_CUTOFF:latex}',
     'Resolving Power': f'{INST.bandpass.resolving_power:.0f}',
     'Mean Molecular Weight': f'{GCM_DICT["gcm"]["mean_molec_weight"]:.0f}{foot(REF["assumed"])}',
     'Albedo': f'{GCM_DICT["gcm"]["vspec"]["albedo"]:.1f}{foot(REF["assumed"])}',
+    'SW': f'$<\\;${SW_MAX.round(1):latex}',
+    'LW': f'$>\\;${LW_MIN.round(1):latex}'
 }
 
 

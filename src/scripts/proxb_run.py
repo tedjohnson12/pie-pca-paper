@@ -23,7 +23,8 @@ SPOT_FRAC = 0.2
 TSPOT = 2600
 TPHOT = ((TEFF**4 - SPOT_FRAC*TSPOT**4)/(1-SPOT_FRAC))**0.25
 SHORT_WL_CUTOFF = 7*u.um
-CHI2_WL = 10.0*u.um
+SW_MAX = 7*u.um
+LW_MIN = 10.0*u.um
 BIN_WL = 6
 BIN_TIME = 3
 
@@ -198,8 +199,8 @@ def get_teq():
 
 REF = {
     'assumed': '\\dagger',
-    'faria2022': 'e',
-    'gaiacollaboration2020': 'b'
+    'faria2022': 'c',
+    'gaiacollaboration2020': 'e'
 }
 TAB = {
     'Stellar Effective Temperature': f'{TEFF} K{foot(REF["faria2022"])}',
@@ -217,15 +218,16 @@ TAB = {
     'Initial Phase': f'{PLANET.init_phase:latex}{foot(REF["assumed"])}',
     'Distance': f'{SYSTEM.distance:latex}{foot(REF["gaiacollaboration2020"])}',
     'Inclination': f'{SYSTEM.inclination:latex}{foot(REF["assumed"])}',
-    'Observation Length': f'{OBS.observation_time:latex}',
-    'Integration Length': f'{INST.detector.integration_time:latex}',
-    'Time Bin Size': f'{OBS.integration_time:latex}',
+    'Aperature': f'{INST.telescope.aperture.round(1):latex}',
+    'Observation Length': f'{OBS.observation_time.round(1):latex}',
+    'Observation Cadence': f'{OBS.integration_time:latex}',
     'Short Wavelength': f'{INST.bandpass.wl_blue:latex}',
     'Long Wavelength': f'{INST.bandpass.wl_red:latex}',
-    'PIE Cutoff': f'{SHORT_WL_CUTOFF:latex}',
     'Resolving Power': f'{INST.bandpass.resolving_power:.0f}',
     'Mean Molecular Weight': f'{GCM_DICT["gcm"]["mean_molec_weight"]:.0f}{foot(REF["assumed"])}',
     'Albedo': f'{GCM_DICT["gcm"]["vspec"]["albedo"]:.1f}{foot(REF["assumed"])}',
+    'SW': f'$<\\;${SW_MAX.round(1):latex}',
+    'LW': f'$>\\;${LW_MIN.round(1):latex}'
 }
 
 if __name__ == '__main__':

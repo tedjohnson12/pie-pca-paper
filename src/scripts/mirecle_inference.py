@@ -37,8 +37,8 @@ NOISE_SCALE = 1.0
 THERMAL_SCALE = 1.0
 SEED = 33
 FLUX_UNIT = u.Unit('W m-2 um-1')
-CUTOFF_WL = 3*u.um
-CHI2_WL = 8.0*u.um
+SW_MAX = 3*u.um
+LW_MIN = 8.0*u.um
 BIN_WL = 6
 BIN_TIME = 3
 FIGSIZE = (COLWIDTH, 0.7*COLWIDTH)
@@ -99,7 +99,7 @@ def _get_residual_and_noise(
         _total_observed = bin_image(_total_observed, 1, 4, 1)
         _scatter_mag = bin_image(_scatter_mag, 1, 4, 1)
         _uncertainty = bin_image(_uncertainty, 1, 4, 1)
-    _cutoff_index = np.argwhere(_wl > CUTOFF_WL)[0][0]
+    _cutoff_index = np.argwhere(_wl > SW_MAX)[0][0]
     _s, _coeffs, _f_rec = vpie.get_vpie(
         _total_observed,
         _scatter_mag,
@@ -177,7 +177,7 @@ if __name__ in '__main__':
                             grid_residual, BIN_WL, BIN_TIME, 1)
                         difference = binned_grid_residual - data_residual
                         chi_sq_spec = difference**2/(data_noise)**2
-                        long_wl = binned_wl >= CHI2_WL.to_value(u.um)
+                        long_wl = binned_wl >= LW_MIN.to_value(u.um)
                         chi_sq_spec = chi_sq_spec[:, long_wl]
                         chi_sq = np.sum(chi_sq_spec)
                         red_chi_sq = chi_sq / (chi_sq_spec.size-2)

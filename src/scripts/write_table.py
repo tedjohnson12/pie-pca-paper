@@ -8,6 +8,7 @@ from astropy import units as u
 import toi519_run as toi519
 import gj876_run as gj876
 import proxb_run as proxb
+from mirecle_table_col import get_refined_table
 import paths
 import common
 
@@ -21,25 +22,29 @@ def write_table():
     lines = [
         '\\begin{table*}',
         '\\centering',
-        '\\begin{tabular}{cccc}',
+        '\\begin{tabular}{ccccc}',
         '\\hline',
-        'Quantity & TOI-519 b & GJ 876 d & PCb \\\\',
+        'Quantity & TOI-519 b & GJ 876 d & PCb/JWST & PCb/Future Observatory \\\\',
         '\\hline',
     ]
     keys_toi519 = toi519.TAB.keys()
     keys_gj876 = gj876.TAB.keys()
     keys_proxb = proxb.TAB.keys()
-    for k in keys_toi519 & keys_gj876 & keys_proxb:
+    TAB_MIRECLE = get_refined_table()
+    keys_mirecle = TAB_MIRECLE.keys()
+    for k in keys_toi519 | keys_gj876 | keys_proxb | keys_mirecle:
         try:
             assert k in toi519.TAB
             assert k in gj876.TAB
             assert k in proxb.TAB
+            assert k in TAB_MIRECLE
         except AssertionError:
             logger.warning(f'{k} not in all tables')
+    for k in keys_toi519:
         lines.append(
-            f'{k} & {toi519.TAB.get(k,"")} & {gj876.TAB.get(k,"")} & {proxb.TAB.get(k,"")} \\\\')
+            f'{k} & {toi519.TAB.get(k,"")} & {gj876.TAB.get(k,"")} & {proxb.TAB.get(k,"")} & {TAB_MIRECLE.get(k,"")} \\\\')
     lines.append('\\hline')
-    lines.append('\\multicolumn{4}{c}{Inference Grid} \\\\')
+    lines.append('\\multicolumn{5}{c}{Inference Grid} \\\\')
     lines.append('\\hline')
     _radius_range = [
         f'${toi519.RADIUS_SCALE_MIN*toi519.PLANET.radius.to_value(u.R_jup):.1f}--'
@@ -48,11 +53,13 @@ def write_table():
         f'-{gj876.RADIUS_SCALE_MAX*gj876.PLANET.radius.to_value(u.R_earth):.1f}\\,R_\\oplus$',
         f'${proxb.RADIUS_SCALE_MIN*proxb.PLANET.radius.to_value(u.R_earth):.1f}-'
         f'-{proxb.RADIUS_SCALE_MAX*proxb.PLANET.radius.to_value(u.R_earth):.1f}\\,R_\\oplus$',
+        '-'
     ]
     _temp_range = [
-        f'${toi519.TEMP_RATIO_MIN:.2f}--{toi519.TEMP_RATIO_MAX:.2f}$',
-        f'${gj876.TEMP_RATIO_MIN:.2f}--{gj876.TEMP_RATIO_MAX:.2f}$',
-        f'${proxb.TEMP_RATIO_MIN:.2f}--{proxb.TEMP_RATIO_MAX:.2f}$'
+        f'${toi519.TEMP_RATIO_MIN:.2f}-{toi519.TEMP_RATIO_MAX:.2f}$',
+        f'${gj876.TEMP_RATIO_MIN:.2f}-{gj876.TEMP_RATIO_MAX:.2f}$',
+        f'${proxb.TEMP_RATIO_MIN:.2f}-{proxb.TEMP_RATIO_MAX:.2f}$',
+        '-'
     ]
     lines.append(f'Radius & {" & ".join(_radius_range)} \\\\')
     lines.append(
@@ -67,10 +74,11 @@ def write_table():
                 pass
             else:
                 refs[k] = v
+    refs = {k: v for k, v in sorted(refs.items(), key=lambda item: item[1])}
     refsline = '; '.join(
         f"{toi519.foot(b)}{common.cite(a)}" for a, b in refs.items())
 
-    lines.append(f'\\caption{{Simulation Parameters. {refsline}}} ')
+    lines.append(f'\\caption{{Simulation Parameters. Values only listed for PCb/Future Observatory if different from PCb/JWST. {refsline}}} ')
     lines.append('\\label{tab:parameters}')
     lines.append('\\end{table*}')
 

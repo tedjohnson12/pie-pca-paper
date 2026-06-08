@@ -7,19 +7,23 @@ from copy import deepcopy
 import numpy as np
 import astropy.units as u
 import VSPEC
-import VSPEC.config
 import libpypsg as psg
+
+from proxb_run import (
+    STAR,
+    PLANET,
+    SYSTEM,
+    OBS,
+    PSG,
+    GCM_DICT,
+    GCM
+)
 
 
 TRUE_EPSILON = 0.1
-TRUE_DAY_NIGHT_RATIOS = [0.1, 0.5, 0.9]
-
-TEFF = 2900
-SPOT_FRAC = 0.2
-TSPOT = 2600
-TPHOT = ((TEFF**4 - SPOT_FRAC*TSPOT**4)/(1-SPOT_FRAC))**0.25
 SHORT_WL_CUTOFF = 5*u.um
-
+SW_MAX = 3*u.um
+LW_MIN = 12.0*u.um
 RERUN_PLANET = False
 RERUN_SPECTRA = False
 
@@ -35,73 +39,7 @@ HEADER = VSPEC.params.Header(
         impl_interp='scipy',
         fail_on_missing=False
     ),
-    desc='Proxb with JWST',
-)
-
-STAR = VSPEC.params.StarParameters(
-    psg_star_template='M',
-    teff=TPHOT * u.K,
-    radius=0.141 * u.R_sun,
-    period=90 * u.day,
-    misalignment=0 * u.deg,
-    misalignment_dir=0 * u.deg,
-    mass=0.15 * u.Msun,
-    ld=VSPEC.params.LimbDarkeningParameters.proxima(),
-    spots=VSPEC.params.SpotParameters(
-        distribution='iso',
-        initial_coverage=SPOT_FRAC,
-        equillibrium_coverage=SPOT_FRAC,
-        area_mean=500*VSPEC.config.MSH,
-        area_logsigma=0.2,
-        teff_umbra=TSPOT * u.K,
-        teff_penumbra=TSPOT * u.K,
-        burn_in=0 * u.day,
-        growth_rate=0 * u.day**-1,
-        decay_rate=0*VSPEC.config.MSH * u.day**-1,
-        initial_area=10*VSPEC.config.MSH,
-    ),
-    faculae=VSPEC.params.FaculaParameters.none(),
-    flares=VSPEC.params.FlareParameters.none(),
-    granulation=VSPEC.params.GranulationParameters.none(),
-    grid_params=1000
-)
-
-PLANET = VSPEC.params.PlanetParameters(
-    name='proxcenb',
-    radius=1.0*u.R_earth,
-    gravity=VSPEC.params.GravityParameters(
-        mode='kg',
-        value=1.0*u.M_earth
-    ),
-    semimajor_axis=0.04856*u.AU,
-    orbit_period=11.1868*u.day,
-    rotation_period=11.19*u.day,
-    eccentricity=0.0,
-    obliquity=0.0*u.deg,
-    obliquity_direction=0.0*u.deg,
-    init_substellar_lon=0.0*u.deg,
-    init_phase=90*u.deg,
-)
-
-SYSTEM = VSPEC.params.SystemParameters(
-    distance=1.302*u.pc,
-    inclination=80*u.deg,
-    phase_of_periastron=0*u.deg
-)
-
-OBS = VSPEC.params.ObservationParameters(
-    observation_time=11.19*u.day,
-    integration_time=4*u.hr
-)
-
-PSG = VSPEC.params.psgParameters(
-    gcm_binning=200,
-    phase_binning=1,
-    use_continuum_stellar=True,
-    use_molecular_signatures=True,
-    nmax=2,
-    lmax=1,
-    continuum=['Rayleigh', 'CIA_all', 'Refraction']
+    desc='Proxb with 6m MIRECLE',
 )
 
 # INST = VSPEC.params.InstrumentParameters.miri_lrs()
@@ -130,37 +68,7 @@ INST = VSPEC.params.InstrumentParameters(
         )
     )
 )
-GCM_DICT = {
-    'star': {
-        'teff': STAR.teff,
-        'radius': STAR.radius
-    },
-    'planet': {
-        'semimajor_axis': PLANET.semimajor_axis,
-    },
-    'gcm': {
-        'mean_molec_weight': 28.0,
-        'vspec': {
-            'nlayer': 30,
-            'nlon': 90,
-            'nlat': 45,
-            'epsilon': TRUE_EPSILON,
-            'psurf': 1*u.bar,
-            'ptop': 1e-5*u.bar,
-            'wind': {'U': 0*u.m/u.s, 'V': 0*u.m/u.s},
-            'gamma': 1.,
-            'albedo': 0.0,
-            'emissivity': 1.0,
-            'molecules': {
-                'N2': 1e-20,
-            },
-            'lat_redistribution': 0.0
-        }
-    }
-}
-GCM = VSPEC.params.gcmParameters.from_dict(
-    GCM_DICT
-)
+
 
 
 VSPEC_PARAMS = VSPEC.params.InternalParameters(

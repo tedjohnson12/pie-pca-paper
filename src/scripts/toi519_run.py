@@ -20,7 +20,8 @@ TEFF = 3354
 SPOT_FRAC = 0.1
 TSPOT = 2700
 TPHOT = ((TEFF**4 - SPOT_FRAC*TSPOT**4)/(1-SPOT_FRAC))**0.25
-SHORT_WL_CUTOFF = 0.8*u.um
+SW_MAX = 0.8*u.um
+LW_MIN = 4.0*u.um
 
 RADIUS_SCALE_MIN = 0.1
 RADIUS_SCALE_MAX = 2.0
@@ -219,7 +220,7 @@ def get_teq() -> u.Quantity:
 REF = {
     'assumed': '\\dagger',
     'kagetani2023': 'a',
-    'gaiacollaboration2020': 'b'
+    'gaiacollaboration2020': 'e'
 
 }
 
@@ -227,9 +228,9 @@ TAB = {
     'Stellar Effective Temperature': f'{(TEFF*u.K):latex}{foot(REF["kagetani2023"])}',
     'Stellar Radius': f'{round(STAR.radius,2):latex}{foot(REF["kagetani2023"])}',
     'Stellar Rotation Period': f'{STAR.period:latex}{foot(REF["assumed"])}',
+    'Photosphere Temperature': f'{STAR.teff.round(0):latex}',
     'Spot Temperature': f'{STAR.spots.teff_umbra:latex}{foot(REF["assumed"])}',
     'Spot Coverage Fraction': f'{SPOT_FRAC:.1f}{foot(REF["assumed"])}',
-    'Photosphere Temperature': f'{STAR.teff.round(0):latex}',
     'Planet Radius': f'{PLANET.radius.round(2):latex}{foot(REF["kagetani2023"])}',
     'Planet Mass': \
         f'{PLANET.gravity.value.to(u.M_earth).round(0):latex}{foot(REF["kagetani2023"])}',
@@ -240,14 +241,16 @@ TAB = {
     'Initial Phase': f'{PLANET.init_phase:latex}{foot(REF["assumed"])}',
     'Distance': f'{SYSTEM.distance:latex}{foot(REF["gaiacollaboration2020"])}',
     'Inclination': f'{SYSTEM.inclination:latex}{foot(REF["kagetani2023"])}',
-    'Observation Length': f'{OBS.observation_time:latex}',
-    'Integration Length': f'{INST.detector.integration_time:latex}',
-    'Time Bin Size': f'{OBS.integration_time:latex}',
+    'Aperature': f'{INST.telescope.aperture.round(1):latex}',
+    'Observation Length': f'{OBS.observation_time.round(1):latex}',
+    'Observation Cadence': f'{OBS.integration_time:latex}',
     'Short Wavelength': f'{INST.bandpass.wl_blue:latex}',
     'Long Wavelength': f'{INST.bandpass.wl_red:latex}',
     'Resolving Power': f'{INST.bandpass.resolving_power:.0f}',
     'Mean Molecular Weight': f'{GCM_DICT["gcm"]["mean_molec_weight"]:.0f}{foot(REF["assumed"])}',
     'Albedo': f'{GCM_DICT["gcm"]["vspec"]["albedo"]:.1f}{foot(REF["assumed"])}',
+    'SW': f'$<\\;${SW_MAX.round(1):latex}',
+    'LW': f'$>\\;${LW_MIN.round(1):latex}'
 }
 
 if __name__ == '__main__':
