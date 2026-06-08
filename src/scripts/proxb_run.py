@@ -12,7 +12,7 @@ import VSPEC.gcm
 import libpypsg as psg
 
 import paths
-
+from common import foot
 
 TABLE_FILE = paths.output / 'proxb.txt'
 TRUE_EPSILON = 0.1
@@ -21,7 +21,6 @@ TRUE_DAY_NIGHT_RATIOS = [0.1, 0.5, 0.9]
 TEFF = 2900
 SPOT_FRAC = 0.2
 TSPOT = 2600
-# (1-SPOT_FRAC)*TPHOT**4 + SPOT_FRAC*TSPOT**4 = TEFF**4
 TPHOT = ((TEFF**4 - SPOT_FRAC*TSPOT**4)/(1-SPOT_FRAC))**0.25
 SHORT_WL_CUTOFF = 7*u.um
 CHI2_WL = 10.0*u.um
@@ -32,6 +31,9 @@ RADIUS_SCALE_MIN = 0.05
 RADIUS_SCALE_MAX = 3.2
 TEMP_RATIO_MIN = 0.05
 TEMP_RATIO_MAX = 0.99
+
+RERUN_PLANET = False
+RERUN_SPECTRA = False
 
 
 HEADER = VSPEC.params.Header(
@@ -114,31 +116,6 @@ PSG = VSPEC.params.psgParameters(
 )
 
 INST = VSPEC.params.InstrumentParameters.miri_lrs()
-# INST = VSPEC.params.InstrumentParameters(
-#     telescope=VSPEC.params.SingleDishParameters(
-#         aperture=2*u.m,
-#         zodi=1.0
-#     ),
-#     bandpass=VSPEC.params.BandpassParameters(
-#         wl_blue=1*u.um,
-#         wl_red=18*u.um,
-#         resolving_power=50,
-#         wavelength_unit=u.micron,
-#         flux_unit=u.Unit('W m-2 um-1')
-#     ),
-#     detector=VSPEC.params.DetectorParameters(
-#         beam_width=0.5*u.arcsec,
-#         integration_time=10*u.s,
-#         ccd=VSPEC.params.ccdParameters(
-#             pixel_sampling=1,
-#             read_noise=16.8*u.electron,
-#             dark_current=100*u.electron/u.s,
-#             throughput=0.7,
-#             emissivity=0.1,
-#             temperature=35*u.K
-#         )
-#     )
-# )
 GCM_DICT = {
     'star': {
         'teff': STAR.teff,
@@ -185,6 +162,9 @@ VSPEC_PARAMS = VSPEC.params.InternalParameters(
 
 
 def get_grid_params(epsilon: float):
+    """
+    Get VSPEC parameters with given epsilon
+    """
     _gcm = GCM_DICT.copy()
     _gcm['gcm']['vspec']['epsilon'] = epsilon
     _header = deepcopy(HEADER)
@@ -204,18 +184,22 @@ def get_grid_params(epsilon: float):
 
 
 def get_model():
+    """
+    Return the fiducial model
+    """
     return VSPEC.ObservationModel(VSPEC_PARAMS)
 
 def get_teq():
-    return STAR.teff * np.sqrt(STAR.radius / PLANET.semimajor_axis/2) * (1-GCM_DICT['gcm']['vspec']['albedo'])
-def foot(t):
-    return rf'$^{t}$'
+    """
+    Compute the equilibrium temperature
+    """
+    return STAR.teff * np.sqrt(STAR.radius / \
+        PLANET.semimajor_axis/2) * (1-GCM_DICT['gcm']['vspec']['albedo'])
 
 REF = {
     'assumed': '\\dagger',
     'faria2022': 'e',
     'gaiacollaboration2020': 'b'
-    
 }
 TAB = {
     'Stellar Effective Temperature': f'{TEFF} K{foot(REF["faria2022"])}',
@@ -244,54 +228,10 @@ TAB = {
     'Albedo': f'{GCM_DICT["gcm"]["vspec"]["albedo"]:.1f}{foot(REF["assumed"])}',
 }
 
-def cite(k):
-    if k in ['assumed']:
-        return k
-    else:
-        return f'\\citet{{{k}}}'
-
-
-def write_table():
-    lines = [
-        '\\begin{table}',
-        '\\centering',
-        '\\begin{tabular}{cc}',
-        '\\hline',
-        'Quantity & Value \\\\',
-        '\\hline',
-    ]
-    for k, v in TAB.items():
-        lines.append(f'{k} & {v} \\\\')
-    lines.append('\\hline')
-    lines.append('\\multicolumn{2}{c}{Inference Grid} \\\\')
-    lines.append('\\hline')
-    lines.append(f'Radius & ${RADIUS_SCALE_MIN*PLANET.radius.to_value(u.R_earth):.1f}--{RADIUS_SCALE_MAX*PLANET.radius.to_value(u.R_earth):.1f}\\,R_\\oplus$ \\\\')
-    lines.append(f'$T_\\mathrm{{night}}/T_\\mathrm{{day}}$ & ${TEMP_RATIO_MIN:.2f}--{TEMP_RATIO_MAX:.2f}$ \\\\')
-    lines.append('\\hline')
-    lines.append('\\end{tabular}')
-    refsline = '; '.join(f"{foot(b)}{cite(a)}" for a,b in REF.items())
-    lines.append(f'\\caption{{PCb Simulation Parameters. {refsline}}}')
-    lines.append('\\label{tab:pcb-parameters}')
-    lines.append('\\end{table}')
-
-    with open(TABLE_FILE, 'w', encoding='utf-8') as f:
-        f.write('\n'.join(lines))
-
-
-def get_temperature_ratio(epsilon: float):
-    if epsilon < 1:
-        mode = 'ivp_reflect'
-    elif epsilon < 10:
-        mode = 'bvp'
-    else:
-        mode = 'analytic'
-    _, tsurf = VSPEC.gcm.heat_transfer.get_equator_curve(epsilon, 180, mode)
-    return np.min(tsurf)/np.max(tsurf)
-
-
 if __name__ == '__main__':
-    write_table()
-    # psg.docker.set_url_and_run()
-    # model = get_model()
-    # model.build_planet()
-    # model.build_spectra()
+    model = get_model()
+    if not (model.directories['psg_thermal'] / 'phase00000.fits').exists() or RERUN_PLANET:
+        psg.docker.set_url_and_run()
+        model.build_planet()
+    if not (model.directories['all_model'] / 'phase00000.fits').exists() or RERUN_SPECTRA:
+        model.build_spectra()

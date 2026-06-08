@@ -33,10 +33,10 @@ if __name__ == '__main__':
     noise = data.noise.to_value(flux_unit) * NOISE_SCALE
     total = data.total.to_value(flux_unit)
     observed = total + rng.normal(0, noise)
-    
     with figure_context(figsize=FIGSIZE) as fig:
         ax = fig.add_subplot(1, 1, 1)
-        im = ax.pcolormesh(wl, time, thermal.T, rasterized=True, cmap='afmhot_r')
+        im = ax.pcolormesh(wl, time, thermal.T,
+                           rasterized=True, cmap='afmhot_r')
         ax.set_xlabel('Wavelength ($\\mathrm{ \\mu m}$)')
         ax.set_ylabel('Time (days)')
         ax.set_facecolor('w')
@@ -56,7 +56,7 @@ if __name__ == '__main__':
         ic_string='AIC',
         max_basis_size=2
     )
-    
+
     with figure_context(figsize=FIGSIZE) as fig:
         ax = fig.add_subplot(1, 1, 1)
         tax = ax.twinx()
@@ -70,7 +70,8 @@ if __name__ == '__main__':
         _, q = coeffs.shape
         colors = ['xkcd:lavender', 'xkcd:golden rod', 'xkcd:forest green']
         for i in range(q):
-            tax.plot(time, coeffs[:, i], lw=2, label=f'$a_{i+1}$', color=colors[i])
+            tax.plot(time, coeffs[:, i], lw=2,
+                     label=f'$a_{i+1}$', color=colors[i])
         h1, l1 = ax.get_legend_handles_labels()
         h2, l2 = tax.get_legend_handles_labels()
         ax.legend(h1 + h2, l1 + l2, loc='upper left')
@@ -83,11 +84,9 @@ if __name__ == '__main__':
         fig.tight_layout()
         fig.savefig(paths.figures / f'{OUTFILE_PREFIX}_coeffs.pdf')
 
-
     residuals = (f_rec - observed.T)/observed.T * 100
     vminmax = np.max(np.abs(residuals))
 
-    
     with figure_context(figsize=FIGSIZE) as fig:
         ax = fig.add_subplot(1, 1, 1)
         im = ax.pcolormesh(
@@ -103,14 +102,14 @@ if __name__ == '__main__':
         ax.grid(False)
         fig.tight_layout()
         fig.savefig(paths.figures / f'{OUTFILE_PREFIX}_residuals_unbinned.pdf')
-    
-    wl_bin = 6
-    time_bin = 4
-    binned_residuals = bin_image(residuals, wl_bin, time_bin,1)
-    binned_wl = bin_image(wl, wl_bin, 1,1)[0,:]
-    binned_time = bin_image(time, time_bin, 1,1)[0,:]
+
+    WL_BIN = 6
+    TIME_BIN = 4
+    binned_residuals = bin_image(residuals, WL_BIN, TIME_BIN, 1)
+    binned_wl = bin_image(wl, WL_BIN, 1, 1)[0, :]
+    binned_time = bin_image(time, TIME_BIN, 1, 1)[0, :]
     vminmax = np.max(np.abs(binned_residuals))
-    
+
     with figure_context(figsize=FIGSIZE) as fig:
         ax = fig.add_subplot(1, 1, 1)
         im = ax.pcolormesh(
@@ -126,5 +125,3 @@ if __name__ == '__main__':
         ax.grid(False)
         fig.tight_layout()
         fig.savefig(paths.figures / f'{OUTFILE_PREFIX}_residuals_binned.pdf')
-    
-    

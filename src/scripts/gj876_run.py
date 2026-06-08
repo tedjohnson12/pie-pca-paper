@@ -12,11 +12,12 @@ import VSPEC.gcm
 import libpypsg as psg
 
 import paths
+from common import foot
 
 
 TABLE_FILE = paths.output / 'gj876.txt'
 TRUE_EPSILON = 0.1
-TRUE_DAY_NIGHT_RATIOS = [0.1,0.5,0.9]
+TRUE_DAY_NIGHT_RATIOS = [0.1, 0.5, 0.9]
 
 TEFF = 3293
 SPOT_FRAC = 0.1
@@ -29,6 +30,9 @@ RADIUS_SCALE_MIN = 0.05
 RADIUS_SCALE_MAX = 3.2
 TEMP_RATIO_MIN = 0.05
 TEMP_RATIO_MAX = 0.99
+
+RERUN_PLANET = False
+RERUN_SPECTRA = False
 
 HEADER = VSPEC.params.Header(
     data_path=Path(__file__).parent / '.vspec' / f'gj876_{TRUE_EPSILON:.2f}',
@@ -132,34 +136,34 @@ INST = VSPEC.params.InstrumentParameters(
         )
     )
 )
-GCM_DICT = { 
-        'star': {
-            'teff': STAR.teff,
-            'radius': STAR.radius
-        },
-        'planet': {
-            'semimajor_axis': PLANET.semimajor_axis,
+GCM_DICT = {
+    'star': {
+        'teff': STAR.teff,
+        'radius': STAR.radius
+    },
+    'planet': {
+        'semimajor_axis': PLANET.semimajor_axis,
+    },
+    'gcm': {
+        'mean_molec_weight': 28.0,
+        'vspec': {
+            'nlayer': 30,
+            'nlon': 90,
+            'nlat': 45,
+            'epsilon': TRUE_EPSILON,
+            'psurf': 2*u.bar,
+            'ptop': 1e-5*u.bar,
+            'wind': {'U': 0*u.m/u.s, 'V': 0*u.m/u.s},
+            'gamma': 1.,
+            'albedo': 0.0,
+            'emissivity': 1.0,
+            'molecules': {
+                'N2': 1e-20,
             },
-        'gcm': {
-            'mean_molec_weight': 28.0,
-            'vspec': {
-                'nlayer': 30,
-                'nlon': 90,
-                'nlat': 45,
-                'epsilon': TRUE_EPSILON,
-                'psurf': 2*u.bar,
-                'ptop': 1e-5*u.bar,
-                'wind': {'U': 0*u.m/u.s, 'V': 0*u.m/u.s},
-                'gamma': 1.,
-                'albedo': 0.0,
-                'emissivity': 1.0,
-                'molecules': {
-                    'N2': 1e-20,
-                },
-                'lat_redistribution': 0.0
-            }
+            'lat_redistribution': 0.0
         }
     }
+}
 GCM = VSPEC.params.gcmParameters.from_dict(
     GCM_DICT
 )
@@ -176,7 +180,11 @@ VSPEC_PARAMS = VSPEC.params.InternalParameters(
     gcm=GCM
 )
 
+
 def get_grid_params(epsilon: float):
+    """
+    Get the grid parameters with given epsilon
+    """
     _gcm = GCM_DICT.copy()
     _gcm['gcm']['vspec']['epsilon'] = epsilon
     _header = deepcopy(HEADER)
@@ -196,19 +204,26 @@ def get_grid_params(epsilon: float):
 
 
 def get_model():
+    """
+    Return the fiducial model
+    """
     return VSPEC.ObservationModel(VSPEC_PARAMS)
 
+
 def get_teq():
-    return STAR.teff * np.sqrt(STAR.radius / PLANET.semimajor_axis/2) * (1-GCM_DICT['gcm']['vspec']['albedo'])
-def foot(t):
-    return rf'$^{t}$'
+    """
+    Calculate the equilibrium temperature
+    """
+    return STAR.teff * np.sqrt(STAR.radius / PLANET.semimajor_axis/2) \
+        * (1-GCM_DICT['gcm']['vspec']['albedo'])
+
 
 REF = {
     'assumed': '\\dagger',
     'rosenthal2021': 'c',
     'nelson2016': 'd',
     'gaiacollaboration2020': 'b'
-    
+
 }
 TAB = {
     'Stellar Effective Temperature': f'{TEFF} K{foot(REF["rosenthal2021"])}',
@@ -237,56 +252,11 @@ TAB = {
     'Albedo': f'{GCM_DICT["gcm"]["vspec"]["albedo"]:.1f}{foot(REF["assumed"])}',
 }
 
-def cite(k):
-    if k in ['assumed']:
-        return k
-    else:
-        return f'\\citet{{{k}}}'
 
-
-def write_table():
-    
-    lines = [
-        '\\begin{table}',
-        '\\centering',
-        '\\begin{tabular}{cc}',
-        '\\hline',
-        'Quantity & Value \\\\',
-        '\\hline',    
-        ]
-    for k, v in TAB.items():
-        lines.append(f'{k} & {v} \\\\')
-    lines.append('\\hline')
-    lines.append('\\multicolumn{2}{c}{Inference Grid} \\\\')
-    lines.append('\\hline')
-    lines.append(f'Radius & ${RADIUS_SCALE_MIN*PLANET.radius.to_value(u.R_jup):.1f}--{RADIUS_SCALE_MAX*PLANET.radius.to_value(u.R_jup):.1f}\\,R_\\mathrm{{J}}$ \\\\')
-    lines.append(f'$T_\\mathrm{{night}}/T_\\mathrm{{day}}$ & ${TEMP_RATIO_MIN:.2f}--{TEMP_RATIO_MAX:.2f}$ \\\\')
-    lines.append('\\hline')
-    lines.append('\\end{tabular}')
-    refsline = '; '.join(f"{foot(b)}{cite(a)}" for a,b in REF.items())
-    lines.append(f'\\caption{{GJ 876 d Simulation Parameters. {refsline}}}')
-    lines.append('\\label{tab:gj876-parameters}')
-    lines.append('\\end{table}')
-    
-    with open(TABLE_FILE, 'w', encoding='utf-8') as f:
-        f.write('\n'.join(lines))
- 
- 
-def get_temperature_ratio(epsilon: float):
-    if epsilon < 1:
-        mode = 'ivp_reflect'
-    elif epsilon < 10:
-        mode = 'bvp'
-    else:
-        mode = 'analytic'
-    _, tsurf = VSPEC.gcm.heat_transfer.get_equator_curve(epsilon, 180, mode)
-    return np.min(tsurf)/np.max(tsurf)
-    
-    
 if __name__ == '__main__':
-    write_table()
-    # psg.docker.set_url_and_run()
-    # model = get_model()
-    # model.build_planet()
-    # model.build_spectra()
-    
+    model = get_model()
+    if not (model.directories['psg_thermal'] / 'phase00000.fits').exists() or RERUN_PLANET:
+        psg.docker.set_url_and_run()
+        model.build_planet()
+    if not (model.directories['all_model'] / 'phase00000.fits').exists() or RERUN_SPECTRA:
+        model.build_spectra()

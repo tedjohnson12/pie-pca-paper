@@ -21,13 +21,16 @@ TRUE_DAY_NIGHT_RATIOS = [0.1, 0.5, 0.9]
 TEFF = 2900
 SPOT_FRAC = 0.2
 TSPOT = 2600
-# (1-SPOT_FRAC)*TPHOT**4 + SPOT_FRAC*TSPOT**4 = TEFF**4
 TPHOT = ((TEFF**4 - SPOT_FRAC*TSPOT**4)/(1-SPOT_FRAC))**0.25
 SHORT_WL_CUTOFF = 5*u.um
 
+RERUN_PLANET = False
+RERUN_SPECTRA = False
+
 
 HEADER = VSPEC.params.Header(
-    data_path=Path(__file__).parent / '.vspec' / f'proxb50cm_{TRUE_EPSILON:.2f}',
+    data_path=Path(__file__).parent / '.vspec' /
+    f'proxb50cm_{TRUE_EPSILON:.2f}',
     seed=11,
     spec_grid=VSPEC.params.VSPECGridParameters(
         max_teff=3100 * u.K,
@@ -177,6 +180,9 @@ VSPEC_PARAMS = VSPEC.params.InternalParameters(
 
 
 def get_grid_params(epsilon: float):
+    """
+    Get VSPEC parameters with given epsilon
+    """
     _gcm = GCM_DICT.copy()
     _gcm['gcm']['vspec']['epsilon'] = epsilon
     _header = deepcopy(HEADER)
@@ -196,88 +202,24 @@ def get_grid_params(epsilon: float):
 
 
 def get_model():
+    """
+    Return the fiducial model
+    """
     return VSPEC.ObservationModel(VSPEC_PARAMS)
 
+
 def get_teq():
-    return STAR.teff * np.sqrt(STAR.radius / PLANET.semimajor_axis/2) * (1-GCM_DICT['gcm']['vspec']['albedo'])
-def foot(t):
-    return rf'$^{t}$'
-
-REF = {
-    'assumed': '\\dagger',
-    'faria2022': 'a',
-    'gaiacollaboration2020': 'b'
-    
-}
-def cite(k):
-    if k in ['assumed']:
-        return k
-    else:
-        return f'\\citet{{{k}}}'
-
-
-def write_table():
-    tab = {
-        'Stellar Effective Temperature': f'{STAR.teff:latex}{foot(REF["faria2022"])}',
-        'Stellar Radius': f'{STAR.radius:latex}{foot(REF["faria2022"])}',
-        'Stellar Rotation Period': f'{STAR.period:latex}{foot(REF["faria2022"])}',
-        'Spot Temperature': f'{STAR.spots.teff_umbra:latex}{foot(REF["assumed"])}',
-        'Spot Coverage': f'{SPOT_FRAC:.1f}{foot(REF["assumed"])}',
-        'Photosphere Temperature': f'{STAR.teff.round(0):latex}',
-        'Planet Radius': f'{PLANET.radius.round(2):latex}{foot(REF["assumed"])}',
-        'Planet Mass': f'{PLANET.gravity.value.to(u.M_earth).round(0):latex}{foot(REF["assumed"])}',
-        'Planet $T_\\mathrm{eq}$': f'{get_teq().to(u.K).round(0):latex}',
-        'Semimajor Axis': f'{PLANET.semimajor_axis:latex}{foot(REF["faria2022"])}',
-        'Orbital Period': f'{PLANET.orbit_period.round(3):latex}{foot(REF["faria2022"])}',
-        'Eccentricity': f'{PLANET.eccentricity:.1f}{foot(REF["faria2022"])}',
-        'Initial Phase': f'{PLANET.init_phase:latex}{foot(REF["assumed"])}',
-        'Distance': f'{SYSTEM.distance:latex}{foot(REF["gaiacollaboration2020"])}',
-        'Inclination': f'{SYSTEM.inclination:latex}{foot(REF["assumed"])}',
-        'Observation Length': f'{OBS.observation_time:latex}',
-        'Integration Length': f'{INST.detector.integration_time:latex}',
-        'Time Bin Size': f'{OBS.integration_time:latex}',
-        'Short Wavelength': f'{INST.bandpass.wl_blue:latex}',
-        'Long Wavelength': f'{INST.bandpass.wl_red:latex}',
-        'PIE Cutoff': f'{SHORT_WL_CUTOFF:latex}',
-        'Resolving Power': f'{INST.bandpass.resolving_power:.0f}',
-        'Mean Molecular Weight': f'{GCM_DICT["gcm"]["mean_molec_weight"]:.0f}{foot(REF["assumed"])}',
-        'Albedo': f'{GCM_DICT["gcm"]["vspec"]["albedo"]:.1f}{foot(REF["assumed"])}',
-    }
-    lines = [
-        '\\begin{table}',
-        '\\centering',
-        '\\begin{tabular}{cc}',
-        '\\hline',
-        'Quantity & Value \\\\',
-        '\\hline',
-    ]
-    for k, v in tab.items():
-        lines.append(f'{k} & {v} \\\\')
-    lines.append('\\hline')
-    lines.append('\\end{tabular}')
-    refsline = '; '.join(f"{foot(b)}{cite(a)}" for a,b in REF.items())
-    lines.append(f'\\caption{{PCb Simulation Parameters. {refsline}}}')
-    lines.append('\\label{tab:pcb-parameters}')
-    lines.append('\\end{table}')
-
-    with open(TABLE_FILE, 'w', encoding='utf-8') as f:
-        f.write('\n'.join(lines))
-
-
-def get_temperature_ratio(epsilon: float):
-    if epsilon < 1:
-        mode = 'ivp_reflect'
-    elif epsilon < 10:
-        mode = 'bvp'
-    else:
-        mode = 'analytic'
-    _, tsurf = VSPEC.gcm.heat_transfer.get_equator_curve(epsilon, 180, mode)
-    return np.min(tsurf)/np.max(tsurf)
+    """
+    Compute the equilibrium temperature
+    """
+    return STAR.teff * np.sqrt(STAR.radius / PLANET.semimajor_axis/2) \
+        * (1-GCM_DICT['gcm']['vspec']['albedo'])
 
 
 if __name__ == '__main__':
-    # write_table()
-    psg.docker.set_url_and_run()
     model = get_model()
-    model.build_planet()
-    model.build_spectra()
+    if not (model.directories['psg_thermal'] / 'phase00000.fits').exists() or RERUN_PLANET:
+        psg.docker.set_url_and_run()
+        model.build_planet()
+    if not (model.directories['all_model'] / 'phase00000.fits').exists() or RERUN_SPECTRA:
+        model.build_spectra()

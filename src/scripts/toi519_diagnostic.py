@@ -1,18 +1,19 @@
-import contextlib
+"""
+Detailed tests to make sure things go as expected.
+"""
+
 import matplotlib.pyplot as plt
-from matplotlib.colors import LogNorm
 import numpy as np
 from astropy import units as u
 from loguru import logger
-from scipy.optimize import minimize_scalar
 
 from vpie import vpie
 import VSPEC
+from vpie import bin_image
 
-import paths
 from toi519_grid import get_interp, dt_to_eps as temp_to_log_epsilon
-from toi519_run import get_model, PLANET as PLANET_PARAMS
-from common import find_eclipse, remove_epoch, bin_image_rs as bin_image
+from toi519_run import get_model
+from common import find_eclipse, remove_epoch, figure_context
 
 PREFIX = 'toi519'
 IC = 'AIC'
@@ -30,15 +31,6 @@ TIME_UNIT = u.day
 WL_UNIT = u.um
 INTERACTIVE = True
 
-
-@contextlib.contextmanager
-def figure_context(*args, **kwargs):
-    fig: plt.Figure = plt.figure(*args, **kwargs)
-    yield fig
-    if INTERACTIVE:
-        plt.show()
-    plt.close(fig)
-
 if __name__ in '__main__':
     plt.style.use('bmh')
     interpolator = get_interp()
@@ -50,7 +42,7 @@ if __name__ in '__main__':
     data = VSPEC.PhaseAnalyzer.from_model(get_model())
     wl = data.wavelength
     time = data.time
-    
+
     rng = np.random.default_rng(SEED)
     stellar = data.star.T.to_value(FLUX_UNIT)
     true_uncertainty = data.noise.T.to_value(FLUX_UNIT)
@@ -59,7 +51,7 @@ if __name__ in '__main__':
     scatter = rng.normal(loc=0, scale=uncertainty)
     total_observed = total_true + scatter
     null_observed = stellar + scatter
-    
+
     with figure_context(figsize=(6, 12)) as fig:
         ax1 = fig.add_subplot(3, 1, 1)
         ax2 = fig.add_subplot(3, 1, 2)
@@ -74,19 +66,25 @@ if __name__ in '__main__':
             'Noise contrast'
         ]
         for ax, denom, label in zip(axes, denominators, labels):
-            im1 = ax.pcolormesh(wl.to_value(WL_UNIT), time.to_value(TIME_UNIT), (thermal/denom), rasterized=True, cmap='afmhot_r')
+            im1 = ax.pcolormesh(wl.to_value(WL_UNIT),
+                                time.to_value(TIME_UNIT),
+                                (thermal/denom),
+                                rasterized=True, cmap='afmhot_r')
             ax.set_xlabel('Wavelength ($\\rm \\mu m$)')
             ax.set_ylabel('Time (days)')
             ax.axvline(CUTOFF_WL.to_value(WL_UNIT), ls='--', c='k')
             ax.axvline(CHI2_WL.to_value(WL_UNIT), ls='--', c='k')
-            cbar1 = fig.colorbar(im1, ax=ax, orientation='vertical', shrink=0.8,label=label)
-    
+            cbar1 = fig.colorbar(
+                im1, ax=ax, orientation='vertical', shrink=0.8, label=label)
+
     cutoff_index = np.argwhere(wl > CUTOFF_WL)[0][0]
     long_cutoff_index = np.argwhere(wl > CHI2_WL)[0][0]
     logger.info(
-        f'For a short-wave cutoff of {CUTOFF_WL}, we choose a cutoff index of {cutoff_index}. Total wl axis size is {wl.size}')
+        f'For a short-wave cutoff of {CUTOFF_WL}, we choose a cutoff index of {cutoff_index}.'
+        'Total wl axis size is {wl.size}')
     logger.info(
-        f'For a long-wave cutoff of {CHI2_WL}, we choose a cutoff index of {long_cutoff_index}. Total wl axis size is {wl.size}')
+        f'For a long-wave cutoff of {CHI2_WL}, we choose a cutoff index of {long_cutoff_index}.'
+        'Total wl axis size is {wl.size}')
     s, coeffs, f_rec = vpie.get_vpie(
         total_observed,
         uncertainty,
@@ -101,32 +99,30 @@ if __name__ in '__main__':
         True,
         IC
     )
-    
-    
+
     with figure_context(figsize=(6, 4)) as fig:
-        ax = fig.add_subplot(1,1,1)
+        ax = fig.add_subplot(1, 1, 1)
         for i, _s in enumerate(s):
-            k = coeffs[:,i]
+            k = coeffs[:, i]
             ax.plot(time.to_value(TIME_UNIT), k, label=f'{_s}')
-        for i,_s in enumerate(s_null):
-            k = coeffs_null[:,i]
-            ax.plot(time.to_value(TIME_UNIT), k, label=f'{_s}',ls='--')
+        for i, _s in enumerate(s_null):
+            k = coeffs_null[:, i]
+            ax.plot(time.to_value(TIME_UNIT), k, label=f'{_s}', ls='--')
         ax.set_xlabel('Time (days)')
         ax.set_ylabel('Amplitude')
         ax.set_title(f'{PREFIX} {IC}')
         ax.legend()
-    
 
     residual = f_rec - total_observed
     null_residual = f_rec_null - null_observed
-    
+
     with figure_context(figsize=(12, 12)) as fig:
         ax1 = fig.add_subplot(3, 2, 1)
         ax2 = fig.add_subplot(3, 2, 2)
         ax3 = fig.add_subplot(3, 2, 3)
-        ax4 = fig.add_subplot(3,2,4)
-        ax5 = fig.add_subplot(3,2,5)
-        ax6 = fig.add_subplot(3,2,6)
+        ax4 = fig.add_subplot(3, 2, 4)
+        ax5 = fig.add_subplot(3, 2, 5)
+        ax6 = fig.add_subplot(3, 2, 6)
         axes = [
             [ax1, ax3, ax5],
             [ax2, ax4, ax6]
@@ -146,68 +142,16 @@ if __name__ in '__main__':
             for ax, denom, label in zip(_axes, denominators, labels):
                 Z = numerator/denom
                 vminmax = np.max(np.abs(Z))
-                im1 = ax.pcolormesh(wl.to_value(WL_UNIT), time.to_value(TIME_UNIT), Z, rasterized=True, cmap='bwr',vmin=-vminmax,vmax=vminmax)
+                im1 = ax.pcolormesh(wl.to_value(WL_UNIT), time.to_value(
+                    TIME_UNIT), Z, rasterized=True, cmap='bwr', vmin=-vminmax, vmax=vminmax)
                 ax.set_xlabel('Wavelength ($\\rm \\mu m$)')
                 ax.set_ylabel('Time (days)')
                 ax.axvline(CUTOFF_WL.to_value(WL_UNIT), ls='--', c='k')
                 ax.axvline(CHI2_WL.to_value(WL_UNIT), ls='--', c='k')
-                regions = [wl < CUTOFF_WL, (wl>=CUTOFF_WL) & (wl<CHI2_WL), wl>=CHI2_WL]
+                regions = [wl < CUTOFF_WL, (wl >= CUTOFF_WL) & (
+                    wl < CHI2_WL), wl >= CHI2_WL]
                 for reg in regions:
-                    Zreg = Z[:,reg]
-                    mean = np.mean(Zreg)
-                    stdev = np.std(Zreg)
-                    rms = np.sqrt(np.mean(Zreg**2))
-                    ma = np.mean(np.abs(Zreg))
-                    s = f'Mean: {mean:.1f}\n' \
-                      + f'Std:  {stdev:.1f}\n' \
-                      + f'rms:  {rms:.1f}\n' \
-                      + f'mae:  {ma:.1f}'
-                    ax.text(wl[reg][0].to_value(WL_UNIT),1,s)
-                    
-                cbar1 = fig.colorbar(im1, ax=ax, orientation='vertical', shrink=0.8,label=label)
-    
-    BIN_TIME = 4
-    BIN_WL = 6
-    with figure_context(figsize=(12, 12)) as fig:
-        fig.text(0.5,0.98,f'WL BIN = {BIN_WL}, TIME BIN = {BIN_TIME}')
-        ax1 = fig.add_subplot(3, 2, 1)
-        ax2 = fig.add_subplot(3, 2, 2)
-        ax3 = fig.add_subplot(3, 2, 3)
-        ax4 = fig.add_subplot(3,2,4)
-        ax5 = fig.add_subplot(3,2,5)
-        ax6 = fig.add_subplot(3,2,6)
-        axes = [
-            [ax1, ax3, ax5],
-            [ax2, ax4, ax6]
-        ]
-        numerators = [residual, null_residual]
-        denominators = [
-            1e-16, stellar/1e6, uncertainty
-        ]
-        powers = [1,1,2]
-        labels = [
-            r'$10^{-16}\mathrm{W m^{-2} \mu m^{-1}}$',
-            'Star contrast (ppm)',
-            'Noise contrast'
-        ]
-        ax1.set_title('Thermal Contrast')
-        ax2.set_title('Null Contrast')
-        _wl = bin_image(wl.to_value(WL_UNIT).T,BIN_WL, 1,1)[0,:]
-        logger.info(f'Binned wavelength has shape {_wl.shape}.')
-        _time = bin_image(time.to_value(TIME_UNIT),BIN_TIME, 1,1)[0,:]
-        logger.info(f'Binned time has shape {_time.shape}.')
-        for _axes, numerator in zip(axes, numerators):
-            for ax, denom, label,power in zip(_axes, denominators, labels,powers):
-                Z = bin_image(numerator,BIN_WL,BIN_TIME,1) / bin_image(denom,BIN_WL,BIN_TIME,power)
-                vminmax = np.max(np.abs(Z))
-                im1 = ax.pcolormesh(_wl, _time, Z, rasterized=True, cmap='bwr',vmin=-vminmax,vmax=vminmax)
-                ax.set_xlabel('Wavelength ($\\rm \\mu m$)')
-                ax.set_ylabel('Time (days)')
-                ax.axvline(CUTOFF_WL.to_value(WL_UNIT), ls='--', c='k')
-                ax.axvline(CHI2_WL.to_value(WL_UNIT), ls='--', c='k')
-                regions = [_wl < CUTOFF_WL.to_value(WL_UNIT), (_wl>=CUTOFF_WL.to_value(WL_UNIT)) & (_wl<CHI2_WL.to_value(WL_UNIT)), _wl>=CHI2_WL.to_value(WL_UNIT)]
-                for reg in regions:
-                    Zreg = Z[:,reg]
+                    Zreg = Z[:, reg]
                     mean = np.mean(Zreg)
                     stdev = np.std(Zreg)
                     rms = np.sqrt(np.mean(Zreg**2))
@@ -216,21 +160,83 @@ if __name__ in '__main__':
                         + f'Std:  {stdev:.1f}\n' \
                         + f'rms:  {rms:.1f}\n' \
                         + f'mae:  {ma:.1f}'
-                    ax.text(_wl[reg][0],1,s)
-                    
-                cbar1 = fig.colorbar(im1, ax=ax, orientation='vertical', shrink=0.8,label=label)
+                    ax.text(wl[reg][0].to_value(WL_UNIT), 1, s)
+
+                cbar1 = fig.colorbar(
+                    im1, ax=ax, orientation='vertical', shrink=0.8, label=label)
+
+    BIN_TIME = 4
+    BIN_WL = 6
+    with figure_context(figsize=(12, 12)) as fig:
+        fig.text(0.5, 0.98, f'WL BIN = {BIN_WL}, TIME BIN = {BIN_TIME}')
+        ax1 = fig.add_subplot(3, 2, 1)
+        ax2 = fig.add_subplot(3, 2, 2)
+        ax3 = fig.add_subplot(3, 2, 3)
+        ax4 = fig.add_subplot(3, 2, 4)
+        ax5 = fig.add_subplot(3, 2, 5)
+        ax6 = fig.add_subplot(3, 2, 6)
+        axes = [
+            [ax1, ax3, ax5],
+            [ax2, ax4, ax6]
+        ]
+        numerators = [residual, null_residual]
+        denominators = [
+            1e-16, stellar/1e6, uncertainty
+        ]
+        powers = [1, 1, 2]
+        labels = [
+            r'$10^{-16}\mathrm{W m^{-2} \mu m^{-1}}$',
+            'Star contrast (ppm)',
+            'Noise contrast'
+        ]
+        ax1.set_title('Thermal Contrast')
+        ax2.set_title('Null Contrast')
+        _wl = bin_image(wl.to_value(WL_UNIT).T, BIN_WL, 1, 1)[0, :]
+        logger.info(f'Binned wavelength has shape {_wl.shape}.')
+        _time = bin_image(time.to_value(TIME_UNIT), BIN_TIME, 1, 1)[0, :]
+        logger.info(f'Binned time has shape {_time.shape}.')
+        for _axes, numerator in zip(axes, numerators):
+            for ax, denom, label, power in zip(_axes, denominators, labels, powers):
+                Z = bin_image(numerator, BIN_WL, BIN_TIME, 1) / \
+                    bin_image(denom, BIN_WL, BIN_TIME, power)
+                vminmax = np.max(np.abs(Z))
+                im1 = ax.pcolormesh(
+                    _wl, _time, Z, rasterized=True, cmap='bwr', vmin=-vminmax, vmax=vminmax)
+                ax.set_xlabel('Wavelength ($\\rm \\mu m$)')
+                ax.set_ylabel('Time (days)')
+                ax.axvline(CUTOFF_WL.to_value(WL_UNIT), ls='--', c='k')
+                ax.axvline(CHI2_WL.to_value(WL_UNIT), ls='--', c='k')
+                regions = [
+                    _wl < CUTOFF_WL.to_value(WL_UNIT),
+                    (_wl >= CUTOFF_WL.to_value(WL_UNIT)) & (
+                        _wl < CHI2_WL.to_value(WL_UNIT)),
+                    _wl >= CHI2_WL.to_value(WL_UNIT)
+                ]
+                for reg in regions:
+                    Zreg = Z[:, reg]
+                    mean = np.mean(Zreg)
+                    stdev = np.std(Zreg)
+                    rms = np.sqrt(np.mean(Zreg**2))
+                    ma = np.mean(np.abs(Zreg))
+                    s = f'Mean: {mean:.1f}\n' \
+                        + f'Std:  {stdev:.1f}\n' \
+                        + f'rms:  {rms:.1f}\n' \
+                        + f'mae:  {ma:.1f}'
+                    ax.text(_wl[reg][0], 1, s)
+
+                cbar1 = fig.colorbar(
+                    im1, ax=ax, orientation='vertical', shrink=0.8, label=label)
 
     with figure_context(figsize=(6, 4)) as fig:
-        lc = thermal[:,-1]
+        lc = thermal[:, -1]
         ax = fig.add_subplot(1, 1, 1)
         ax.scatter(time, lc, s=30)
-        
+
         estart, eend = find_eclipse(lc)
         therm_m1 = remove_epoch(thermal, estart, eend)
-        lc = therm_m1[:,-1]
+        lc = therm_m1[:, -1]
         time = remove_epoch(time, estart, eend)
         ax.scatter(time, lc, s=20)
-        
+
         ax.set_xlabel('Time (days)')
         ax.set_ylabel('Thermal')
-        

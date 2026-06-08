@@ -1,3 +1,6 @@
+"""
+3D figs to explain the VPIE method visually
+"""
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
@@ -29,8 +32,8 @@ PL_MULTIPLIER = 10e3
 FONTSIZE = 14
 LG_FONTSIZE = 12
 WL_SHORT = 1.5*u.um
-FIGSIZE = (COLWIDTH,COLWIDTH)
-RATIOS = [20,1]
+FIGSIZE = (COLWIDTH, COLWIDTH)
+RATIOS = [20, 1]
 
 TEFF_PHOT = np.array([3000])
 TEFF_SPOT = np.array([2600])
@@ -72,7 +75,8 @@ if __name__ in "__main__":
                 spec.evaluate([TEFF_PHOT])*(1-fp)
             f_star = f_star[0]
             f_star = f_star * (cfg.target.star_radius.value**2 /
-                            cfg.geometry.observer_altitude.value**2).to_value(u.dimensionless_unscaled)
+                               cfg.geometry.observer_altitude.value**2)\
+                .to_value(u.dimensionless_unscaled)
             f_total = f_planet * PL_MULTIPLIER + f_star
             f_small = f_planet + f_star
             fdat_big_planet.append(f_total)
@@ -82,10 +86,11 @@ if __name__ in "__main__":
             ax.plot(x, y, z, lw=2, c=color, zorder=100)
 
         ax.set_ylabel('SW $\\leftarrow\\lambda\\rightarrow$ LW',
-                    fontsize=FONTSIZE, labelpad=-10)
+                      fontsize=FONTSIZE, labelpad=-10)
         ax.set_zlabel(r'$\bm{f}$', fontsize=FONTSIZE, labelpad=-10)
         ax.set_xlabel('$t$', fontsize=FONTSIZE, labelpad=-10)
-        ax.tick_params(axis='both', which='major', labelsize=FONTSIZE, length=0)
+        ax.tick_params(axis='both', which='major',
+                       labelsize=FONTSIZE, length=0)
         ax.zaxis.set_rotate_label(False)
         ax.set_xticks([])
         ax.set_yticks([])
@@ -105,16 +110,18 @@ if __name__ in "__main__":
         vminmax = np.max(np.abs(rel_flux))
         norm = CenteredNorm(vcenter=0, halfrange=vminmax)
         colors = dcmap(norm(rel_flux))
-        ax.plot_surface(xx, yy, zz, facecolors=colors, shade=False, zorder=-100)
+        ax.plot_surface(xx, yy, zz, facecolors=colors,
+                        shade=False, zorder=-100)
         im = ScalarMappable(norm, dcmap)
-        cbar = fig.colorbar(im, cax=cbar_ax, orientation='horizontal',shrink=0.8, pad=0.05)
+        cbar = fig.colorbar(
+            im, cax=cbar_ax, orientation='horizontal', shrink=0.8, pad=0.05)
         cbar.set_label('variation (\\%)', fontsize=LG_FONTSIZE)
         # End bottom part
         fig.savefig(paths.figures / f'{PREFIX}_a.pdf')
         xlims = ax.get_xlim()
         ylims = ax.get_ylim()
         zlims = ax.get_zlim()
-        
+
     cutoff_index = np.where(y > WL_SHORT.to_value(u.um))[0][0]
 
     s, c, f_rec = vpie.get_vpie(
@@ -141,10 +148,11 @@ if __name__ in "__main__":
 
         ax.zaxis.set_rotate_label(False)
         ax.set_ylabel('SW $\\leftarrow\\lambda\\rightarrow$ LW',
-                    fontsize=FONTSIZE, labelpad=-10)
+                      fontsize=FONTSIZE, labelpad=-10)
         ax.set_zlabel(r'$\bm{f}^{(k)}$', fontsize=FONTSIZE, labelpad=-10)
         ax.set_xlabel('$t$', fontsize=FONTSIZE, labelpad=-10)
-        ax.tick_params(axis='both', which='major', labelsize=FONTSIZE, length=0)
+        ax.tick_params(axis='both', which='major',
+                       labelsize=FONTSIZE, length=0)
         ax.set_xlim(0, 2*np.pi)
         ax.set_xticks([])
         ax.set_yticks([])
@@ -154,7 +162,8 @@ if __name__ in "__main__":
         ax.set_xlim(xlims)
         ax.set_ylim(ylims)
         ax.set_zlim(zlims)
-        cbar = fig.colorbar(im, cax=cbar_ax, orientation='horizontal',shrink=0.8, pad=0.05)
+        cbar = fig.colorbar(
+            im, cax=cbar_ax, orientation='horizontal', shrink=0.8, pad=0.05)
         cbar.set_label('variation (\\%)', fontsize=LG_FONTSIZE)
         fig.savefig(paths.figures / f'{PREFIX}_b.pdf')
 
@@ -168,19 +177,21 @@ if __name__ in "__main__":
             z = np.log10(fdat_big_planet[i, :])
             ax.plot(x, y, z, lw=2, c=color, zorder=100)
             z = np.log10(f_rec[i, :])
-            ax.plot(x, y, z, lw=2, c=color, zorder=100,ls='--')
+            ax.plot(x, y, z, lw=2, c=color, zorder=100, ls='--')
 
         ax.view_init(elev=20, azim=30)
 
-        ax.tick_params(axis='both', which='major', labelsize=FONTSIZE, length=0)
+        ax.tick_params(axis='both', which='major',
+                       labelsize=FONTSIZE, length=0)
         ax.set_xticks([])
         ax.set_yticks([])
         ax.set_zticks([])
         ax.zaxis.set_rotate_label(False)
         ax.spines[['right', 'top']].set_visible(False)
         ax.set_ylabel('SW $\\leftarrow\\lambda\\rightarrow$ LW',
-                    fontsize=FONTSIZE, labelpad=-10)
-        ax.set_zlabel(r'$\bm{f},\,\tilde{\bm{f}}$', fontsize=FONTSIZE, labelpad=-10)
+                      fontsize=FONTSIZE, labelpad=-10)
+        ax.set_zlabel(r'$\bm{f},\,\tilde{\bm{f}}$',
+                      fontsize=FONTSIZE, labelpad=-10)
         ax.set_xlabel('$t$', fontsize=FONTSIZE, labelpad=-10)
 
         # Bottom part
@@ -193,9 +204,11 @@ if __name__ in "__main__":
         vminmax = np.max(np.abs(frac_res))
         norm = CenteredNorm(vcenter=0, halfrange=vminmax)
         colors = dcmap(norm(frac_res))
-        ax.plot_surface(xx, yy, zz, facecolors=colors, shade=False, zorder=-100)
+        ax.plot_surface(xx, yy, zz, facecolors=colors,
+                        shade=False, zorder=-100)
         im = ScalarMappable(norm, dcmap)
-        cbar = fig.colorbar(im, cax=cbar_ax, orientation='horizontal',shrink=0.8, pad=0.05)
+        cbar = fig.colorbar(
+            im, cax=cbar_ax, orientation='horizontal', shrink=0.8, pad=0.05)
         cbar.set_label('residual (ppm)', fontsize=LG_FONTSIZE)
         # End bottom part
         fig.savefig(paths.figures / f'{PREFIX}_c.pdf')

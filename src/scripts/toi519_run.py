@@ -11,6 +11,7 @@ import VSPEC.config
 import VSPEC.gcm
 import libpypsg as psg
 import paths
+from common import foot
 
 TABLE_FILE = paths.output / 'toi519.txt'
 FIDUCIAL_EPSILON = 1.3547855
@@ -215,13 +216,6 @@ def get_teq() -> u.Quantity:
         * (1-GCM_DICT['gcm']['vspec']['albedo'])
 
 
-def foot(t):
-    """
-    LaTeX superscript
-    """
-    return rf'$^{t}$'
-
-
 REF = {
     'assumed': '\\dagger',
     'kagetani2023': 'a',
@@ -255,21 +249,6 @@ TAB = {
     'Mean Molecular Weight': f'{GCM_DICT["gcm"]["mean_molec_weight"]:.0f}{foot(REF["assumed"])}',
     'Albedo': f'{GCM_DICT["gcm"]["vspec"]["albedo"]:.1f}{foot(REF["assumed"])}',
 }
-
-
-def get_temperature_ratio(epsilon: float):
-    """
-    Compute the night/day temperature ratio
-    """
-    if epsilon < 1:
-        mode = 'ivp_reflect'
-    elif epsilon < 10:
-        mode = 'bvp'
-    else:
-        mode = 'analytic'
-    _, tsurf = VSPEC.gcm.heat_transfer.get_equator_curve(epsilon, 180, mode)
-    return np.min(tsurf)/np.max(tsurf)
-
 
 if __name__ == '__main__':
     model = get_model()

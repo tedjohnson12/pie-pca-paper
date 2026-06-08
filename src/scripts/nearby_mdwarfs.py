@@ -187,7 +187,8 @@ def get_mirecle_targets() -> pd.DataFrame:
 def get_hwo_targets() -> pd.DataFrame:
     """
     Get the HWO target list from Table A
-    of https://exoplanetarchive.ipac.caltech.edu/docs/2645_NASA_ExEP_Target_List_HWO_Documentation_2023.pdf
+    of https://exoplanetarchive.ipac.caltech.edu/docs/'
+    '2645_NASA_ExEP_Target_List_HWO_Documentation_2023.pdf
 
     Returns
     -------
@@ -213,7 +214,9 @@ def print_demographics(_df):
     n_nontransit = np.sum(~is_transit)
     teq_max = _df['pl_eqt'].max()
     print(
-        f'There are {n_transit} transiting exoplanets and {n_nontransit} non-transiting exoplanets. The maximum equilibrium temperature is {teq_max:.1f} K.')
+        f'There are {n_transit} transiting exoplanets and '
+        f'{n_nontransit} non-transiting exoplanets. The maximum '
+        f'equilibrium temperature is {teq_max:.1f} K.')
 
 
 def setup_fig(credit=True):
@@ -232,7 +235,7 @@ def setup_fig(credit=True):
     dist_from_bottom = 0.05
     # _fig.text(0.4, dist_from_bottom, 'NASA Exoplanet Archive ' +
     #           date, fontfamily='serif', fontsize=CREDIT_TEXT_SIZE, weight='normal',ha='right')
-    with open(DATEPATH, 'w') as f:
+    with open(DATEPATH, 'w', encoding='utf-8') as f:
         f.write(date)
     if credit:
         _fig.text(0.6, dist_from_bottom, 'Created by: Ted Johnson (UNLV, GSFC)',
@@ -391,7 +394,8 @@ def plot(
         _im = _ax.scatter(**d)
         if 'cmap' in d:
             _ax.get_figure().colorbar(_im, ax=_ax, cax=_cbar_ax,
-                                      label='Stellar Effective Temperature (K)', pad=0.01, fraction=0.05, shrink=0.5)
+                                      label='Stellar Effective Temperature (K)',
+                                      pad=0.01, fraction=0.05, shrink=0.5)
             turn_off_cbar = False
     if turn_off_cbar:
         _cbar_ax.set_axis_off()
@@ -461,7 +465,9 @@ def add_legend(_ax: plt.Axes, size_func: Callable, method: str):
                       framealpha=0.7, loc='lower right')
     legend_marker_size = size_func(2)
     if method == 'transit':
+        # pylint: disable-next=protected-access
         lgnd.legend_handles[0]._sizes = [legend_marker_size]
+        # pylint: disable-next=protected-access
         lgnd.legend_handles[1]._sizes = [legend_marker_size]
 
 
@@ -511,23 +517,26 @@ if __name__ in '__main__':
     parser.add_argument('--hwo', action='store_true',
                         help='Include HWO target list')
     parser.add_argument('--method', type=str,
-                        default='transit', help='Method to choose colors. Can be `transit` or `teff`')
+                        default='transit',
+                        help='Method to choose colors. Can be `transit` or `teff`'
+                        )
     parser.add_argument('--no_credit', action='store_true',
-                        help='Do not include credit in the figure. Only Ted is allowed to use this one.')
+                        help='Do not include credit in the figure. '
+                        'Only Ted is allowed to use this one.')
 
     args = parser.parse_args()
 
     df = get_data(args.max_teff, args.max_dist)
 
     if len(df) == 0:
-        s = f"""There were no exoplanets found with the following parameters:
+        S = f"""There were no exoplanets found with the following parameters:
         Maximum stellar effective temperature: {args.max_teff} K
         Maximum distance: {args.max_dist} pc
         Maximum orbital period: {args.max_period} days
         Maximum planet mass: {args.max_mass} Earth masses
         Maximum planet insolation: {args.max_insol} Earth fluxes
         """
-        raise RuntimeError(s)
+        raise RuntimeError(S)
 
     df = apply_corrections(
         df,
@@ -539,7 +548,8 @@ if __name__ in '__main__':
     print_demographics(df)
 
     interesting_cols = ['pl_name', 'st_teff', 'pl_approx_insol', 'pl_eqt',
-                        'tran_flag', 'pl_orbper', 'pl_bmasse', 'sy_dist', 'xuv_ratio', 'priority_metric']
+                        'tran_flag', 'pl_orbper', 'pl_bmasse', 'sy_dist',
+                        'xuv_ratio', 'priority_metric']
     print(df[interesting_cols])
     # df.to_csv('nearby_exoplanets.csv')
     # df[interesting_cols].to_csv('nearby_exoplanets_info.csv')
