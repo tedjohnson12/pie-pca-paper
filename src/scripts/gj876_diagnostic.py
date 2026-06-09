@@ -11,7 +11,7 @@ import VSPEC
 from vpie import bin_image
 
 from gj876_grid import get_interp, dt_to_eps as temp_to_log_epsilon
-from gj876_run import get_model
+from gj876_run import get_model, SW_MAX, LW_MIN
 from common import figure_context
 
 PREFIX = 'gj876'
@@ -19,13 +19,12 @@ IC = 'AIC'
 MAX_BASIS = 4
 TRUE_TEMPERATURE_RATIO = 0.99
 TRUE_LOG_EPSILON = temp_to_log_epsilon([TRUE_TEMPERATURE_RATIO])
-NOISE_SCALE = 1/10
+NOISE_SCALE = 1
 CHI2_NOISE_SCALE = 1
 THERMAL_SCALE = 1.0
 SEED = 11
 FLUX_UNIT = u.Unit('W m-2 um-1')
-CUTOFF_WL = 2.0*u.um
-CHI2_WL = 4*u.um
+
 TIME_UNIT = u.day
 WL_UNIT = u.um
 INTERACTIVE = True
@@ -69,18 +68,19 @@ if __name__ in '__main__':
                 TIME_UNIT), (thermal/denom), rasterized=True, cmap='afmhot_r')
             ax.set_xlabel('Wavelength ($\\rm \\mu m$)')
             ax.set_ylabel('Time (days)')
-            ax.axvline(CUTOFF_WL.to_value(WL_UNIT), ls='--', c='k')
-            ax.axvline(CHI2_WL.to_value(WL_UNIT), ls='--', c='k')
+            ax.axvline(SW_MAX.to_value(WL_UNIT), ls='--', c='k')
+            ax.axvline(LW_MIN.to_value(WL_UNIT), ls='--', c='k')
             cbar1 = fig.colorbar(
                 im1, ax=ax, orientation='vertical', shrink=0.8, label=label)
+        plt.show()
 
-    cutoff_index = np.argwhere(wl > CUTOFF_WL)[0][0]
-    long_cutoff_index = np.argwhere(wl > CHI2_WL)[0][0]
+    cutoff_index = np.argwhere(wl > SW_MAX)[0][0]
+    long_cutoff_index = np.argwhere(wl > LW_MIN)[0][0]
     logger.info(
-        f'For a short-wave cutoff of {CUTOFF_WL}, '
+        f'For a short-wave cutoff of {SW_MAX}, '
         f'we choose a cutoff index of {cutoff_index}. Total wl axis size is {wl.size}')
     logger.info(
-        f'For a long-wave cutoff of {CHI2_WL}, '
+        f'For a long-wave cutoff of {LW_MIN}, '
         f'we choose a cutoff index of {long_cutoff_index}. Total wl axis size is {wl.size}')
     s, coeffs, f_rec = vpie.get_vpie(
         total_observed,
@@ -109,6 +109,7 @@ if __name__ in '__main__':
         ax.set_ylabel('Amplitude')
         ax.set_title(f'{PREFIX} {IC}')
         ax.legend()
+        plt.show()
 
     residual = f_rec - total_observed
     null_residual = f_rec_null - null_observed
@@ -145,10 +146,10 @@ if __name__ in '__main__':
                 )
                 ax.set_xlabel('Wavelength ($\\rm \\mu m$)')
                 ax.set_ylabel('Time (days)')
-                ax.axvline(CUTOFF_WL.to_value(WL_UNIT), ls='--', c='k')
-                ax.axvline(CHI2_WL.to_value(WL_UNIT), ls='--', c='k')
-                regions = [wl < CUTOFF_WL, (wl >= CUTOFF_WL) & (
-                    wl < CHI2_WL), wl >= CHI2_WL]
+                ax.axvline(SW_MAX.to_value(WL_UNIT), ls='--', c='k')
+                ax.axvline(LW_MIN.to_value(WL_UNIT), ls='--', c='k')
+                regions = [wl < SW_MAX, (wl >= SW_MAX) & (
+                    wl < LW_MIN), wl >= LW_MIN]
                 for reg in regions:
                     Zreg = Z[:, reg]
                     mean = np.mean(Zreg)
@@ -163,6 +164,8 @@ if __name__ in '__main__':
 
                 cbar1 = fig.colorbar(
                     im1, ax=ax, orientation='vertical', shrink=0.8, label=label)
+
+        plt.show()
 
     BIN_TIME = 3
     BIN_WL = 9
@@ -203,13 +206,13 @@ if __name__ in '__main__':
                                     cmap='bwr', vmin=-vminmax, vmax=vminmax)
                 ax.set_xlabel('Wavelength ($\\rm \\mu m$)')
                 ax.set_ylabel('Time (days)')
-                ax.axvline(CUTOFF_WL.to_value(WL_UNIT), ls='--', c='k')
-                ax.axvline(CHI2_WL.to_value(WL_UNIT), ls='--', c='k')
+                ax.axvline(SW_MAX.to_value(WL_UNIT), ls='--', c='k')
+                ax.axvline(LW_MIN.to_value(WL_UNIT), ls='--', c='k')
                 regions = [
-                    _wl < CUTOFF_WL.to_value(WL_UNIT),
-                    (_wl >= CUTOFF_WL.to_value(WL_UNIT)) & (
-                        _wl < CHI2_WL.to_value(WL_UNIT)),
-                    _wl >= CHI2_WL.to_value(WL_UNIT)
+                    _wl < SW_MAX.to_value(WL_UNIT),
+                    (_wl >= SW_MAX.to_value(WL_UNIT)) & (
+                        _wl < LW_MIN.to_value(WL_UNIT)),
+                    _wl >= LW_MIN.to_value(WL_UNIT)
                 ]
                 for reg in regions:
                     Zreg = Z[:, reg]
@@ -225,3 +228,5 @@ if __name__ in '__main__':
 
                 cbar1 = fig.colorbar(
                     im1, ax=ax, orientation='vertical', shrink=0.8, label=label)
+
+        plt.show()

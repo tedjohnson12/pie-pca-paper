@@ -85,9 +85,9 @@ if __name__ in '__main__':
     fnames = ['none','mod','high']
     set_title = [False,False,True]
     noise_scale = np.sqrt([
-        28.191472784293506,
-        13.546932306242084,
-        17.460894606597723
+        2.1527708056337946,
+        2.296401138424259,
+        2.0207178879962595
     ])
 
     for log_epsilon, fname,_title,_noise_scale,temp_ratio in zip(
@@ -122,6 +122,8 @@ if __name__ in '__main__':
                 red_chi_sq = chi_sq / (chi_sq_2d.size-2)
                 red_chi_sq_array[i, j] = red_chi_sq
         logger.info(f'The lowest value for red chi2 is {np.min(red_chi_sq_array)}')
+        logger.info(f'The highest value for red chi2 is {np.max(red_chi_sq_array)}')
+        logger.info(f'That is {np.log10(np.max(red_chi_sq_array)/np.min(red_chi_sq_array)):.1f} orders of magnitude')
         with figure_context(figsize=FIGSIZE) as fig:
             ax: plt.Axes = fig.subplots(1, 1)
             im = ax.pcolormesh(
