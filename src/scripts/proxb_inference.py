@@ -15,7 +15,7 @@ import VSPEC
 from vpie import bin_image
 
 import paths
-from common import COLWIDTH, find_eclipse, figure_context
+from common import COLWIDTH, figure_context
 from proxb_grid import get_interp, dt_to_eps as temp_to_log_epsilon
 from proxb_run import (
     get_model, PLANET as PLANET_PARAMS,
@@ -62,8 +62,6 @@ if __name__ in '__main__':
 
     test_thermal = THERMAL_SCALE*interpolator([1])[0, :, :].T
     logger.info(f'Thermal has shape {test_thermal.shape}.')
-    eclipse_start, eclipse_end = find_eclipse(test_thermal[:, -1])
-    logger.info(f'Eclipse index is {eclipse_start} to {eclipse_end}.')
 
     def get_residual_and_noise(chi_noise_scale, epsilon):
         """
@@ -149,6 +147,17 @@ if __name__ in '__main__':
                 ' - '
                 f'The lowest value for red chi2 is {np.min(red_chi_sq_array)}'
             )
+            logger.info(
+                heat_redistribution +
+                ' - '
+                f'The highest value for red chi2 is {np.max(red_chi_sq_array)}'
+            )
+            logger.info(
+                heat_redistribution +
+                ' - '
+                f'That is {np.log10(np.max(red_chi_sq_array)/np.min(red_chi_sq_array)):.1f} orders of magnitude'
+            )
+
             with figure_context(figsize=FIGSIZE) as fig:
                 ax: plt.Axes = fig.subplots(1, 1)
                 im = ax.pcolormesh(

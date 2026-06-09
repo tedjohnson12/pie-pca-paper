@@ -46,12 +46,12 @@ USE_CACHE = [
 ]
 CHI2_NOISE_SCALE = [
     np.sqrt([
-        2.377711619217061,
-        3.2133990518653364
+        2.982307694257715,
+        2.843545055749714
     ]),
     np.sqrt([
-        3.198892481053741,
-        2.963006679560091
+        1.923470195395906,
+        2.40116970307814
     ])
 ]
 LABELS = [
@@ -179,6 +179,17 @@ if __name__ in '__main__':
                     ' - '
                     f'The lowest value for red chi2 is {np.min(red_chi_sq_array)}'
                 )
+                logger.info(
+                    f'eclipse: {use_eclipse}, {heat_redistribution}'
+                    ' - '
+                    f'The highest value for red chi2 is {np.max(red_chi_sq_array)}'
+                )
+                logger.info(
+                    f'eclipse: {use_eclipse}, {heat_redistribution}'
+                    ' - '
+                    f'That is {np.log10(np.max(red_chi_sq_array)/np.min(red_chi_sq_array)):.1f} orders of magnitude'
+                )
+
                 with figure_context(figsize=FIGSIZE) as fig:
                     ax: plt.Axes = fig.subplots(1, 1)
                     im = ax.pcolormesh(
