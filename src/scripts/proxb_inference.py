@@ -40,6 +40,7 @@ TEMP_ARRAY = np.linspace(TEMP_RATIO_MIN, TEMP_RATIO_MAX, 150)
 RADIUS_ARRAY = np.linspace(RADIUS_SCALE_MIN, RADIUS_SCALE_MAX, 80)
 TEMPERATURE_RATIOS = [0.05, 0.5, 0.99]
 HEAT_REDISTRIBUTION = ['none', 'mod', 'high']
+SET_TITLE = [False, False, True]
 USE_CACHE = [
     False, False, False
 ]
@@ -92,8 +93,9 @@ if __name__ in '__main__':
 
     log_epsilon_array = temp_to_log_epsilon(TEMP_ARRAY)
     for noise_scale, should_use_cache, temperature_ratio, \
-            heat_redistribution in zip(
-                CHI2_NOISE_SCALE, USE_CACHE, TEMPERATURE_RATIOS, HEAT_REDISTRIBUTION
+            heat_redistribution, set_title in zip(
+                CHI2_NOISE_SCALE, USE_CACHE, TEMPERATURE_RATIOS, HEAT_REDISTRIBUTION,
+                SET_TITLE
             ):
         if should_use_cache:
             with asdf.open(CACHE_FILE, mode='r') as f:
@@ -203,6 +205,9 @@ if __name__ in '__main__':
                 #         color='w', ha='left', va='center', fontweight='bold')
                 ax.scatter(temperature_ratio, PLANET_PARAMS.radius.to_value(
                     u.R_earth), marker='*', c='#c50d15', s=200, edgecolor='w')
+                if set_title:
+                    ax.text(0.5,1.05,'Proxima Centauri b',transform=ax.transAxes,
+                        fontsize=16,color='k',ha='center',va='center',fontweight='bold')
                 fig.tight_layout()
                 fig.savefig(
                     paths.figures /
