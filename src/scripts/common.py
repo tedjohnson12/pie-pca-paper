@@ -10,6 +10,7 @@ import numpy as np
 
 COLWIDTH = 8.5/2
 FIGSIZE = (COLWIDTH, 0.7*COLWIDTH)
+CLABEL_SIZE = 8
 
 
 @contextlib.contextmanager

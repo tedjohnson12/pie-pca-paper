@@ -15,7 +15,7 @@ import VSPEC
 from vpie import bin_image
 
 import paths
-from common import COLWIDTH, figure_context
+from common import COLWIDTH, figure_context, CLABEL_SIZE
 from proxb_grid import get_interp, dt_to_eps as temp_to_log_epsilon
 from proxb_run import (
     get_model, PLANET as PLANET_PARAMS,
@@ -49,6 +49,17 @@ CHI2_NOISE_SCALE = np.sqrt([
     5.076399774891293,
     5.2804814260398185
 ])
+MANUAL = [
+    [
+        (.19,1.1),(.19,1.3), (.19,1.6), (.19,2.2), (.19,3)
+    ],
+    [
+        (.42,.66), (.2,.3), (.19,1.5), (.19,2.1), (.19,3)
+    ],
+    [
+        (.19,.7), (.19,1), (.19,1.33), (.19,2), (.19,2.9)
+    ]
+]
 
 if __name__ in '__main__':
     plt.style.use('bmh')
@@ -91,9 +102,9 @@ if __name__ in '__main__':
 
     log_epsilon_array = temp_to_log_epsilon(TEMP_ARRAY)
     for noise_scale, should_use_cache, temperature_ratio, \
-            heat_redistribution, set_title in zip(
+            heat_redistribution, set_title, man in zip(
                 CHI2_NOISE_SCALE, USE_CACHE, TEMPERATURE_RATIOS, HEAT_REDISTRIBUTION,
-                SET_TITLE
+                SET_TITLE, MANUAL
             ):
         if should_use_cache:
             with asdf.open(CACHE_FILE, mode='r') as f:
@@ -171,7 +182,7 @@ if __name__ in '__main__':
                 ax.set_xlabel('$T_{\\rm night} / T_{\\rm day}$')
                 ax.grid(False)
                 fig.colorbar(im, label='$\\chi^2_{\\rm red}$')
-                levels = [1, 4, 9, 16, 25, 100, 225, 400]
+                levels = [4, 9, 25, 100, 400]
 
                 def _fmt(x):
                     return f'$\\chi^2_{{\\rm red}} = {x:.0f}$'
@@ -182,7 +193,8 @@ if __name__ in '__main__':
                     colors='k',
                     linestyles='dashed'
                 )
-                ax.clabel(im, im.levels, inline=True, fontsize=10, fmt=_fmt)
+                ax.clabel(im, im.levels, inline=True, fontsize=CLABEL_SIZE, fmt=_fmt,
+                          inline_spacing=1,manual=man)
                 levels = [0.75, 1, 1.3, 2.6]
                 labels = [  # See Zeng+2019
                     # Also note that Lopez & Fortney (2014) show that
@@ -208,8 +220,11 @@ if __name__ in '__main__':
                 def _fmt_atm(x):
                     # pylint: disable-next=cell-var-from-loop
                     return dict(zip(levels, labels))[x]
+                manual = [
+                    (.77,.75),(.77,1),(.77,1.3),(.77,2.6)
+                ]
                 ax.clabel(im, im.levels, inline=True,
-                          fontsize=10, fmt=_fmt_atm)
+                          fontsize=CLABEL_SIZE, fmt=_fmt_atm, zorder=100, inline_spacing=1, manual=manual)
                 # ax.text(0.05, 0.05, label, transform=ax.transAxes, fontsize=10,
                 #         color='w', ha='left', va='center', fontweight='bold')
                 ax.scatter(temperature_ratio, PLANET_PARAMS.radius.to_value(

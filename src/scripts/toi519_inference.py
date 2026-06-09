@@ -1,7 +1,6 @@
 """
 This was previously 4 scripts. We are combining to 1.
 """
-
 import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm
 import numpy as np
@@ -15,7 +14,7 @@ import VSPEC
 from vpie import bin_image
 
 import paths
-from common import COLWIDTH, find_eclipse, remove_epoch, figure_context
+from common import COLWIDTH, find_eclipse, remove_epoch, figure_context, CLABEL_SIZE
 from toi519_grid import get_interp, dt_to_eps as temp_to_log_epsilon
 from toi519_run import (
     get_model, PLANET as PLANET_PARAMS,
@@ -43,6 +42,24 @@ USE_ECLIPSE = [True, False]
 USE_CACHE = [
     [False, False],
     [False, False],
+]
+MANUAL = [
+    [
+        [
+            (0.513,0.918),(0.467, 1.107),(0.571,0.735),(0.406,1.376),(0.337, 1.653)
+        ],
+        [
+            (0.923,0.891),(.847,.795),(.704,.761),(.384,.778),(.201, 1.099)
+        ]
+    ],
+    [
+        [
+            (.520,.943),(.495,1.116),(.560,.795),(.449,1.333),(.380,1.549)
+        ],
+        [
+            (.287,.362),(.578, .518),(.736,.865),(.711,1.116),(.761,1.723)
+        ],
+    ],
 ]
 CHI2_NOISE_SCALE = [
     np.sqrt([
@@ -117,11 +134,11 @@ if __name__ in '__main__':
         return _residual, _uncertainty, _s, _coeffs, _wl
 
     log_epsilon_array = temp_to_log_epsilon(TEMP_ARRAY)
-    for noise_scale_arr, use_eclipse, use_cache_arr, label_arr in zip(
-        CHI2_NOISE_SCALE, USE_ECLIPSE, USE_CACHE, LABELS
+    for noise_scale_arr, use_eclipse, use_cache_arr, label_arr,man_arr in zip(
+        CHI2_NOISE_SCALE, USE_ECLIPSE, USE_CACHE, LABELS, MANUAL
     ):
-        for temperature_ratio, heat_redistribution, should_use_cache, noise_scale, label in zip(
-            TEMPERATURE_RATIOS, HEAT_REDISTRIBUTION, use_cache_arr, noise_scale_arr, label_arr
+        for temperature_ratio, heat_redistribution, should_use_cache, noise_scale, label, man in zip(
+            TEMPERATURE_RATIOS, HEAT_REDISTRIBUTION, use_cache_arr, noise_scale_arr, label_arr, man_arr
         ):
             if should_use_cache:
                 with asdf.open(CACHE_FILE, mode='r') as f:
@@ -202,7 +219,7 @@ if __name__ in '__main__':
                     ax.set_xlabel('$T_{\\rm night} / T_{\\rm day}$')
                     ax.grid(False)
                     fig.colorbar(im, label='$\\chi^2_{\\rm red}$')
-                    levels = [1, 4, 9, 16, 25, 100, 225, 400]
+                    levels = [4, 9, 25, 100, 400]
 
                     def _fmt(x):
                         return f'$\\chi^2_{{\\rm red}} = {x:.0f}$'
@@ -213,7 +230,7 @@ if __name__ in '__main__':
                         colors='k',
                         linestyles='dashed'
                     )
-                    ax.clabel(im, im.levels, inline=True, fontsize=10, fmt=_fmt)
+                    ax.clabel(im, im.levels, inline=True, fontsize=CLABEL_SIZE, fmt=_fmt, inline_spacing=1,manual=man)
                     ax.text(0.05, 0.05, label, transform=ax.transAxes, fontsize=10,
                             color='w', ha='left', va='center', fontweight='bold')
                     ax.scatter(temperature_ratio, PLANET_PARAMS.radius.to_value(

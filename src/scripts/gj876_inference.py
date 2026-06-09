@@ -17,7 +17,7 @@ import VSPEC
 from vpie import bin_image
 
 import paths
-from common import COLWIDTH, figure_context
+from common import COLWIDTH, figure_context, CLABEL_SIZE
 from gj876_grid import get_interp, dt_to_eps as temp_to_log_epsilon
 from gj876_run import (
     get_model, PLANET as PLANET_PARAMS,
@@ -37,6 +37,17 @@ SEED = 33
 FLUX_UNIT = u.Unit('W m-2 um-1')
 BIN_WL = 6
 BIN_TIME = 3
+MANUAL = [
+    [
+        (.115,2.63),(.122,1.87),(.161,3.36),(.287,3.71)
+    ],
+    [
+        (.488,2.18),(.722,3.19),(.951,4.90),(.844,5.77)
+    ],
+    [
+        (.1,1.24),(.194,1.66),(.158,2.39),(.169,3.36)
+    ],
+]
 
 FIGSIZE = (COLWIDTH, 0.7*COLWIDTH)
 
@@ -90,8 +101,8 @@ if __name__ in '__main__':
         2.0207178879962595
     ])
 
-    for log_epsilon, fname,_title,_noise_scale,temp_ratio in zip(
-        log_epsilons, fnames,set_title,noise_scale,temp_ratios
+    for log_epsilon, fname,_title,_noise_scale,temp_ratio,man in zip(
+        log_epsilons, fnames,set_title,noise_scale,temp_ratios,MANUAL
     ):
         pl_true_radius = PLANET_PARAMS.radius.to(u.R_earth)
         radius_arr = np.linspace(RADIUS_SCALE_MIN, RADIUS_SCALE_MAX,80)
@@ -136,7 +147,7 @@ if __name__ in '__main__':
             ax.set_xlabel('$T_{\\rm night} / T_{\\rm day}$')
             ax.grid(False)
             fig.colorbar(im, label='$\\chi^2_{\\rm red}$')
-            levels = [1, 4, 9, 16, 25,100,225,400]
+            levels = [9, 25,100,400]
             def _fmt(x):
                 return f'$\\chi^2_{{\\rm red}} = {x:.0f}$'
             im = ax.contour(
@@ -145,7 +156,7 @@ if __name__ in '__main__':
                 colors='k',
                 linestyles='dashed'
             )
-            ax.clabel(im, im.levels, inline=True, fontsize=10, fmt=_fmt)
+            ax.clabel(im, im.levels, inline=True, fontsize=CLABEL_SIZE, fmt=_fmt, inline_spacing=1,manual=man)
             levels=[1.3,2.1,3.2]
             labels = [ # Zeng+2019 Fig 2
                 '$100\\%\\;\\mathrm{Fe}$',
@@ -164,7 +175,10 @@ if __name__ in '__main__':
             def _fmt_atm(x):
                 # pylint: disable-next=cell-var-from-loop
                 return dict(zip(levels, labels))[x]
-            ax.clabel(im,im.levels,inline=True,fontsize=10,fmt=_fmt_atm,zorder=100)
+            manual = [
+                (.858,1.28),(.75,2.11),(.887,3.16)
+            ]
+            ax.clabel(im,im.levels,inline=True,fontsize=CLABEL_SIZE,fmt=_fmt_atm,zorder=100,inline_spacing=1,manual=manual)
             ax.text(0.5,0.7,'$\\mathrm{Thick\\; H_2\\; Envelope}$',
                     transform=ax.transAxes,fontsize=10,color='w',ha='center',va='center')
             ax.scatter(temp_ratio,pl_true_radius.to_value(u.R_earth),

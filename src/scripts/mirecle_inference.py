@@ -19,7 +19,7 @@ import VSPEC
 from vpie import bin_image, fold_image as fold_image
 
 import paths
-from common import figure_context, COLWIDTH
+from common import figure_context, COLWIDTH, CLABEL_SIZE
 from mirecle2d_grid import get_interp as get_interp_200cm, dt_to_eps as temp_to_log_epsilon
 from mirecle50cm_grid import get_interp as get_interp_50cm
 from mirecle564cm_grid import get_interp as get_interp_564cm
@@ -76,6 +76,23 @@ CHI2_NOISE_SCALE = (
             3.0214025602814893
             ])
 )
+MANUAL = [
+    [
+        [(.15,.9),(.32,.95),(.35,.6),(.2,1.35),(.2,1.65)],
+        [(.45,.9),(.32,.75),(.17,1.2),(.2,1.4),(.2,1.65)],
+        [(.18,.4),(.225,.5),(.2,.75),(.2,1),(.2,1.45)]
+    ],
+    [
+        [(.17,1.2),(.17,.5),(.2,1.5),(.2,1.8),(.2,2.5)],
+        [(.5,.8),(.4,1.3),(.3,.5),(.2,1.6),(.2,2.4)],
+        [(.2,.6),(.2,.8),(.2,1.1),(.2,1.6),(.2,2.3)]
+    ],
+    [
+        [(0,1),(0,1),(.15,.6),(.2,1.4),(.2,1.6)],
+        [(.5,1),(.5,1),(.5,.8),(.5,.5),(.2,1.5)],
+        [(.26,.4),(.15,.55),(.2,.7),(.2,1),(.2,1.3)]
+    ]
+]
 
 
 def _get_residual_and_noise(
@@ -119,9 +136,9 @@ if __name__ in '__main__':
     log_eps_array = temp_to_log_epsilon(temp_array)
 
     for aperture, noise_scales, interpolator_initializer, get_model, \
-            planet_params, use_cache_arr, should_fold, title in zip(
+            planet_params, use_cache_arr, should_fold, title, man_arr in zip(
                 APERTURES, CHI2_NOISE_SCALE, INTERPOLATORS, MODEL_GETTERS,
-                PLANET_PARAMS, USE_CACHE, SHOULD_FOLD, TITLES
+                PLANET_PARAMS, USE_CACHE, SHOULD_FOLD, TITLES, MANUAL
             ):
         if all(use_cache_arr):
             INTERPOLATOR = None
@@ -132,8 +149,8 @@ if __name__ in '__main__':
             logger.info(
                 f'Interpolator took {init_end-init_start:.2f} seconds to load.')
         pl_true_radius = planet_params.radius.to(u.R_earth)
-        for temperature_ratio, label, noise_scale, should_use_cache in zip(
-            TEMPERATURE_RATIOS, LABELS, noise_scales, use_cache_arr
+        for temperature_ratio, label, noise_scale, should_use_cache, man in zip(
+            TEMPERATURE_RATIOS, LABELS, noise_scales, use_cache_arr, man_arr
         ):
             radius_arr = np.linspace(RADIUS_SCALE_MIN, RADIUS_SCALE_MAX, 80)
             if should_use_cache:
@@ -209,9 +226,12 @@ if __name__ in '__main__':
                 ax.set_xlabel('$T_{\\rm night} / T_{\\rm day}$')
                 ax.grid(False)
                 fig.colorbar(im, label='$\\chi^2_{\\rm red}$')
-                levels = [1, 4, 9, 16, 25, 100, 225, 400]
+                levels = [4, 9, 25, 100, 400]
 
                 def _fmt(x):
+                    # pylint: disable-next=cell-var-from-loop
+                    if x<25 and aperture>200 and not label=='high':
+                        return ''
                     return f'$\\chi^2_{{\\rm red}} = {x:.0f}$'
                 im = ax.contour(
                     temp_array, (radius_arr *
@@ -220,7 +240,7 @@ if __name__ in '__main__':
                     colors='k',
                     linestyles='dashed'
                 )
-                ax.clabel(im, im.levels, inline=True, fontsize=10, fmt=_fmt)
+                ax.clabel(im, im.levels, inline=True, fontsize=CLABEL_SIZE, fmt=_fmt, inline_spacing=1,manual=man)
                 levels = [0.75, 1, 1.3, 2.6]
                 labels = [  # See Zeng+2019
                     # Also note that Lopez & Fortney (2014)
@@ -245,8 +265,11 @@ if __name__ in '__main__':
                 def _fmt_atm(x):
                     # pylint: disable-next=cell-var-from-loop
                     return dict(zip(levels, labels))[x]
+                manual = [
+                    (.77,.75),(.77,1),(.77,1.3),(.77,2.6)
+                ]
                 ax.clabel(im, im.levels, inline=True,
-                          fontsize=10, fmt=_fmt_atm, zorder=100)
+                          fontsize=CLABEL_SIZE, fmt=_fmt_atm, zorder=100, inline_spacing=1, manual=manual)
                 ax.scatter(temperature_ratio, pl_true_radius.to_value(u.R_earth),
                            marker='*', c='#c50d15', s=200, edgecolor='w')
                 if label == 'null':
