@@ -21,7 +21,8 @@ from toi519_run import (
     get_model, PLANET as PLANET_PARAMS,
     RADIUS_SCALE_MIN, RADIUS_SCALE_MAX,
     TEMP_RATIO_MIN, TEMP_RATIO_MAX,
-    SW_MAX, LW_MIN
+    SW_MAX, LW_MIN,
+    WL_BIN_SIZE, TIME_BIN_SIZE
 )
 
 
@@ -34,8 +35,6 @@ NOISE_SCALE = 1.0
 THERMAL_SCALE = 1.0
 SEED = 33
 FLUX_UNIT = u.Unit('W m-2 um-1')
-BIN_WL = 6
-BIN_TIME = 4
 TEMP_ARRAY = np.linspace(TEMP_RATIO_MIN, TEMP_RATIO_MAX, 150)
 RADIUS_ARRAY = np.linspace(RADIUS_SCALE_MIN, RADIUS_SCALE_MAX, 80)
 TEMPERATURE_RATIOS = [0.5, 0.99]
@@ -47,12 +46,12 @@ USE_CACHE = [
 ]
 CHI2_NOISE_SCALE = [
     np.sqrt([
-        16.728182103819513,
-        13.789226575837516
+        2.377711619217061,
+        3.2133990518653364
     ]),
     np.sqrt([
-        13.567046889948333,
-        14.488140892357649
+        3.198892481053741,
+        2.963006679560091
     ])
 ]
 LABELS = [
@@ -136,9 +135,9 @@ if __name__ in '__main__':
                     np.log10(data_epsilon), chi_noise_scale=noise_scale,
                     remove_eclipse=not use_eclipse
                 )
-                data_residual = bin_image(data_residual, BIN_WL, BIN_TIME, 1)
-                data_noise = bin_image(data_uncertainty, BIN_WL, BIN_TIME, 2)
-                binned_wl = bin_image(wl.to_value(u.um), BIN_WL, 1, 1)[0, :]
+                data_residual = bin_image(data_residual, WL_BIN_SIZE, TIME_BIN_SIZE, 1)
+                data_noise = bin_image(data_uncertainty, WL_BIN_SIZE, TIME_BIN_SIZE, 2)
+                binned_wl = bin_image(wl.to_value(u.um), WL_BIN_SIZE, 1, 1)[0, :]
                 for i, rad in tqdm(
                     enumerate(RADIUS_ARRAY), total=RADIUS_ARRAY.size,
                     desc=f'{heat_redistribution} ({use_eclipse})'
@@ -156,7 +155,7 @@ if __name__ in '__main__':
                         )
                         grid_residual = grid_reconstruction - grid_thermal
                         binned_grid_residual = bin_image(
-                            grid_residual, BIN_WL, BIN_TIME, 1)
+                            grid_residual, WL_BIN_SIZE, TIME_BIN_SIZE, 1)
                         difference = binned_grid_residual - data_residual
                         chi_sq_2d = difference**2/(data_noise)**2
                         long_wl = binned_wl >= LW_MIN.to_value(u.um)
