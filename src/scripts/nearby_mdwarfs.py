@@ -22,6 +22,7 @@ import paths
 
 OUTPATH = paths.figures / 'nearby_mdwarfs.pdf'
 DATEPATH = paths.output / 'nearby_mdwarfs_date.txt'
+BIBPATH = paths.tex / 'nea.bib'
 
 TRANSIT_COLOR = 'DE5126'
 NONTRANSIT_COLOR = '458977'
@@ -218,6 +219,18 @@ def print_demographics(_df):
         f'{n_nontransit} non-transiting exoplanets. The maximum '
         f'equilibrium temperature is {teq_max:.1f} K.')
 
+def _write_citation(date: str):
+    with open(BIBPATH, 'w', encoding='utf-8') as f:
+        s = """@misc{nea13,
+doi = {10.26133/NEA13},
+url = {https://catcopy.ipac.caltech.edu/dois/doi.php?id=10.26133/NEA13},
+author = {{NASA Exoplanet Science Institute}},
+title = {Planetary Systems Composite Parameters Table},
+version = """ + f"{{Last Accessed: {date}}}" + """,
+publisher = {IPAC},
+year = {2020} }"""
+        f.write(s)
+
 
 def setup_fig(credit=True):
     """
@@ -237,6 +250,7 @@ def setup_fig(credit=True):
     #           date, fontfamily='serif', fontsize=CREDIT_TEXT_SIZE, weight='normal',ha='right')
     with open(DATEPATH, 'w', encoding='utf-8') as f:
         f.write(date)
+    _write_citation(date)
     if credit:
         _fig.text(0.6, dist_from_bottom, 'Created by: Ted Johnson (UNLV, GSFC)',
                   fontfamily='serif', fontsize=CREDIT_TEXT_SIZE, ha='left', weight='normal')
