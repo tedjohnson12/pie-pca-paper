@@ -15,6 +15,41 @@ import common
 TABLE_FILE = paths.output / 'tab.txt'
 
 
+ROWS_STAR = [
+    'Stellar Effective Temperature',
+    'Stellar Radius',
+    'Stellar Rotation Period',
+    'Photosphere Temperature',
+    'Spot Temperature',
+    'Spot Coverage Fraction'
+]
+ROWS_PLANET = [
+    'Planet Radius',
+    'Planet Mass',
+    'Planet $T_\\mathrm{eq}$',
+    'Semimajor Axis',
+    'Orbital Period',
+    'Eccentricity',
+    'Initial Phase',
+    'Distance',
+    'Inclination',
+    'Mean Molecular Weight',
+    'Albedo'
+]
+ROWS_INSTRUMENT = [
+    'Aperature',
+    'Observation Length',
+    'Observation Cadence',
+    'Short Wavelength',
+    'Long Wavelength',
+    'Resolving Power',
+    'SW',
+    'LW'
+]
+
+RULEFILL = '~\\leaders\\vrule height 2.5pt depth -2pt \\hfill \\null~'
+
+
 def write_table():
     """
     Write a table that includes parameters from all examples.
@@ -25,7 +60,7 @@ def write_table():
         '\\begin{tabular}{ccccc}',
         '\\hline',
         'Quantity & TOI-519 b & GJ 876 d & PCb/JWST & PCb/Future Observatory \\\\',
-        '\\hline',
+        # '\\hline',
     ]
     keys_toi519 = toi519.TAB.keys()
     keys_gj876 = gj876.TAB.keys()
@@ -40,19 +75,27 @@ def write_table():
             assert k in TAB_MIRECLE
         except AssertionError:
             logger.warning(f'{k} not in all tables')
-    for k in keys_toi519:
+    lines.append(f'\\multicolumn{{5}}{{c}}{{{RULEFILL}Stellar Parameters{RULEFILL}}} \\\\')
+    # lines.append('\\hline')
+    for k in ROWS_STAR:
         lines.append(
             f'{k} & {toi519.TAB.get(k,"")} & {gj876.TAB.get(k,"")} & {proxb.TAB.get(k,"")} & {TAB_MIRECLE.get(k,"")} \\\\')
-    lines.append('\\hline')
-    lines.append('\\multicolumn{5}{c}{Inference Grid} \\\\')
-    lines.append('\\hline')
+    lines.append(f'\\multicolumn{{5}}{{c}}{{{RULEFILL}Planet Parameters{RULEFILL}}} \\\\')
+    for k in ROWS_PLANET:
+        lines.append(
+            f'{k} & {toi519.TAB.get(k,"")} & {gj876.TAB.get(k,"")} & {proxb.TAB.get(k,"")} & {TAB_MIRECLE.get(k,"")} \\\\')
+    lines.append(f'\\multicolumn{{5}}{{c}}{{{RULEFILL}Instrument Parameters{RULEFILL}}} \\\\')
+    for k in ROWS_INSTRUMENT:
+        lines.append(
+            f'{k} & {toi519.TAB.get(k,"")} & {gj876.TAB.get(k,"")} & {proxb.TAB.get(k,"")} & {TAB_MIRECLE.get(k,"")} \\\\')
+    lines.append(f'\\multicolumn{{5}}{{c}}{{{RULEFILL}Inference Grid{RULEFILL}}} \\\\')
     _radius_range = [
-        f'${toi519.RADIUS_SCALE_MIN*toi519.PLANET.radius.to_value(u.R_jup):.1f}--'
+        f'${toi519.RADIUS_SCALE_MIN*toi519.PLANET.radius.to_value(u.R_jup):.1f}-'
         f'{toi519.RADIUS_SCALE_MAX*toi519.PLANET.radius.to_value(u.R_jup):.1f}\\,R_\\mathrm{{J}}$',
         f'${gj876.RADIUS_SCALE_MIN*gj876.PLANET.radius.to_value(u.R_earth):.1f}-'
-        f'-{gj876.RADIUS_SCALE_MAX*gj876.PLANET.radius.to_value(u.R_earth):.1f}\\,R_\\oplus$',
+        f'{gj876.RADIUS_SCALE_MAX*gj876.PLANET.radius.to_value(u.R_earth):.1f}\\,R_\\oplus$',
         f'${proxb.RADIUS_SCALE_MIN*proxb.PLANET.radius.to_value(u.R_earth):.1f}-'
-        f'-{proxb.RADIUS_SCALE_MAX*proxb.PLANET.radius.to_value(u.R_earth):.1f}\\,R_\\oplus$',
+        f'{proxb.RADIUS_SCALE_MAX*proxb.PLANET.radius.to_value(u.R_earth):.1f}\\,R_\\oplus$',
         '-'
     ]
     _temp_range = [

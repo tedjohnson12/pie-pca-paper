@@ -247,7 +247,7 @@ TAB = {
     'Short Wavelength': f'{INST.bandpass.wl_blue:latex}',
     'Long Wavelength': f'{INST.bandpass.wl_red:latex}',
     'Resolving Power': f'{INST.bandpass.resolving_power:.0f}',
-    'Mean Molecular Weight': f'{GCM_DICT["gcm"]["mean_molec_weight"]:.0f}{foot(REF["assumed"])}',
+    'Mean Molecular Weight': f'{GCM_DICT["gcm"]["mean_molec_weight"]:.0f}$\\;\\mathrm{{g\\;cm^{{-3}}}}${foot(REF["assumed"])}',
     'Albedo': f'{GCM_DICT["gcm"]["vspec"]["albedo"]:.1f}{foot(REF["assumed"])}',
     'SW': f'$<\\;${SW_MAX.round(1):latex}',
     'LW': f'$>\\;${LW_MIN.round(1):latex}'

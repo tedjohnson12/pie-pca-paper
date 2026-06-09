@@ -35,7 +35,7 @@ TAB = {
     'Short Wavelength': [f'{m.INST.bandpass.wl_blue:latex}' for m in mods],
     'Long Wavelength': [f'{m.INST.bandpass.wl_red:latex}' for m in mods],
     'Resolving Power': [f'{m.INST.bandpass.resolving_power:.0f}' for m in mods],
-    'Mean Molecular Weight': [f'{m.GCM_DICT["gcm"]["mean_molec_weight"]:.0f}{foot(REF["assumed"])}' for m in mods],
+    'Mean Molecular Weight': [f'{m.GCM_DICT["gcm"]["mean_molec_weight"]:.0f}$\\;\\mathrm{{g\\;cm^{{-3}}}}${foot(REF["assumed"])}' for m in mods],
     'Albedo': [f'{m.GCM_DICT["gcm"]["vspec"]["albedo"]:.1f}{foot(REF["assumed"])}' for m in mods],
     'SW': [f'$<\\;${mi.SW_MAX.round(1):latex}' for m in mods],
     'LW': [f'$>\\;${mi.LW_MIN.round(1):latex}' for m in mods],
