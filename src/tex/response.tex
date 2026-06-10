@@ -12,7 +12,7 @@
 \fboxrule=3pt
 \fboxsep=4pt
 
-\newcommand{\tentative}[1]{\textcolor{red}{#1}}
+% \newcommand{\tentative}[1]{\textcolor{red}{#1}}
 
 \newenvironment{response}[1]{
 \begin{minipage}{\textwidth}
@@ -26,12 +26,13 @@
     {\end{minipage}\end{minipage}\vspace{3mm}}
 
 
+\signature{Ted Johnson \& Avi Mandell}
 \begin{document}
 
 \begin{letter}{}
     \opening{Dear Editor Endl, Anonymous Reviewer, and Data Editors,}
 
-    Please find our revised manuscript alongside the below response to the reviewer's report. Changes have been highlighted in \textcolor{blue}{\bf blue}.
+    Thank you to the Reviewer and Editors for the thoughtful review. Please find our revised manuscript alongside the below response to the reviewer's report. Changes to the manuscript have been highlighted in \textcolor{blue}{\bf blue}.
 
     In addition to responding to the reviewer's report, the authors have made the following additional changes:
     
@@ -43,7 +44,7 @@
         \item Added a keyword to the manuscript.
         \item Added \verb|\shortauthors| and \verb|\shorttitle|
         \item Phase-folded the raw data used to create the left panels of Figure 8 (0.5 M MIR observatory), edited discussion where appropriate.
-        \item Added more background about characterizing exoplanets with thermal emission. Lines \tentative{83--123}.
+        \item Added more background about characterizing exoplanets with thermal emission. Lines 82--124.
         \item Combined tables 1, 2, and 3 into a single table and added an additional column.
         \item Wavelength values which defined the SW and LW regions were updated to provide better constraints on planetary properties. Figures and text have been updated appropriately.
         \item General language editing.
@@ -63,17 +64,17 @@
     \begin{response}{
         B) It is great that the authors considered 3 scenarios for each target, but I am concerned that the phase variation amplitudes of these non-transiting planets are overstated. For transparency and reproducibility, could the author state how the different T\_day and T\_night relate to T\_eq?
     }
-        $T_\mathrm{night}$ and $T_\mathrm{day}$ are actually more directly related to the quantity $T_0$ as defined in Cowan \& Agol (2011) eq. (4), which is the sub-stellar equilibrium temperature for a non-rotating airless object. We have added text (lines \tentative{409--416}) that references this work, notes that $T_\mathrm{night}/T_\mathrm{day}$ is computed based on the thermal inertia parameter, and describes how $T_\mathrm{night}$ and $T_\mathrm{day}$ are defined. This change led to rewording of the subsequent paragraph (lines \tentative{417--423}).
+        $T_\mathrm{night}$ and $T_\mathrm{day}$ are actually more directly related to the quantity $T_0$ as defined in Cowan \& Agol (2011) eq. (4), which is the sub-stellar equilibrium temperature for a non-rotating airless object. We have added text (lines {433--446}) that references this work, notes that $T_\mathrm{night}/T_\mathrm{day}$ is computed based on the thermal inertia parameter, and describes how $T_\mathrm{night}$ and $T_\mathrm{day}$ are defined. This change led to rewording of the subsequent paragraph (lines {447--453}).
     \end{response}
     \begin{response}{
         C) For non-transiting planets (inc$>$90), the observed ``dayside flux'' is geometrically suppressed as F\_day is proportional to the sin(i) while the observed ``nightside flux'' is geometrically increased - leading to smaller phase amplitude than for their inc=90 counter parts. Since the author did not consider the effect of inclination on their analysis, it would be adequate to either 1) show that in the maximal inclination (such that the planet does not transit) case, the effect of inclination on F\_day and F\_night are negligible for each target or 2) provide further discussion as to how the orbital inclination might affect the observed phase variation. A citation to Cowan et al. 2013 and Selsis et al. 2011 would be appropriate.
         }
-        This is a great point. We have added text (lines \tentative{547--565}) where we briefly describe the results of a calculation of the effects of orbital inclination on the phase curve of GJ 876. For the most part, The differences between $i\sim90^\circ$ and $60^\circ$ are small. We also added a reference to Selsis et al. (2011).
+        This is a great point. We have added text (lines {593--611}) where we briefly describe the results of a calculation of the effects of orbital inclination on the phase curve of GJ 876. For the most part, The differences between $i\sim90^\circ$ and $60^\circ$ are small. We also added a reference to Selsis et al. (2011).
     \end{response}
     \begin{response}{
         D) Since the reduced chi-squared is the metric represented in all the important figures of the manuscript, please describe how you are computing the reduced chi-squared (i.e. number of degrees of freedom and how the deviation is calculated) for reproducibility.
     }
-          Thanks for the suggestion. We have added more detail in lines \tentative{370--377}.
+          Thanks for the suggestion. We have added more detail in lines {366--380}.
     \end{response}
     \begin{response}{
         E) In Figure 3, the residuals for the full heat redistribution are negative, which to me suggest that the model observations are over-predicting the stellar emission at long-wavelength. Can the authors provide further explanation as to why that might be? Would this lead to uncertainties on the absolute planetary flux measurement?
@@ -90,7 +91,7 @@
         \end{align*}
         because it can be measured directly. The figure has been updated to make this more clear. We also added text in the figure caption which notes the fact that most of the values are negative and points out that this process is expected to produce negative and positive residuals in general.
 
-        In addition to updating the figure and caption, we added text (lines \tentative{362--377}) which gives additional details about Figure 3.
+        In addition to updating the figure and caption, we added text (lines {349--366}) which gives additional details about Figure 3.
     \end{response}
     \begin{response}{
         Line 155: please cite Coulombe et al. 2024 who simultaneously fit for stellar variability (granulation and oscillation), reflected light and thermal emission variations.
@@ -110,7 +111,7 @@
     \begin{response}{
         Line 278: before mentioning the different scenarios applied to each target, it would be useful to mention the targets that will be simulated as well.
     }
-        Text has been added in lines \tentative{383--388}.
+        Text has been added in lines {401--405}.
     \end{response}
     \begin{response}{
         Line 284: to be consistent with the citations for the moderately-efficient case, Nguyen et al. 2020 and Hammond et al. 2025 for "highly inefficient/airless cases" and Hammond et al. 2017 for efficient heat transport.
@@ -193,6 +194,7 @@
         This is a great point and actually showcases one of the strengths of VPIE. The mechanism proposed by Vasilyev et al. (2025) for the sudden increases in brightness is that spots disappear, which is the same kind of variability VPIE is designed to account for. We have added additional text to discuss this.
     \end{response}
     
+    \pagebreak
     {\bf Data Editors' report}
 
     \begin{response}{
@@ -224,6 +226,7 @@
         We have added a citation to the specific table and adjusted the text to say ``NASA Exoplanet Archive''.
     \end{response}
     
+    \closing{Thank you, and we look forward to your response,}
 
 \end{letter}
 
