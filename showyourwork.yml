@@ -33,10 +33,135 @@ datasets:
 dependencies:
   # src/scripts/my_script.py:
   #   - src/data/dataset_for_my_script.dat
-  # src/tex/ms.tex:
-  #   - src/tex/stylesheet.tex
-  src/tex/figures/toi519_retrieval_red_chi_square_radius_eclipse_null.pdf:
-    - src/scripts/toi519_radius2d_eclipse_null.py 
+  src/tex/ms.tex:
+    - src/tex/output/nea.bib
+    - src/tex/output/tab.txt
+  src/tex/output/nea.bib:
+    - src/scripts/nearby_mdwarfs.py
+  src/tex/output/tab.txt:
+    - src/scripts/write_table.py
+  src/scripts/chi2_test.py:
+  - src/scripts/common.py
+  - src/scripts/gj876_grid.py
+  - src/scripts/gj876_run.py
+  - src/scripts/paths.py
+  src/scripts/fig3d_final.py:
+  - src/scripts/colors.py
+  - src/scripts/common.py
+  - src/scripts/paths.py
+  src/scripts/gj876_diagnostic.py:
+  - src/scripts/common.py
+  - src/scripts/gj876_grid.py
+  - src/scripts/gj876_run.py
+  src/scripts/gj876_grid.py:
+  - src/scripts/common.py
+  - src/scripts/gj876_run.py
+  - src/scripts/paths.py
+  src/scripts/gj876_inclination.py:
+  - src/scripts/gj876_run.py
+  src/scripts/gj876_inference.py:
+  - src/scripts/common.py
+  - src/scripts/gj876_grid.py
+  - src/scripts/gj876_run.py
+  - src/scripts/paths.py
+  src/scripts/gj876_plot.py:
+  - src/scripts/gj876_run.py
+  - src/scripts/paths.py
+  src/scripts/gj876_run.py:
+  - src/scripts/common.py
+  - src/scripts/paths.py
+  src/scripts/merge_download.py:
+  - src/scripts/paths.py
+  src/scripts/mirecle2d_grid.py:
+  - src/scripts/common.py
+  - src/scripts/mirecle2m_run.py
+  - src/scripts/paths.py
+  src/scripts/mirecle2m_run.py:
+  - src/scripts/paths.py
+  - src/scripts/proxb_run.py
+  src/scripts/mirecle50cm_diagnostic.py:
+  - src/scripts/common.py
+  - src/scripts/mirecle50cm_grid.py
+  - src/scripts/mirecle50cm_run.py
+  src/scripts/mirecle50cm_grid.py:
+  - src/scripts/common.py
+  - src/scripts/mirecle50cm_run.py
+  - src/scripts/paths.py
+  src/scripts/mirecle50cm_run.py:
+  - src/scripts/paths.py
+  - src/scripts/proxb_run.py
+  src/scripts/mirecle564cm_grid.py:
+  - src/scripts/common.py
+  - src/scripts/mirecle564cm_run.py
+  - src/scripts/paths.py
+  src/scripts/mirecle564cm_run.py:
+  - src/scripts/proxb_run.py
+  src/scripts/mirecle_inference.py:
+  - src/scripts/common.py
+  - src/scripts/mirecle2d_grid.py
+  - src/scripts/mirecle2m_run.py
+  - src/scripts/mirecle50cm_grid.py
+  - src/scripts/mirecle50cm_run.py
+  - src/scripts/mirecle564cm_grid.py
+  - src/scripts/mirecle564cm_run.py
+  - src/scripts/paths.py
+  - src/scripts/proxb_run.py
+  src/scripts/mirecle_table_col.py:
+  - src/scripts/common.py
+  - src/scripts/mirecle2m_run.py
+  - src/scripts/mirecle50cm_run.py
+  - src/scripts/mirecle564cm_run.py
+  - src/scripts/mirecle_inference.py
+  - src/scripts/proxb_run.py
+  src/scripts/nearby_mdwarfs.py:
+  - src/scripts/paths.py
+  src/scripts/proxb_diagnostic.py:
+  - src/scripts/common.py
+  - src/scripts/proxb_grid.py
+  - src/scripts/proxb_run.py
+  src/scripts/proxb_grid.py:
+  - src/scripts/common.py
+  - src/scripts/paths.py
+  - src/scripts/proxb_run.py
+  src/scripts/proxb_inference.py:
+  - src/scripts/common.py
+  - src/scripts/paths.py
+  - src/scripts/proxb_grid.py
+  - src/scripts/proxb_run.py
+  src/scripts/proxb_plot.py:
+  - src/scripts/paths.py
+  - src/scripts/proxb_run.py
+  src/scripts/proxb_run.py:
+  - src/scripts/common.py
+  - src/scripts/paths.py
+  src/scripts/toi519_diagnostic.py:
+  - src/scripts/common.py
+  - src/scripts/toi519_grid.py
+  - src/scripts/toi519_run.py
+  src/scripts/toi519_grid.py:
+  - src/scripts/common.py
+  - src/scripts/paths.py
+  - src/scripts/toi519_run.py
+  src/scripts/toi519_inference.py:
+  - src/scripts/common.py
+  - src/scripts/paths.py
+  - src/scripts/toi519_grid.py
+  - src/scripts/toi519_run.py
+  src/scripts/toi519_plot.py:
+  - src/scripts/common.py
+  - src/scripts/paths.py
+  - src/scripts/toi519_run.py
+  src/scripts/toi519_run.py:
+  - src/scripts/common.py
+  - src/scripts/paths.py
+  src/scripts/write_table.py:
+  - src/scripts/common.py
+  - src/scripts/gj876_run.py
+  - src/scripts/mirecle_table_col.py
+  - src/scripts/paths.py
+  - src/scripts/proxb_run.py
+  - src/scripts/toi519_run.py
+
 
 # Name of the `.tex` manuscript and corresponding `.pdf` article
 ms_name: ms
