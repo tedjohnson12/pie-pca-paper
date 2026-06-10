@@ -34,6 +34,7 @@ BIN_TIME = 3
 LEGEND_TEXT_SIZE = 8
 AXIS_TEXT_SIZE = 10
 INDEX_TO_PLOT = -1
+ALPHA = 0.5
 
 if __name__ in '__main__':
     plt.style.use('bmh')
@@ -118,22 +119,29 @@ if __name__ in '__main__':
     ax.plot(time.to_value(u.day), thermal[:, INDEX_TO_PLOT], c='C1', ls='--',
             label='$\\boldsymbol{f}(\\theta_1)$, '
             '$\\theta_1 = \\{\\mathrm{inefficient,}\\,2.5\\,R_\\oplus\\}$')
-    for i, k in enumerate(sorted(list(s))):
-        a = coeffs[:, i]
-        print(k)
-        f_k = thermal[k, INDEX_TO_PLOT]
-        akfk = a*f_k
-        k_set = r",\,".join([str(k) for k in sorted(list(s))])
-        label = f'$ -a_k \\,\\boldsymbol{{f}}_k(\\theta_1) $ for $k \\in \\{{{k_set}\\}}$'\
-            if i == 0 else None
-        ax.plot(time.to_value(u.day), -akfk, c='C1', ls=':', label=label)
-
-    model_residual = thermal - vpie.get_reconstruction(thermal, coeffs, s)
+    # for i, k in enumerate(sorted(list(s))):
+    #     a = coeffs[:, i]
+    #     print(k)
+    #     f_k = thermal[k, INDEX_TO_PLOT]
+    #     akfk = a*f_k
+    #     k_set = r",\,".join([str(k) for k in sorted(list(s))])
+    #     label = f'$ -a_k \\,\\boldsymbol{{f}}_k(\\theta_1) $ for $k \\in \\{{{k_set}\\}}$'\
+    #         if i == 0 else None
+    #     ax.plot(time.to_value(u.day), -akfk, c='C1', ls=':', label=label)
+    thermal_reconstructed = vpie.get_reconstruction(thermal, coeffs, s)
+    ax.plot(
+        time.to_value(u.day),
+        -thermal_reconstructed[:, INDEX_TO_PLOT],
+        c='C1',
+        ls=':',
+        label='$-\\;\\tilde{\\boldsymbol{f}} (\\theta_1) = -\\sum a_k \\,\\boldsymbol{f}_k(\\theta_1)$'
+    )
+    model_residual = thermal - thermal_reconstructed
     chi2 = (residual_baseline[:, INDEX_TO_PLOT] - model_residual[:,
             INDEX_TO_PLOT])**2 / uncertainty_baseline[:, INDEX_TO_PLOT]**2
     red_chi2 = np.sum(chi2)/(len(chi2) - 2)
     label = '$\\boldsymbol{\\delta}(\\theta_1) = ' + \
-        '\\boldsymbol{f}(\\theta_1) - \\sum a_k \\,\\boldsymbol{{f}}_k(\\theta_1) $ \t' + \
+        '\\boldsymbol{f}(\\theta_1) - \\tilde{\\boldsymbol{f}} (\\theta_1) $     ' + \
         f'$\\chi^2_\\mathrm{{red}} = {red_chi2:.1f}$'
     ax.plot(time.to_value(u.day),
             model_residual[:, INDEX_TO_PLOT], c='C1', label=label)
@@ -143,10 +151,10 @@ if __name__ in '__main__':
             INDEX_TO_PLOT])**2 / uncertainty_baseline[:, INDEX_TO_PLOT]**2
     red_chi2 = np.sum(chi2)/(len(chi2) - 2)
     label = '$\\boldsymbol{\\delta}(\\theta_2)$, ' +\
-        '$\\theta_2 = \\{\\mathrm{mod.\\;efficient,}\\,2.5\\,R_\\oplus\\}$\t' + \
+        '$\\theta_2 = \\{\\mathrm{mod.\\;efficient,}\\,2.5\\,R_\\oplus\\}$    ' + \
         f'$\\chi^2_\\mathrm{{red}} = {red_chi2:.1f}$'
     ax.plot(time.to_value(u.day),
-            model_residual_wrong[:, INDEX_TO_PLOT], c='C2', label=label)
+            model_residual_wrong[:, INDEX_TO_PLOT], c='C2', label=label,alpha=ALPHA)
     SCALE = (3/2.5)**2
     model_residual = thermal*SCALE - \
         vpie.get_reconstruction(thermal*SCALE, coeffs, s)
@@ -154,10 +162,10 @@ if __name__ in '__main__':
             INDEX_TO_PLOT])**2 / uncertainty_baseline[:, INDEX_TO_PLOT]**2
     red_chi2 = np.sum(chi2)/(len(chi2) - 2)
     label = '$\\boldsymbol{\\delta}(\\theta_3)$, ' + \
-        '$\\theta_3 = \\{\\mathrm{inefficient,}\\,3.0\\,R_\\oplus\\}$\t' + \
+        '$\\theta_3 = \\{\\mathrm{inefficient,}\\,3.0\\,R_\\oplus\\}$    ' + \
         f'$\\chi^2_\\mathrm{{red}} = {red_chi2:.1f}$'
     ax.plot(time.to_value(u.day),
-            model_residual[:, INDEX_TO_PLOT], c='C3', label=label)
+            model_residual[:, INDEX_TO_PLOT], c='C3', label=label,alpha=ALPHA)
     ax.set_xlabel('Time (days)', fontsize=AXIS_TEXT_SIZE, fontfamily='serif')
     ax.set_ylabel('Flux @ LW ($\\mathrm{W m^{-2} \\mu m^{-1}}$)',
                   fontsize=AXIS_TEXT_SIZE, fontfamily='serif')
